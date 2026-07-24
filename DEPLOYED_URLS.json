@@ -1,0 +1,11 @@
+{
+  "web_url": "https://career-copilot-v2.photomagic.workers.dev",
+  "scheduler_url": "https://career-copilot-scheduler.photomagic.workers.dev",
+  "runtime_check": "https://career-copilot-v2.photomagic.workers.dev/api/runtime",
+  "scheduler_health_check": "https://career-copilot-scheduler.photomagic.workers.dev/health",
+  "application_commit": "e88ea1072de2fe5253dca351efcd1baecd5072f2",
+  "mode": "demo",
+  "schedule": "0 11 * * *",
+  "verified_at": "2026-07-24T07:48:27Z",
+  "verification_run": "https://github.com/ronineymessjr-sudo/public-apis-resource/actions/runs/30076686191"
+}

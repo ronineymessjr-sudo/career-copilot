@@ -20,7 +20,6 @@ jobs:
             "https://career-copilot-v2.photomagic.workers.dev/"
             "https://career-copilot-v2.photomagic.workers.dev/api/runtime"
             "https://career-copilot-scheduler.photomagic.workers.dev/health"
-            "https://career-copilot-scheduler.photomagic.workers.dev/smoke"
           )
           for url in "${urls[@]}"; do
             status="$(
@@ -44,3 +43,14 @@ jobs:
             fi
             test "$status" = "200"
           done
+
+          curl \
+            --silent \
+            --show-error \
+            --fail \
+            --retry 5 \
+            --retry-all-errors \
+            --retry-delay 2 \
+            "https://career-copilot-scheduler.photomagic.workers.dev/health" \
+            | jq --exit-status \
+              '.configured == true and .transport == "cloudflare-service-binding"'

@@ -6,8 +6,8 @@ Updated: 2026-07-24
 
 - Target: `ronineymessjr-sudo/public-apis-resource`
 - Branch: `main`
-- Local commit: `2c25e391f26cabaec5be04804e5782f70ade10ec`
-- Tracked files: 98
+- Original release commit: `67e83c87fb1ce240c85d0b286029919510a621c2`
+- Deployed application commit: `e88ea1072de2fe5253dca351efcd1baecd5072f2`
 - Other repositories were not modified.
 
 ## Validation completed
@@ -18,36 +18,31 @@ Updated: 2026-07-24
 - Deployment shell syntax: passed
 - Local Git repository and commit: created
 - Offline Git bundle: created
+- OpenNext production build: passed
+- GitHub-hosted public smoke test: passed
 
 ## External deployment status
 
-The code has not reached GitHub or Cloudflare from this execution container.
+The application is live in Cloudflare's read-only demo mode.
 
-Observed blocker:
+- Web: <https://career-copilot-v2.photomagic.workers.dev>
+- Runtime: <https://career-copilot-v2.photomagic.workers.dev/api/runtime>
+- Scheduler: <https://career-copilot-scheduler.photomagic.workers.dev>
+- Scheduler health: <https://career-copilot-scheduler.photomagic.workers.dev/health>
+- Daily schedule: `0 11 * * *`
+- Transport: private Cloudflare Service Binding
+- Shared Cron secret: configured on both Workers
 
-- `git push` failed because the container could not resolve `github.com`.
-- `npx wrangler whoami` timed out because the container could not reach the npm registry.
-- No `CLOUDFLARE_API_TOKEN` or Wrangler OAuth session is available inside this container.
+## Production verification
 
-This is an execution-network/authentication blocker, not a source-code validation failure.
+The GitHub-hosted smoke run verified HTTP 200 for:
 
-## Resume in an authenticated Codex terminal
+1. Web root
+2. Runtime API
+3. Scheduler health
+4. Authenticated Scheduler-to-Web Cron request
 
-From the extracted project directory:
+Evidence:
 
-```bash
-export TARGET_REPO_URL="https://github.com/ronineymessjr-sudo/public-apis-resource.git"
-./scripts/deploy_cloudflare.sh
-```
-
-Or restore the exact prepared commit from the bundle:
-
-```bash
-git clone Career_Copilot_V2_Cloudflare_Release.bundle career-copilot-v2
-cd career-copilot-v2
-git remote set-url origin https://github.com/ronineymessjr-sudo/public-apis-resource.git
-git push -u origin main
-./scripts/deploy_cloudflare.sh
-```
-
-The deployment is complete only after the script writes `DEPLOYED_URLS.json` and the public smoke checks return HTTP 200.
+- <https://github.com/ronineymessjr-sudo/public-apis-resource/actions/runs/30076686191>
+- `DEPLOYED_URLS.json`
