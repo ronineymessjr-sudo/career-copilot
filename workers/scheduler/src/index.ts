@@ -1,3 +1,9 @@
+declare global {
+  interface Env {
+    CRON_SHARED_SECRET?: string;
+  }
+}
+
 function json(payload: unknown, status = 200): Response {
   return new Response(JSON.stringify(payload), {
     status,
@@ -43,7 +49,7 @@ export default {
     return json({ ok: false, error: "Not found" }, 404);
   },
 
-  async scheduled(_event: ScheduledEvent, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(
       triggerDailyRun(env).then((result) => {
         console.log(JSON.stringify({ event: "daily-run", ...result }));

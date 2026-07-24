@@ -43,8 +43,11 @@ forbidden = [
     re.compile(r"BEGIN PRIVATE KEY"),
     re.compile(r"ronineymessjr@gmail\.com", re.I),
 ]
+IGNORED_DIRS = {".git", ".next", ".open-next", ".wrangler", "node_modules"}
 for path in ROOT.rglob("*"):
     if path == Path(__file__).resolve():
+        continue
+    if any(part in IGNORED_DIRS for part in path.relative_to(ROOT).parts):
         continue
     if not path.is_file() or path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc"}:
         continue
