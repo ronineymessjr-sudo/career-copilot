@@ -1,0 +1,1 @@
+import { DataPage } from "@/components/data-page";export default function Page(){return <DataPage title="面试管理" description="管理面试轮次、问题、复盘和技能缺口。" columns={["公司","岗位","时间","状态","准备度"]}/>}

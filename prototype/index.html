@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Career Copilot V2</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-frame">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">✦</div><div><strong>Career Copilot</strong><span>Evidence-driven OS</span></div></div>
+      <nav id="nav">
+        <button class="nav-item active" data-view="dashboard">◫<span>今日简报</span></button>
+        <button class="nav-item" data-view="jobs">⌕<span>岗位发现</span></button>
+        <button class="nav-item" data-view="applications">▤<span>投递管理</span></button>
+        <button class="nav-item" data-view="resumes">▧<span>AI 简历</span></button>
+        <button class="nav-item" data-view="interviews">◌<span>面试管理</span></button>
+        <button class="nav-item" data-view="analytics">↗<span>数据洞察</span></button>
+        <button class="nav-item" data-view="engineering">◉<span>工程证据</span></button>
+      </nav>
+      <div class="sidebar-card"><div class="tiny-icon">◎</div><div><strong>2028 届 AI 本科</strong><span>远程 · 崇川 · 建邺 · 浦口</span></div></div>
+    </aside>
+    <main class="main-area">
+      <header class="topbar">
+        <div><span class="eyebrow">AI Internship Command Center</span><h1>把求职变成一套可复用的系统</h1></div>
+        <div class="topbar-actions"><button class="ghost-button" id="importBtn">导入岗位</button><button class="primary-button" id="runBtn">✦ 运行今日搜投</button></div>
+      </header>
+      <section id="view"></section>
+    </main>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./app.js"></script>
+</body>
+</html>

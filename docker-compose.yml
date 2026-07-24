@@ -1,0 +1,23 @@
+services:
+  api:
+    build: ./apps/api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./apps/api/data:/app/data
+      - ./prototype:/workspace/prototype:ro
+      - ./assets:/workspace/assets:ro
+    environment:
+      CAREER_COPILOT_DB: /app/data/career_copilot.db
+      APPROVAL_FIRST: "true"
+      MODEL_PROVIDER: ${MODEL_PROVIDER:-mock}
+      MODEL_BASE_URL: ${MODEL_BASE_URL:-http://host.docker.internal:11434}
+      MODEL_NAME: ${MODEL_NAME:-qwen2.5:3b}
+      MODEL_API_KEY: ${MODEL_API_KEY:-}
+      MODEL_TIMEOUT_SECONDS: ${MODEL_TIMEOUT_SECONDS:-45}
+      DATA_BACKEND: ${DATA_BACKEND:-sqlite}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_KEY: ${SUPABASE_KEY:-}
+      SUPABASE_ACCESS_TOKEN: ${SUPABASE_ACCESS_TOKEN:-}
+      SUPABASE_USER_ID: ${SUPABASE_USER_ID:-}
+      CAREER_COPILOT_ADMIN_TOKEN: ${CAREER_COPILOT_ADMIN_TOKEN:-}

@@ -1,0 +1,16 @@
+.env
+.venv/
+node_modules/
+.next/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.db
+!apps/api/data/seed_jobs.json
+.DS_Store
+.open-next/
+apps/web/.dev.vars
+apps/web/.env.local
+apps/web/cloudflare-env.d.ts
+.wrangler/
+workers/scheduler/worker-configuration.d.ts

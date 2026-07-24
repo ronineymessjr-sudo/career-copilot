@@ -1,0 +1,492 @@
+{
+  "version": "0.5.0-cloudflare-ready",
+  "generated_at": "2026-07-23",
+  "file_count": 98,
+  "files": [
+    {
+      "path": ".github/workflows/cloudflare-deploy.yml",
+      "size": 3210,
+      "sha256": "fbd327faea756bde421f0ebc30090f50bfd0c779ef31eb14a48b13599b0e52b1"
+    },
+    {
+      "path": ".github/workflows/engineering-evidence.yml",
+      "size": 3035,
+      "sha256": "9e60fbb19f6b14a5a3fe163dc84d0ba9b870268238ede38bc942a0eec9565cd2"
+    },
+    {
+      "path": ".gitignore",
+      "size": 247,
+      "sha256": "355ff662874c012d2f640aafbadc99bc4078af1258e3c674823977ceabc3df06"
+    },
+    {
+      "path": "CLOUDFLARE_DEPLOY.md",
+      "size": 1996,
+      "sha256": "e191860c0dcd8bf5dc8147a59d637c64eb92d64996b834c25bc494512f5667a7"
+    },
+    {
+      "path": "CODEX_DEPLOY_NOW.md",
+      "size": 598,
+      "sha256": "7df233bf63ed4d7a282c80569b695e26931d49e6e19f7aa63fd7bdfee615ab22"
+    },
+    {
+      "path": "DEPLOYMENT_HANDOFF.md",
+      "size": 1615,
+      "sha256": "cb173167fe41179d014bcf0051e87e13a965c9fe7cee28fe97992a694dc71276"
+    },
+    {
+      "path": "LICENSE",
+      "size": 1087,
+      "sha256": "6c14b93b0a45f7ebab974822d4c03e0fcce212794fc6f175e612783b03538f89"
+    },
+    {
+      "path": "MANIFEST_M03.md",
+      "size": 785,
+      "sha256": "683e8837a708dc97835108ca1dd9ba2a466639ecf5354cd0c284311d6280f9de"
+    },
+    {
+      "path": "Makefile",
+      "size": 697,
+      "sha256": "eb4a6c63eaf45a66ab2e4e3c888c32b4ee3f8f8c8790f8e297e7fed0228e9852"
+    },
+    {
+      "path": "ONLINE_STATUS.md",
+      "size": 1094,
+      "sha256": "0b16970244376a8bcae2ba32a03aa2b9e2dddff333ec49b6d456fa51b832e23f"
+    },
+    {
+      "path": "QA_REPORT.md",
+      "size": 1939,
+      "sha256": "eba89f1d70b79db6b08e4fd1701b688367f43fc389edee45ed5c2ee8d24837a8"
+    },
+    {
+      "path": "README.md",
+      "size": 2974,
+      "sha256": "a9848f951b930ca4e0bf7780beddcec277c0c2c4020dd74521dcf56af0ea90fe"
+    },
+    {
+      "path": "RELEASE_STATUS.md",
+      "size": 1417,
+      "sha256": "8dac1198b25880fecb399bc601c0632c41c8fa6c70cacf7da7114edc03e1da46"
+    },
+    {
+      "path": "apps/api/.env.example",
+      "size": 979,
+      "sha256": "d2bd2e02c38da16db931f92ca8df91b9f96f0492297169267b42ebe1f11f6749"
+    },
+    {
+      "path": "apps/api/Dockerfile",
+      "size": 231,
+      "sha256": "47eac8e6ffd3e009563b8fdc8baafadfa8794404d297c1538da99e72fc0f1f6a"
+    },
+    {
+      "path": "apps/api/app/__init__.py",
+      "size": 29,
+      "sha256": "5dddc026d546d0a7bbb95908ff81f83a85525cc5fedffa48b91a1eede092b617"
+    },
+    {
+      "path": "apps/api/app/benchmark.py",
+      "size": 3826,
+      "sha256": "fe583754e52cf189fc8864f2e94eb86acaa970ac52c373eed257c4242f9101b5"
+    },
+    {
+      "path": "apps/api/app/config.py",
+      "size": 1830,
+      "sha256": "0be5265a5f81f3e99c4c6959ede65ad2a4a70cb4da36837d4793fae37c326ca2"
+    },
+    {
+      "path": "apps/api/app/db.py",
+      "size": 6046,
+      "sha256": "e6a012e2503ca5c42db9adcb2bc6cecc44dd08128fc826b33f06293755f0bc7e"
+    },
+    {
+      "path": "apps/api/app/git_evidence.py",
+      "size": 5539,
+      "sha256": "32330ab847553ae4281da142715d09b8b3ba220ce00674835016c9b48898cda7"
+    },
+    {
+      "path": "apps/api/app/integrations/__init__.py",
+      "size": 56,
+      "sha256": "75c0f7efb6cfe25f86630d92fc0a625cf8dfe1b28ba0bca9e0a4cf7a28eca2cb"
+    },
+    {
+      "path": "apps/api/app/integrations/supabase_rest.py",
+      "size": 4923,
+      "sha256": "14c8c7aba766c1cb95c43f74c385d5339b433d7cb24ca8e561b722d76f931651"
+    },
+    {
+      "path": "apps/api/app/main.py",
+      "size": 9416,
+      "sha256": "e073caa6970f20796f7ae969b75c65b11838d31455739c72b7fe1658a05fedf0"
+    },
+    {
+      "path": "apps/api/app/model_runtime.py",
+      "size": 5117,
+      "sha256": "c2ad725ae52c8eaf350a7326819b245eea70ebbcdc5e4879feed23d824c4bda7"
+    },
+    {
+      "path": "apps/api/app/profile.py",
+      "size": 2829,
+      "sha256": "ff7376d8014bfe677ab36090f8864dab0b2eb904e7541a97b07c4121f45673f3"
+    },
+    {
+      "path": "apps/api/app/repository.py",
+      "size": 16515,
+      "sha256": "6fd3babdd70d3d2b27926cd91866673de79b79d7843de9d834c1629166986b27"
+    },
+    {
+      "path": "apps/api/app/schemas.py",
+      "size": 5950,
+      "sha256": "7dbe6765c70ab11e5e60bb512a4e937c52475fa9da99ca3bb29e4586e1554aa6"
+    },
+    {
+      "path": "apps/api/app/scoring.py",
+      "size": 8979,
+      "sha256": "60f273ce5feb75582199bd588c2a9026e81f4123cc822b5ff7a74ebdc7c14bba"
+    },
+    {
+      "path": "apps/api/app/supabase_sync.py",
+      "size": 7556,
+      "sha256": "c781d3b516c208787ffa7fd0b45d1f3f0c51b337b6a4fe31f0428bd856e4d63a"
+    },
+    {
+      "path": "apps/api/app/tailoring.py",
+      "size": 2855,
+      "sha256": "f111db66dd02a1e2782529f01c7965eecafaa7b3e91da89d9e85e1aace46be63"
+    },
+    {
+      "path": "apps/api/app/workflow.py",
+      "size": 1936,
+      "sha256": "c63cb76f8ea14440d65ea87c9ce554ffb28feafbdcca1b350ff62b8b89df7c2e"
+    },
+    {
+      "path": "apps/api/data/seed_jobs.json",
+      "size": 6249,
+      "sha256": "8729257272678e65c0b2670270f11a7740c904f0474d90a55304fa52ceeafd16"
+    },
+    {
+      "path": "apps/api/pyproject.toml",
+      "size": 151,
+      "sha256": "5615f362f6142204f8a31896a2b33cee4d6e6aedf4ccfcb2002a943eb48747ce"
+    },
+    {
+      "path": "apps/api/requirements.txt",
+      "size": 93,
+      "sha256": "2caa0f31a37283fc628fc7a5ca536f55c55a6f87aa3a257f210094b7ec236eb0"
+    },
+    {
+      "path": "apps/api/scripts/collect_git_evidence.py",
+      "size": 1378,
+      "sha256": "1dc1c215b5f2286e9927d071e0a8f09b7aa917ce3ce3140682b7bea71651cc76"
+    },
+    {
+      "path": "apps/api/scripts/prepare_top.py",
+      "size": 461,
+      "sha256": "d341f62db4bee61d16287c0c934fec2f592d7227d5dbde0178e172fbfd398902"
+    },
+    {
+      "path": "apps/api/scripts/run_model_benchmark.py",
+      "size": 815,
+      "sha256": "51dc2442457a6c0a4863853fded9d10f0e1722337a17499ff8c6c3c38c39dbe0"
+    },
+    {
+      "path": "apps/api/scripts/seed.py",
+      "size": 680,
+      "sha256": "384c538cb1ef2923bb0205bbe4a2f392a1e0a0208cd2c7464c300d44c98d6167"
+    },
+    {
+      "path": "apps/api/scripts/seed_engineering.py",
+      "size": 1190,
+      "sha256": "888c8f157eed10b826a2a95c15cacf4ba931bf480b9653c6558970168ad35cbc"
+    },
+    {
+      "path": "apps/api/tests/conftest.py",
+      "size": 638,
+      "sha256": "9e91e124dd43cdc5b367a37baf9db682543c1586c4b1ee597985b3306c8e0a43"
+    },
+    {
+      "path": "apps/api/tests/test_engineering.py",
+      "size": 2224,
+      "sha256": "800ec4a4b2aedfc9c585940503ee20daf2a61e9efbf8517479fbfe547a5f95c6"
+    },
+    {
+      "path": "apps/api/tests/test_milestone03.py",
+      "size": 5581,
+      "sha256": "28b0fe346c7efba6bc727101d51e56a346b88b0102ad778e9fa8c52ea75da742"
+    },
+    {
+      "path": "apps/api/tests/test_scoring.py",
+      "size": 1346,
+      "sha256": "e7f2891af8cdb58d5a95c998c70238fb3f5ad46720c1ddf03da534095b8a9754"
+    },
+    {
+      "path": "apps/api/tests/test_workflow.py",
+      "size": 1458,
+      "sha256": "ed97d1d4fd41c509904310eccf364f290120a5ce5f9cbca35254d3a736b9ced8"
+    },
+    {
+      "path": "apps/web/.env.example",
+      "size": 304,
+      "sha256": "081591bd2c4df66143b212cb7baec95692dfa6be214b25bdea1e958919966e22"
+    },
+    {
+      "path": "apps/web/app/analytics/page.tsx",
+      "size": 262,
+      "sha256": "6c31328aa742cefab67acd86b230c3b82771855c5ed43214d91583fccf027e43"
+    },
+    {
+      "path": "apps/web/app/api/cron/daily/route.ts",
+      "size": 1122,
+      "sha256": "373447e31d853eeb9b81ab417cf48c3411ba02d2045b920f3723222b578dab0b"
+    },
+    {
+      "path": "apps/web/app/api/runtime/route.ts",
+      "size": 419,
+      "sha256": "d108eedac90117de02c8958f49538196ff055b6ef40f10cb73632ea848fa26ac"
+    },
+    {
+      "path": "apps/web/app/applications/page.tsx",
+      "size": 259,
+      "sha256": "1348dce2eadf91b35e6c615ac3567c90acf572df9fa91655ea6ab6cc0da0ef05"
+    },
+    {
+      "path": "apps/web/app/engineering/page.tsx",
+      "size": 264,
+      "sha256": "f47fb7f7ff1691b60cddbd106d2377f66d41a5bb13da6a3af65b516817e6b52e"
+    },
+    {
+      "path": "apps/web/app/globals.css",
+      "size": 16900,
+      "sha256": "e50734aadfb1e369802a404d2c887e25211fe74eb121e0db713d87f0d88f3885"
+    },
+    {
+      "path": "apps/web/app/interviews/page.tsx",
+      "size": 250,
+      "sha256": "1f310c3f225a63010a566025897d956957d3a41b0c199820d1852ac217c4d2be"
+    },
+    {
+      "path": "apps/web/app/jobs/page.tsx",
+      "size": 253,
+      "sha256": "319ab7a0b22e5613ca2f0334a2e2178ced1d39a7e35c93c8d1dcb51668a04cb4"
+    },
+    {
+      "path": "apps/web/app/layout.tsx",
+      "size": 348,
+      "sha256": "794b826c0133ea1bc4a261eac4a63a32ee21817aa093fc6c0d7dd48f49765365"
+    },
+    {
+      "path": "apps/web/app/page.tsx",
+      "size": 291,
+      "sha256": "e3f453e9fa95a86b43075dba25797de99d737dec58c4c9d6f9a319677110444e"
+    },
+    {
+      "path": "apps/web/app/resumes/page.tsx",
+      "size": 279,
+      "sha256": "eee423d9b4d92d26d20c1ad1f82ae18e605368001cea1d3a9117c00e2606ba0c"
+    },
+    {
+      "path": "apps/web/app/settings/page.tsx",
+      "size": 265,
+      "sha256": "fa3bc8d50b1754d8371545cd5bf659b0bb67d12da8cb82d8cef69eb84af781dd"
+    },
+    {
+      "path": "apps/web/components/app-shell.tsx",
+      "size": 1709,
+      "sha256": "be54cba85b93bb061b57a47d3e6029e5ea986af99f3b550c62bc9808a0d96181"
+    },
+    {
+      "path": "apps/web/components/dashboard.tsx",
+      "size": 3841,
+      "sha256": "f9953344089fa0b0bc3018a13d5a294a10b0536518228db7ab1e1bf813c55b7e"
+    },
+    {
+      "path": "apps/web/components/data-page.tsx",
+      "size": 858,
+      "sha256": "e5216168399382ea86e168972bff81bf8cdfa77b48ca356d0f459b43cba84ee3"
+    },
+    {
+      "path": "apps/web/components/engineering-dashboard.tsx",
+      "size": 8986,
+      "sha256": "9fc53166838f02830d2614fe2901585cb7e4f87e78c66c38eb3de484ccffe9e0"
+    },
+    {
+      "path": "apps/web/components/runtime-banner.tsx",
+      "size": 541,
+      "sha256": "d30f4a855f6de77ee1a7ea4f03d3ecbe1f6b39b1c11ef097b623ed372943c19a"
+    },
+    {
+      "path": "apps/web/lib/api.ts",
+      "size": 1615,
+      "sha256": "455c3c7ab6beb1b8d66737fa4825519a9b68cb8e4add9b9130b9aef80cc89742"
+    },
+    {
+      "path": "apps/web/lib/mock-data.ts",
+      "size": 4305,
+      "sha256": "b275ca1cc4027f0eb466108e118a6316eb5d5bf8e79c54bd9e60807dfe63d5bf"
+    },
+    {
+      "path": "apps/web/lib/types.ts",
+      "size": 907,
+      "sha256": "43910fcfdac82ef68cd2aec39a8dca7394272ad634cb7e7f97cc5a5e21b12010"
+    },
+    {
+      "path": "apps/web/next-env.d.ts",
+      "size": 81,
+      "sha256": "879741880b6ab48da99dcc06dcc674d381c9826137b0496bf7bb368f302de9fc"
+    },
+    {
+      "path": "apps/web/next.config.ts",
+      "size": 259,
+      "sha256": "4cb02fb60b2c0d2c0b48d16352e8f4692cb74e6061eba68736b6d976fa75bef2"
+    },
+    {
+      "path": "apps/web/open-next.config.ts",
+      "size": 109,
+      "sha256": "55e057e2d32667bb36a088d306191b6df66c85d6d5d51e69b5a2b015079575a8"
+    },
+    {
+      "path": "apps/web/package.json",
+      "size": 1235,
+      "sha256": "c4aaad6478ac7acdc52fcb1b7fbc4afc5908e5ce55d61dd1ec9ccafe17912b17"
+    },
+    {
+      "path": "apps/web/public/_headers",
+      "size": 67,
+      "sha256": "90137f0fac2f988faf25c5910b0cfa1b6df9d31596a6b21f4ce4bba6ede5b569"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "size": 559,
+      "sha256": "e1aec308290de2674dc460b26c3fce754ce6c04ff45c65ccdce866667f8ad3d5"
+    },
+    {
+      "path": "apps/web/wrangler.jsonc",
+      "size": 593,
+      "sha256": "da7d3494332af42624310db73cc4183bac55f790fa23435f3916f7654fa7dbac"
+    },
+    {
+      "path": "docker-compose.yml",
+      "size": 849,
+      "sha256": "687dd55c6ee84dc62fedd37f780b7be8fb3e398b1bad808414e8b5629f6fe701"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "size": 915,
+      "sha256": "ee17bf1989a25df022f8370102a0dbb09342da250c1354d376a8a7615227ab15"
+    },
+    {
+      "path": "docs/DESIGN_SYSTEM.md",
+      "size": 770,
+      "sha256": "623ca03ce56a8eb973602aa5375ada6056537c2a90ebe48ef3dbf9f5c10bc6c2"
+    },
+    {
+      "path": "docs/MILESTONE_01.md",
+      "size": 578,
+      "sha256": "197184e3c964f11bc06ef8c759e2e7f7305737973bb24893b524a91e99824ce6"
+    },
+    {
+      "path": "docs/MILESTONE_02.md",
+      "size": 2151,
+      "sha256": "451c0b4e7f2d06de3a7ffab578d985f6b946084a6059b0dcff9659d48c381dd2"
+    },
+    {
+      "path": "docs/MILESTONE_03.md",
+      "size": 2883,
+      "sha256": "256ad168d7c93c6290da3f4a0aced9827b4e6cfe723038efb0db098303865508"
+    },
+    {
+      "path": "docs/OPEN_SOURCE_RESEARCH.md",
+      "size": 697,
+      "sha256": "a1e8054cd64d8fe6ad4a2d10c2e0c9e4e88f09c9237e617e122aaec93db3d989"
+    },
+    {
+      "path": "docs/PRD.md",
+      "size": 1905,
+      "sha256": "2e5d13294db6634a4ce8bf1428019b847eb040a7447c45389b35fe0739a193a4"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "size": 1651,
+      "sha256": "7b8cc336403e5064eb49bc606fc856202d971a5875ffca62f93263a0cfce5d24"
+    },
+    {
+      "path": "package.json",
+      "size": 662,
+      "sha256": "a47bdf4fe6254802a5df706e2f8f2f8713695340d87fc373b62085d40fe559a1"
+    },
+    {
+      "path": "prototype/app.js",
+      "size": 12912,
+      "sha256": "83acfec6df37e0c5aed6470636f465a39d704427b1d1261be90c58dc15955ea3"
+    },
+    {
+      "path": "prototype/index.html",
+      "size": 1827,
+      "sha256": "a0c2a20aedc96b72f431b28499fe9cc727b67d906512b44d2a60dac470e8d3ce"
+    },
+    {
+      "path": "prototype/styles.css",
+      "size": 14812,
+      "sha256": "7d41285c75a03bbb40a1e855a97e7bec7cde85444e6ecd738642a63bb0b06ade"
+    },
+    {
+      "path": "scripts/deploy_cloudflare.sh",
+      "size": 4086,
+      "sha256": "ff65a791565ea3f2a12620b62edaa37b25e209e5844f0e08d63ef979466a0318"
+    },
+    {
+      "path": "scripts/smoke_api.py",
+      "size": 1524,
+      "sha256": "fb3eb63e3375fd28422dc0f874353493a4e84ff4aaeafc8ee7b916fd2852082f"
+    },
+    {
+      "path": "scripts/smoke_m03.py",
+      "size": 4292,
+      "sha256": "d0ffa763ab5b1ee52173150f5de0bf0cb668c6912aeca0a2194dff3065ebd438"
+    },
+    {
+      "path": "scripts/validate_cloudflare.py",
+      "size": 2110,
+      "sha256": "4aa8179008ea7737be81ec68f2c8e9aa49512752c0a54ceec3e564f868130d62"
+    },
+    {
+      "path": "scripts/validate_frontend.mjs",
+      "size": 1015,
+      "sha256": "9afa27c0ee0945477e240733e1ac436e25da57d49bb1ba28d2fc6736341cedb0"
+    },
+    {
+      "path": "supabase/migrations/0001_core.sql",
+      "size": 6199,
+      "sha256": "a3a7952f0891870a3a9f35b64059b73729bb0e4e632e23a5f93412ed2dcc17cb"
+    },
+    {
+      "path": "supabase/migrations/0002_engineering_evidence.sql",
+      "size": 3036,
+      "sha256": "7836fa98340d47ca7836216a5e7f55f0b14f2df13bc7241208857068f02d3557"
+    },
+    {
+      "path": "supabase/migrations/0003_supabase_runtime_ci_benchmarks.sql",
+      "size": 9863,
+      "sha256": "127ebdea08efb2d2d45a2d4a87f4bfb9d8669f2de191c7f033043b600094ef1c"
+    },
+    {
+      "path": "workers/scheduler/package.json",
+      "size": 393,
+      "sha256": "c390d98ea3fd4fd3835fc7e67ed2e923f4fd0161510107a3c78a12a8a6e50aa1"
+    },
+    {
+      "path": "workers/scheduler/src/index.ts",
+      "size": 1618,
+      "sha256": "0831b5f84cf32ed8bdc9425a902e5abdf2a0d146661301ca573f975a7b3ffa08"
+    },
+    {
+      "path": "workers/scheduler/tsconfig.json",
+      "size": 256,
+      "sha256": "f8ad8dfe38a5836a65912a1f6a0e55778b8c621dbd747e172305e80760c6c671"
+    },
+    {
+      "path": "workers/scheduler/wrangler.jsonc",
+      "size": 495,
+      "sha256": "322cea902423a9302396bb372f8aa20cc757b5e8ca9698e923d57afd1dd2de29"
+    }
+  ]
+}
