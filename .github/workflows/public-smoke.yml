@@ -20,6 +20,7 @@ jobs:
             "https://career-copilot-v2.photomagic.workers.dev/"
             "https://career-copilot-v2.photomagic.workers.dev/api/runtime"
             "https://career-copilot-scheduler.photomagic.workers.dev/health"
+            "https://career-copilot-scheduler.photomagic.workers.dev/smoke"
           )
           for url in "${urls[@]}"; do
             status="$(
