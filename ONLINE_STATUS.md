@@ -1,17 +1,53 @@
-# Online deployment status
+# Online status
 
-## Code status
+Updated: 2026-07-24
 
-The Cloudflare release is prepared for a one-command permanent deployment:
+## Prepared repository
+
+- Target: `ronineymessjr-sudo/public-apis-resource`
+- Branch: `main`
+- Local commit: `2c25e391f26cabaec5be04804e5782f70ade10ec`
+- Tracked files: 98
+- Other repositories were not modified.
+
+## Validation completed
+
+- Cloudflare release config validation: passed
+- Web TypeScript/TSX syntax validation: 21 files passed
+- Python API compilation: passed
+- Deployment shell syntax: passed
+- Local Git repository and commit: created
+- Offline Git bundle: created
+
+## External deployment status
+
+The code has not reached GitHub or Cloudflare from this execution container.
+
+Observed blocker:
+
+- `git push` failed because the container could not resolve `github.com`.
+- `npx wrangler whoami` timed out because the container could not reach the npm registry.
+- No `CLOUDFLARE_API_TOKEN` or Wrangler OAuth session is available inside this container.
+
+This is an execution-network/authentication blocker, not a source-code validation failure.
+
+## Resume in an authenticated Codex terminal
+
+From the extracted project directory:
 
 ```bash
+export TARGET_REPO_URL="https://github.com/ronineymessjr-sudo/public-apis-resource.git"
 ./scripts/deploy_cloudflare.sh
 ```
 
-The script performs dependency installation, type generation, static checks, Next.js and OpenNext production builds, an optional first push to the dedicated empty GitHub repository, deployment of the web and scheduler Workers, secure secret injection, and public HTTP smoke tests.
+Or restore the exact prepared commit from the bundle:
 
-## External authorization status
+```bash
+git clone Career_Copilot_V2_Cloudflare_Release.bundle career-copilot-v2
+cd career-copilot-v2
+git remote set-url origin https://github.com/ronineymessjr-sudo/public-apis-resource.git
+git push -u origin main
+./scripts/deploy_cloudflare.sh
+```
 
-This ChatGPT execution environment does not contain the user's GitHub Contents write token or Cloudflare OAuth/API credentials. Attempts through the connected GitHub integration returned HTTP 403 for both Contents and Git object writes. The environment also cannot currently resolve npm or GitHub domains, so it cannot install Wrangler or create a temporary deployment.
-
-A permanent public URL therefore has not been produced in this environment. Run the command above in the already authenticated Codex environment. No other repository is touched; the default target is `ronineymessjr-sudo/public-apis-resource`.
+The deployment is complete only after the script writes `DEPLOYED_URLS.json` and the public smoke checks return HTTP 200.
