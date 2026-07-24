@@ -38,5 +38,9 @@ jobs:
                 "$url"
             )"
             printf "%s -> %s\n" "$url" "$status"
+            if [ "$status" != "200" ]; then
+              cat /tmp/smoke-body
+              printf "\n"
+            fi
             test "$status" = "200"
           done
