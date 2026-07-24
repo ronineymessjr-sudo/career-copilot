@@ -1,0 +1,41 @@
+name: Public smoke
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check public endpoints
+        shell: bash
+        run: |
+          set -euo pipefail
+          urls=(
+            "https://career-copilot-v2.photomagic.workers.dev/"
+            "https://career-copilot-v2.photomagic.workers.dev/api/runtime"
+            "https://career-copilot-scheduler.photomagic.workers.dev/health"
+          )
+          for url in "${urls[@]}"; do
+            status="$(
+              curl \
+                --silent \
+                --show-error \
+                --location \
+                --retry 5 \
+                --retry-all-errors \
+                --retry-delay 2 \
+                --connect-timeout 15 \
+                --max-time 60 \
+                --output /tmp/smoke-body \
+                --write-out "%{http_code}" \
+                "$url"
+            )"
+            printf "%s -> %s\n" "$url" "$status"
+            test "$status" = "200"
+          done
