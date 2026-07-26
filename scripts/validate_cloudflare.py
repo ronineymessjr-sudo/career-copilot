@@ -250,8 +250,8 @@ assert "automatic_offer_acceptance: false" in production_e2e
 assert "access_token" not in production_e2e.split("const result =", 1)[1]
 
 migration7 = (ROOT / "supabase/migrations/0007_knowledge_graph_workflows.sql").read_text()
+assert "create extension if not exists vector with schema extensions" in (ROOT / "supabase/migrations/0001_core.sql").read_text().lower()
 for required in [
-    "create extension if not exists vector",
     "career_documents",
     "career_chunks",
     "workflow_threads",
