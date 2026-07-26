@@ -19,6 +19,9 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: npm --workspace apps/web run cf-typegen
       - run: npm --workspace workers/scheduler run cf-typegen
+      - run: npm run test:m08.1
+      - run: npm run evaluation:m08.1
+      - run: npm run smoke:m08.1
       - run: npm run check
       - run: python scripts/validate_cloudflare.py
       - run: npm --workspace apps/web run build
@@ -39,8 +42,12 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OWNER_USER_ID: ${{ secrets.OWNER_USER_ID }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CRON_SHARED_SECRET" ]; then
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CRON_SHARED_SECRET" ] && [ -n "$SUPABASE_SECRET_KEY" ] && [ -n "$OWNER_USER_ID" ] && [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
@@ -58,13 +65,24 @@ jobs:
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: npx opennextjs-cloudflare deploy
       - if: steps.auth.outputs.ready == 'true'
-        name: Apply web Worker secret
+        name: Apply web Worker secrets
         working-directory: apps/web
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
-        run: printf '%s' "$CRON_SHARED_SECRET" | npx wrangler secret put CRON_SHARED_SECRET
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          OWNER_USER_ID: ${{ secrets.OWNER_USER_ID }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          printf '%s' "$CRON_SHARED_SECRET" | npx wrangler secret put CRON_SHARED_SECRET
+          printf '%s' "$SUPABASE_SECRET_KEY" | npx wrangler secret put SUPABASE_SECRET_KEY
+          printf '%s' "$OWNER_USER_ID" | npx wrangler secret put OWNER_USER_ID
+          printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
+          printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+          if [ -n "$OPENAI_API_KEY" ]; then printf '%s' "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY; fi
       - if: steps.auth.outputs.ready == 'true'
         name: Deploy scheduler Worker
         working-directory: workers/scheduler
@@ -80,3 +98,90 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
         run: printf '%s' "$CRON_SHARED_SECRET" | npx wrangler secret put CRON_SHARED_SECRET
+      - if: steps.auth.outputs.ready == 'true'
+        name: Post-deploy production smoke
+        env:
+          WEB_URL: ${{ vars.CAREER_COPILOT_WEB_URL }}
+          CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
+        run: |
+          WEB_URL="${WEB_URL:-https://career-copilot-v2.photomagic.workers.dev}"
+          curl --fail --silent --show-error "$WEB_URL/api/runtime" > runtime.json
+          python - <<'PY'
+          import json
+          data = json.load(open("runtime.json", encoding="utf-8"))
+          assert data["version"] == "1.0.1", data
+          assert data["authRequired"] is True, data
+          assert data["publicSourceDiscovery"] is True, data
+          assert data["gmailDraftOnly"] is True, data
+          assert data["interviewLearningLoop"] is True, data
+          assert data["conversionAnalytics"] is True, data
+          assert data["weeklyReviews"] is True, data
+          assert data["operationalObservability"] is True, data
+          assert data["documentKnowledgeBase"] is True, data
+          assert data["pgvectorRetrieval"] is True, data
+          assert data["citationRequired"] is True, data
+          assert data["durableHumanInterrupts"] is True, data
+          assert data["automaticEvidencePromotion"] is False, data
+          assert data["agentRuntime"] is True, data
+          assert data["hybridJobRanking"] is True, data
+          assert data["mcpServer"] is True, data
+          assert data["agentEvaluation"] is True, data
+          assert data["publicPortfolioPlayground"] is True, data
+          assert data["deterministicAgentDemoApi"] is True, data
+          assert data["dockerDemoStack"] is True, data
+          assert "local_transition" in data["resumePersonas"], data
+          assert data["automaticEmailSend"] is False, data
+          assert data["automaticSubmission"] is False, data
+          assert data["automaticInterviewAcceptance"] is False, data
+          assert data["automaticOfferAcceptance"] is False, data
+          PY
+          status="$(curl --silent --output anonymous-control.json --write-out '%{http_code}' "$WEB_URL/api/control/knowledge/documents")"
+          test "$status" = "401"
+          curl --fail --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $CRON_SHARED_SECRET" \
+            -H "Content-Type: application/json" \
+            --data '{"source":"github-actions-post-deploy"}' \
+            "$WEB_URL/api/cron/daily" > cron-smoke.json
+          curl --fail --silent --show-error \
+            -X POST \
+            -H "Authorization: Bearer $CRON_SHARED_SECRET" \
+            -H "Content-Type: application/json" \
+            --data '{"source":"github-actions-post-deploy"}' \
+            "$WEB_URL/api/cron/weekly" > weekly-cron-smoke.json
+          cat > DEPLOYED_URLS.json <<JSON
+          {
+            "web_url": "$WEB_URL",
+            "runtime_check": "$WEB_URL/api/runtime",
+            "deployed_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          JSON
+      - if: steps.auth.outputs.ready == 'true'
+        name: Authenticated production E2E
+        env:
+          WEB_URL: ${{ vars.CAREER_COPILOT_WEB_URL }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          CAREER_COPILOT_TEST_EMAIL: ${{ secrets.CAREER_COPILOT_TEST_EMAIL }}
+          CAREER_COPILOT_TEST_PASSWORD: ${{ secrets.CAREER_COPILOT_TEST_PASSWORD }}
+        run: |
+          WEB_URL="${WEB_URL:-https://career-copilot-v2.photomagic.workers.dev}"
+          export WEB_URL
+          if [ -n "$CAREER_COPILOT_TEST_EMAIL" ] && [ -n "$CAREER_COPILOT_TEST_PASSWORD" ]; then
+            node scripts/production_e2e_m08_1.mjs
+          else
+            echo '{"skipped":true,"reason":"test credentials are not configured"}' > PRODUCTION_E2E_M08.json
+          fi
+      - if: steps.auth.outputs.ready == 'true'
+        name: Upload deployment evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: career-copilot-deployment-evidence
+          path: |
+            runtime.json
+            anonymous-control.json
+            cron-smoke.json
+            weekly-cron-smoke.json
+            PRODUCTION_E2E_M08.json
+            DEPLOYED_URLS.json
+          retention-days: 30

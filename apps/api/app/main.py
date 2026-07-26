@@ -15,6 +15,7 @@ from .repository import (
 )
 from .schemas import (
     ApprovalDecision, ApplicationUpdate, BenchmarkRequest, DeliveryRunInput, GitEvidenceRequest,
+    AgentEvaluateInput, AgentJobAnalyzeInput, AgentResumeInput,
     InterviewInput, JobInput, ModelGenerateInput, OfferInput,
 )
 from .model_runtime import ModelGatewayError, generate_text, model_health
@@ -23,6 +24,7 @@ from .git_evidence import GitEvidenceError, collect_git_evidence
 from .integrations.supabase_rest import SupabaseRestClient
 from .supabase_sync import SupabaseSyncError, sync_local_to_supabase
 from .workflow import WorkflowError, decide_package, evaluate_job_record, prepare_job_record
+from .agent_demo import analyze_job as analyze_agent_job, evaluate_agent, generate_resume as generate_agent_resume
 
 
 @asynccontextmanager
@@ -33,7 +35,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="Career Copilot V2 API",
-    version="0.4.0",
+    version="1.0.1",
     description="Evidence-driven AI internship discovery and application operating system.",
     lifespan=lifespan,
 )
@@ -51,7 +53,7 @@ def require_admin(x_admin_token: str | None = Header(default=None)) -> None:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status":"ok","mode":"approval-first","version":"0.4.0","data_backend":settings.data_backend}
+    return {"status":"ok","mode":"approval-first","version":"1.0.1","data_backend":settings.data_backend}
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -61,6 +63,23 @@ def prototype() -> HTMLResponse:
         return HTMLResponse("<h1>Career Copilot V2</h1><p>Prototype not generated.</p>")
     html=index.read_text(encoding="utf-8").replace("./styles.css","/prototype-assets/styles.css").replace("./app.js","/prototype-assets/app.js")
     return HTMLResponse(html)
+
+
+@app.post("/agent/analyze-job")
+def agent_analyze_job(item: AgentJobAnalyzeInput):
+    """Public-safe deterministic portfolio endpoint. It never reads private user data."""
+    return analyze_agent_job(item)
+
+
+@app.post("/agent/generate-resume")
+def agent_generate_resume(item: AgentResumeInput):
+    """Generate an evidence-referenced draft only; no external action is performed."""
+    return generate_agent_resume(item)
+
+
+@app.post("/agent/evaluate")
+def agent_evaluate(item: AgentEvaluateInput):
+    return evaluate_agent(item)
 
 
 @app.get("/api/dashboard")

@@ -1,89 +1,196 @@
 # Career Copilot V2
 
-面向中国在校生的证据驱动 AI 求职操作系统。
+## AI Career Intelligence Agent Platform
 
-它把岗位聚合、资格核验、匹配评分、真实项目证据检索、简历定制、审批、投递管理、面试复盘和 Offer 跟踪放在一个统一工作台中。当前版本坚持 approval-first：不会自动登录招聘平台、绕过验证码或把“推荐”误记为“已投递”。
+Career Copilot 是一个面向中国在校生的证据驱动 AI 求职智能体平台。当前版本为 **Milestone 08.1 · 1.0.1**。
 
-## 当前完成度
+它不是自动海投脚本。系统负责公开岗位发现、JD 分析、混合评分、Career Vault 证据检索、简历适配、招呼语与邮件草稿、面试准备、投递复盘和 Agent Evaluation；登录招聘平台、验证码处理、最终发送、最终投递、面试接受和 Offer 接受始终由用户完成或明确确认。
 
-- [x] 产品 PRD、架构与设计系统
-- [x] FastAPI 本地 API
-- [x] SQLite 本地开发模式
-- [x] Supabase PostgreSQL + pgvector 生产 Schema
-- [x] 地域、届别、出勤、周期和公司规模规则评分
-- [x] Career Evidence 驱动的材料生成
-- [x] 三版真实简历资产
-- [x] 审批、申请、面试、Offer 数据模型
-- [x] Next.js 产品页面骨架
-- [x] 无依赖可演示原型
-- [x] 自动化测试与烟雾测试
-- [ ] Supabase Auth 与线上数据层
-- [ ] LangGraph Checkpointer
-- [ ] 招聘来源适配器
-- [ ] Gmail 草稿与飞书审批
-- [ ] 部署
+## Portfolio Demo
 
-## 项目结构
+公开演示页面：
 
 ```text
-apps/web          Next.js 产品工作台
-apps/api          FastAPI 业务 API 与本地 SQLite 模式
-supabase          PostgreSQL + pgvector 迁移
-prototype         可立即打开的高保真交互原型
-assets/resumes    AI Agent、AI 产品、本地过渡三版简历
-docs              PRD、架构、设计系统、路线图
+/playground
 ```
 
-## 立即查看原型
+HR 或面试官可以粘贴一条 AI 实习 JD，查看：
 
-```powershell
-cd prototype
-python -m http.server 4173
+- 在校实习与届别硬性过滤；
+- 规则、证据和历史反馈组成的混合评分；
+- 已匹配技能、缺口和风险；
+- 推荐简历 Persona 与项目排序；
+- 可复制但不会自动发送的个性化招呼语；
+- Grounding 与引用安全说明。
+
+公开 Demo 使用仓库中的固定示例证据，不读取私人 Career Vault。
+
+## Architecture
+
+```text
+Public job sources / pasted JD
+             │
+             ▼
+      LangGraph Supervisor
+             │
+   ┌─────────┼──────────┬─────────────┐
+   ▼         ▼          ▼             ▼
+Job Scout  JD Analyst  Resume Agent  Interview Agent
+   │         │          │             │
+   └─────────┴────┬─────┴─────────────┘
+                  ▼
+        Grounding / Evaluation
+                  │
+        Human approval checkpoint
+                  │
+       Supabase + PostgreSQL + pgvector
+                  │
+      Next.js / FastAPI / Cloudflare
 ```
 
-打开 `http://127.0.0.1:4173`。
+## Core capabilities
 
-## 运行 API
+### Multi-Agent job intelligence
 
-```powershell
-cd apps/api
-py -3.12 -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -r requirements.txt
-python scripts\seed.py
-python scripts\prepare_top.py
-uvicorn app.main:app --reload --port 8000
+- LangGraph Supervisor 与专用 Agent 节点；
+- 用户级 Run、Message、Trace、Evaluation 审计；
+- 只保存可展示的节点摘要和证据引用，不暴露隐藏推理；
+- 日报与周报只生成建议，不执行外部动作。
+
+### Hybrid job ranking
+
+```text
+final_score = 40% rule_score + 40% semantic_score + 20% history_score
 ```
 
-打开：
+硬性阻断包括：
 
-- 产品原型：`http://127.0.0.1:8000/`
-- API 文档：`http://127.0.0.1:8000/docs`
-- 日报接口：`http://127.0.0.1:8000/api/daily-report`
+- 正式岗、校招、提前批全职；
+- 明确仅面向毕业生或排除2028届；
+- 非实习岗位；
+- 已过截止日期。
 
-## 运行测试
+存在硬性阻断时，最终分数不会超过49。
 
-```powershell
-cd apps/api
-pytest -q
+### Career Vault RAG
+
+- 文档分块、内容哈希、字符范围和来源溯源；
+- PostgreSQL `pgvector` 与 HNSW；
+- 可选 OpenAI Embeddings；无 Key 时明确回退为确定性词法/技能匹配；
+- 检索结果默认是未核验材料；
+- 只有人工批准后才能成为 `verified` Career Vault 证据。
+
+### Resume Agent
+
+支持四类版本：
+
+1. **AI Agent研发版**：Career Copilot → Camera Market Strategy → PhotoAtelier；
+2. **AI产品版**：PhotoAtelier → Career Copilot → Camera Market Strategy；
+3. **AI解决方案版**：Career Copilot → PhotoAtelier → Camera Market Strategy；
+4. **本地过渡版**：Camera Market Strategy → Career Copilot → PhotoAtelier。
+
+简历生成合同：
+
+- 只使用已核验且启用的证据；
+- 不编造公司、指标、用户量或项目结果；
+- 只在证据支持时量化；
+- 草稿不等于批准，也不等于已投递。
+
+### MCP-compatible tools
+
+认证入口：
+
+```text
+POST /api/mcp
 ```
 
-## Next.js 前端
+支持岗位搜索、JD 分析、岗位排序、证据检索、简历版本查询和简历草稿生成。邮件草稿与投递状态等高风险工具只返回 `approval_required`，不会直接执行。
 
-```powershell
-cd apps/web
-npm install
-npm run dev
+### FastAPI portfolio endpoints
+
+```text
+POST /agent/analyze-job
+POST /agent/generate-resume
+POST /agent/evaluate
 ```
 
-## 安全边界
+这些端点使用固定公开项目证据，适合本地演示和面试讲解，不访问用户私有数据。
 
-- 邮件岗位：默认只生成草稿，不自动发送
-- 公司官网：未来只辅助填表，提交前人工确认
-- 招聘平台：只生成待办与招呼语，不自动点击
-- 所有简历生成内容必须引用 Career Vault 的真实项目证据
-- 缺失届别、出勤或周期时必须进入核验队列
+## Agent Evaluation
 
-## 部署交接
+确定性 Portfolio Fixture 当前验证：
 
-代码、产品与测试由本仓库负责；Supabase 项目、Cloudflare、域名、密钥和生产部署交给用户的执行 Agent 完成。
+| Metric | Result |
+|---|---:|
+| Recall@5 | 1.000 |
+| Precision@5 | 1.000 |
+| MRR | 1.000 |
+| Citation Coverage | 1.000 |
+| Unsupported Claims | 0 |
+
+这些是单一受控 fixture 的回归结果，不代表外部数据集上的通用模型性能。完整说明见 [`docs/agent-evaluation-report.md`](docs/agent-evaluation-report.md)。
+
+## Local Docker demo
+
+```bash
+docker compose up --build
+```
+
+服务：
+
+- Web：`http://localhost:3000/playground`
+- FastAPI：`http://localhost:8000/docs`
+- PostgreSQL + pgvector：`localhost:5432`
+
+Web Docker 构建需要联网安装 npm 依赖。生产环境仍以 Cloudflare Workers + Supabase 为主。
+
+## Development
+
+```bash
+npm run test:m08.1
+npm run evaluation:m08.1
+npm run smoke:m08.1
+node scripts/validate_frontend.mjs apps/web
+python -m pytest apps/api/tests -q
+python scripts/validate_cloudflare.py
+```
+
+联网环境完整门禁：
+
+```bash
+npm install --no-audit --no-fund
+npm run check
+npm --workspace apps/web run build
+npm --workspace apps/web run cf:build
+```
+
+## Production safety boundary
+
+- `automaticSubmission: false`
+- `automaticEmailSend: false`
+- `automaticInterviewAcceptance: false`
+- `automaticOfferAcceptance: false`
+- `automaticEvidencePromotion: false`
+- `finalConfirmationRequired: true`
+
+## Project structure
+
+```text
+apps/web          Next.js / OpenNext Cloudflare UI、Agent Runtime 与 MCP
+apps/api          FastAPI 本地演示与工程 API
+workers/scheduler Cloudflare 定时任务
+supabase          PostgreSQL、pgvector、RLS 与迁移
+scripts           测试、评测、Smoke、部署和生产 E2E
+docs              架构、里程碑、评测和部署交接
+```
+
+## Deployment
+
+1. 确认 Supabase 迁移 `0001–0008` 已应用；
+2. 配置 Cloudflare 与 Supabase Secrets；
+3. 可选配置 `OPENAI_API_KEY` 启用真实向量语义评分；
+4. 推送 `main`，由 GitHub Actions 执行测试、构建和部署；
+5. 验证 `/api/runtime` 返回 `1.0.1`；
+6. 验证 `/playground` 可匿名打开，控制面接口仍要求登录。
+
+完整步骤见 `DEPLOYMENT_HANDOFF_M08_1.md`。

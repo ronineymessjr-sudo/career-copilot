@@ -9,11 +9,29 @@
     "web:dev": "npm --workspace apps/web run dev",
     "web:build": "npm --workspace apps/web run build",
     "build": "npm --workspace apps/web run build",
-    "check": "npm --workspace apps/web run check && npm --workspace workers/scheduler run check",
+    "check": "npm run test:m08.1 && npm --workspace apps/web run check && npm --workspace workers/scheduler run check",
     "cf:build": "npm --workspace apps/web run cf:build",
     "cf:preview": "npm --workspace apps/web run preview",
     "cf:deploy:web": "npm --workspace apps/web run deploy",
-    "cf:deploy:scheduler": "npm --workspace workers/scheduler run deploy"
+    "cf:deploy:scheduler": "npm --workspace workers/scheduler run deploy",
+    "test:control": "node --test apps/web/tests/control-rules.test.mjs",
+    "smoke:control": "node scripts/smoke_control_plane.mjs SMOKE_RESULT_M04.json",
+    "test:sources": "node --test apps/web/tests/job-sources.test.mjs apps/web/tests/application-export.test.mjs",
+    "test:m05": "npm run test:control && npm run test:sources",
+    "smoke:m05": "node scripts/smoke_m05.mjs SMOKE_RESULT_M05.json",
+    "test:interviews": "node --test apps/web/tests/interview-learning.test.mjs",
+    "test:m06": "npm run test:m05 && npm run test:interviews",
+    "smoke:m06": "node scripts/smoke_m06.mjs SMOKE_RESULT_M06.json",
+    "test:knowledge": "node --test apps/web/tests/knowledge-rules.test.mjs",
+    "test:m07": "npm run test:m06 && npm run test:knowledge",
+    "smoke:m07": "node scripts/smoke_m07.mjs SMOKE_RESULT_M07.json",
+    "test:agents": "node --test apps/web/tests/agent-runtime.test.mjs",
+    "test:m08": "npm run test:m07 && npm run test:agents",
+    "smoke:m08": "node scripts/smoke_m08.mjs SMOKE_RESULT_M08.json",
+    "test:portfolio": "node --test apps/web/tests/portfolio-demo.test.mjs",
+    "test:m08.1": "npm run test:m08 && npm run test:portfolio",
+    "smoke:m08.1": "node scripts/smoke_m08_1.mjs SMOKE_RESULT_M08_1.json",
+    "evaluation:m08.1": "node scripts/generate_agent_evaluation_report.mjs"
   },
-  "version": "0.5.0"
+  "version": "1.0.1"
 }

@@ -1,1 +1,7 @@
-import { DataPage } from "@/components/data-page";export default function Page(){return <DataPage title="投递管理" description="区分待投、已准备、已投递、已读、沟通与面试。" columns={["公司","岗位","渠道","状态","跟进"]}/>}
+import { AppShell } from "@/components/app-shell";
+import { ApplicationsWorkspace } from "@/components/applications-workspace";
+import { AuthGate } from "@/components/auth-gate";
+
+export default function Page() {
+  return <AppShell><AuthGate><ApplicationsWorkspace/></AuthGate></AppShell>;
+}

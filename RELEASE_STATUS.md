@@ -1,29 +1,27 @@
-# Release status
+# Release status — Milestone 08.1
 
-## Completed
+Version: `1.0.1`
 
-- Next.js application adapted for Cloudflare Workers through OpenNext.
-- Dedicated Cloudflare Cron Worker scheduled for 11:00 UTC / 19:00 China Standard Time.
-- Public runtime health endpoint: `/api/runtime`.
-- Protected daily pipeline endpoint: `POST /api/cron/daily`.
-- GitHub Actions validation and conditional deployment workflow.
-- Supabase-ready demo/production mode switch.
-- Real resumes, personal email, local databases and secrets excluded from the public release.
-- Static release validation, Python compilation and TypeScript/TSX syntax validation passed.
+## Local release state
 
-## External authorization still required
+- Public Agent Playground implemented.
+- Portfolio-facing FastAPI Agent endpoints implemented.
+- Four grounded resume personas implemented.
+- Deterministic evaluation report generated.
+- Docker demo topology added.
+- 50 Node tests and 14 FastAPI tests passed.
+- Static frontend, Scheduler, Cloudflare, YAML and Smoke validation passed.
 
-- GitHub repository Contents write access. The current connector returned HTTP 403 on the first commit.
-- Cloudflare `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
-- A shared Cron secret. Supabase values remain optional for the first demo deployment.
+## Production state
 
-## One-command deployment after authorization
+Not yet independently verified as live.
 
-```bash
-export CLOUDFLARE_API_TOKEN=...
-export CLOUDFLARE_ACCOUNT_ID=...
-export CRON_SHARED_SECRET=...
-./scripts/deploy_cloudflare.sh
-```
+Production acceptance requires:
 
-The first execution deploys the web Worker. Set `WEB_URL` to its generated URL and rerun to deploy the scheduler.
+1. dependency installation and full typecheck;
+2. Next.js and OpenNext builds;
+3. Cloudflare deployment;
+4. `/api/runtime` version `1.0.1`;
+5. anonymous `/playground` HTTP 200;
+6. anonymous `/api/control/jobs` HTTP 401;
+7. authenticated production regression.

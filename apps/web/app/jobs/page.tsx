@@ -1,1 +1,7 @@
-import { DataPage } from "@/components/data-page";export default function Page(){return <DataPage title="岗位发现" description="聚合、去重、核验并按你的固定顺序排序。" columns={["公司","岗位","位置","状态","匹配分"]}/>}
+import { AppShell } from "@/components/app-shell";
+import { AuthGate } from "@/components/auth-gate";
+import { JobsWorkspace } from "@/components/jobs-workspace";
+
+export default function Page() {
+  return <AppShell><AuthGate><JobsWorkspace/></AuthGate></AppShell>;
+}

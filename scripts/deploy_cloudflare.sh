@@ -25,6 +25,13 @@ elif [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
   exit 1
 fi
 
+for required_env in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_SECRET_KEY OWNER_USER_ID; do
+  if [[ -z "${!required_env:-}" ]]; then
+    echo "Missing required production variable: $required_env" >&2
+    exit 1
+  fi
+done
+
 if [[ -z "${CRON_SHARED_SECRET:-}" ]]; then
   if command -v openssl >/dev/null 2>&1; then
     CRON_SHARED_SECRET="$(openssl rand -hex 32)"
@@ -41,6 +48,8 @@ export CRON_SHARED_SECRET
 npm install --no-audit --no-fund
 npm --workspace apps/web run cf-typegen
 npm --workspace workers/scheduler run cf-typegen
+npm run test:m08
+npm run smoke:m08
 npm run check
 python scripts/validate_cloudflare.py
 python -m compileall -q apps/api/app apps/api/scripts
@@ -84,6 +93,11 @@ WEB_LOG="$(mktemp)"
   cd apps/web
   npx opennextjs-cloudflare deploy 2>&1 | tee "$WEB_LOG"
   printf '%s' "$CRON_SHARED_SECRET" | npx wrangler secret put CRON_SHARED_SECRET
+  printf '%s' "$SUPABASE_SECRET_KEY" | npx wrangler secret put SUPABASE_SECRET_KEY
+  printf '%s' "$OWNER_USER_ID" | npx wrangler secret put OWNER_USER_ID
+  printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
+  printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  if [[ -n "${OPENAI_API_KEY:-}" ]]; then printf '%s' "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY; fi
 )
 
 WEB_URL="${WEB_URL:-$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' "$WEB_LOG" | tail -1 || true)}"
@@ -103,6 +117,33 @@ SCHEDULER_URL="$(grep -Eo 'https://[A-Za-z0-9.-]+\.workers\.dev' "$SCHED_LOG" | 
 
 curl --fail --silent --show-error "$WEB_URL/api/runtime" | tee /tmp/career-copilot-runtime.json
 printf '\n'
+python - <<'PY'
+import json
+data=json.load(open('/tmp/career-copilot-runtime.json',encoding='utf-8'))
+assert data['version']=='1.0.1', data
+assert data['interviewLearningLoop'] is True, data
+assert data['conversionAnalytics'] is True, data
+assert data['weeklyReviews'] is True, data
+assert data['documentKnowledgeBase'] is True, data
+assert data['pgvectorRetrieval'] is True, data
+assert data['citationRequired'] is True, data
+assert data['durableHumanInterrupts'] is True, data
+assert data['automaticEvidencePromotion'] is False, data
+assert data['agentRuntime'] is True, data
+assert data['hybridJobRanking'] is True, data
+assert data['mcpServer'] is True, data
+assert data['agentEvaluation'] is True, data
+assert data['publicPortfolioPlayground'] is True, data
+assert data['deterministicAgentDemoApi'] is True, data
+assert data['dockerDemoStack'] is True, data
+assert 'local_transition' in data['resumePersonas'], data
+assert data['automaticEmailSend'] is False, data
+assert data['automaticInterviewAcceptance'] is False, data
+assert data['automaticOfferAcceptance'] is False, data
+PY
+curl --fail --silent --show-error --output /dev/null "$WEB_URL/playground"
+status="$(curl --silent --output /tmp/career-copilot-anonymous-control.json --write-out '%{http_code}' "$WEB_URL/api/control/jobs")"
+test "$status" = "401"
 if [[ -n "$SCHEDULER_URL" ]]; then
   curl --fail --silent --show-error "$SCHEDULER_URL/health" | tee /tmp/career-copilot-scheduler-health.json
   printf '\n'
@@ -113,6 +154,13 @@ curl --fail --silent --show-error \
   -H "Content-Type: application/json" \
   --data '{"source":"post-deploy-smoke"}' \
   "$WEB_URL/api/cron/daily" | tee /tmp/career-copilot-cron-smoke.json
+printf '\n'
+curl --fail --silent --show-error \
+  -X POST \
+  -H "Authorization: Bearer $CRON_SHARED_SECRET" \
+  -H "Content-Type: application/json" \
+  --data '{"source":"post-deploy-smoke"}' \
+  "$WEB_URL/api/cron/weekly" | tee /tmp/career-copilot-weekly-cron-smoke.json
 printf '\n'
 
 cat > DEPLOYED_URLS.json <<JSON

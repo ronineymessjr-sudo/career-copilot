@@ -1,12 +1,5 @@
 import { AppShell } from "@/components/app-shell";
-import { Dashboard } from "@/components/dashboard";
+import { AuthGate } from "@/components/auth-gate";
+import { OperationsDashboard } from "@/components/operations-dashboard";
 import { RuntimeBanner } from "@/components/runtime-banner";
-
-export default function Home() {
-  return (
-    <AppShell>
-      <RuntimeBanner />
-      <Dashboard />
-    </AppShell>
-  );
-}
+export default function Home(){ return <AppShell><RuntimeBanner/><AuthGate><OperationsDashboard/></AuthGate></AppShell>; }

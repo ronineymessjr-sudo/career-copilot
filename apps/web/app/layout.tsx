@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Career Copilot V2",
-  description: "面向中国在校生的证据驱动 AI 求职操作系统",
+  title: "Career Copilot | AI Career Intelligence Agent Platform",
+  description: "基于 LangGraph、RAG、pgvector 与 MCP 的证据驱动 AI 求职智能体平台",
 };
 
 export default function RootLayout({children}:{children:React.ReactNode}) {

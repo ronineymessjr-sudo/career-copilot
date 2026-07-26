@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "career-copilot-v2",
   "main": ".open-next/worker.js",
-  "compatibility_date": "2026-07-23",
+  "compatibility_date": "2026-07-25",
   "compatibility_flags": [
     "nodejs_compat",
     "global_fetch_strictly_public"
@@ -19,7 +19,8 @@
   ],
   "vars": {
     "NEXTJS_ENV": "production",
-    "APP_MODE": "demo"
+    "APP_MODE": "production",
+    "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small"
   },
   "observability": {
     "enabled": true,

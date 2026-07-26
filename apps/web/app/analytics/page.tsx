@@ -1,1 +1,4 @@
-import { DataPage } from "@/components/data-page";export default function Page(){return <DataPage title="数据洞察" description="分析回复率、面试率、地区、渠道和简历版本表现。" columns={["维度","样本","表现","趋势","建议"]}/>}
+import { AppShell } from "@/components/app-shell";
+import { AuthGate } from "@/components/auth-gate";
+import { AnalyticsWorkspace } from "@/components/analytics-workspace";
+export default function Page(){ return <AppShell><AuthGate><AnalyticsWorkspace/></AuthGate></AppShell>; }

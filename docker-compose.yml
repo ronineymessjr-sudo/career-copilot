@@ -1,6 +1,23 @@
 services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: career_copilot
+      POSTGRES_USER: career_copilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-career_copilot_local}
+    ports:
+      - "5432:5432"
+    volumes:
+      - career-copilot-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U career_copilot -d career_copilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
   api:
-    build: ./apps/api
+    build:
+      context: ./apps/api
     ports:
       - "8000:8000"
     volumes:
@@ -20,4 +37,25 @@ services:
       SUPABASE_KEY: ${SUPABASE_KEY:-}
       SUPABASE_ACCESS_TOKEN: ${SUPABASE_ACCESS_TOKEN:-}
       SUPABASE_USER_ID: ${SUPABASE_USER_ID:-}
-      CAREER_COPILOT_ADMIN_TOKEN: ${CAREER_COPILOT_ADMIN_TOKEN:-}
+      CAREER_COPILOT_ADMIN_TOKEN: ${CAREER_COPILOT_ADMIN_TOKEN:-local-demo-token}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:-}
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  career-copilot-postgres:

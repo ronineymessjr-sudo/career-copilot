@@ -1,31 +1,31 @@
-# Cloudflare deployment
+# Cloudflare deployment — Career Copilot V2 1.0.1
 
-This repository is safe to publish: real resumes, email addresses, local databases, OAuth tokens and API secrets are excluded.
+## Pre-deploy
 
-## Workers
+1. Confirm Supabase migrations `0001–0008` are applied.
+2. Configure required Cloudflare, Supabase and Cron secrets.
+3. Optionally configure `OPENAI_API_KEY`.
+4. Run the Milestone 08.1 CI gates.
 
-- `career-copilot-v2`: Next.js application through OpenNext.
-- `career-copilot-scheduler`: daily Cron Trigger at 11:00 UTC (19:00 China Standard Time).
-
-## Required GitHub secrets
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `CRON_SHARED_SECRET`
-
-Optional for production data mode:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-
-After the web Worker is deployed, add Worker secrets to the scheduler:
+## Deploy
 
 ```bash
-cd workers/scheduler
-npx wrangler secret put DAILY_RUN_URL
-npx wrangler secret put CRON_SHARED_SECRET
+npm install --no-audit --no-fund
+npm run test:m08.1
+npm run evaluation:m08.1
+npm run smoke:m08.1
+npm run check
+python -m pytest apps/api/tests -q
+python scripts/validate_cloudflare.py
+npm --workspace apps/web run cf:build
+npm --workspace apps/web run deploy
+npm --workspace workers/scheduler run deploy
 ```
 
-`DAILY_RUN_URL` should be the deployed web endpoint ending in `/api/cron/daily`.
+## Post-deploy
 
-Without Supabase values the app intentionally starts in read-only demo mode.
+- `/api/runtime` reports `1.0.1`.
+- `/playground` returns 200 without authentication.
+- `/api/control/jobs` returns 401 without authentication.
+- `automaticSubmission` and `automaticEmailSend` remain false.
+- Daily and weekly Cron endpoints pass authenticated Smoke checks.

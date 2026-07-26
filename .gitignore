@@ -5,6 +5,7 @@ node_modules/
 __pycache__/
 .pytest_cache/
 *.pyc
+*.tsbuildinfo
 *.db
 !apps/api/data/seed_jobs.json
 .DS_Store

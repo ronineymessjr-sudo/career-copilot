@@ -1,5 +1,8 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
+import { runDiscovery } from "@/lib/discovery-service";
+import { runDailyAgentCycle } from "@/lib/agent-service";
+import { adminDataRequest, backgroundOwnerId, controlError } from "@/lib/supabase-control";
 
 function safeEqual(left: string, right: string): boolean {
   const a = Buffer.from(left);
@@ -8,26 +11,35 @@ function safeEqual(left: string, right: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const expected = process.env.CRON_SHARED_SECRET;
-  if (!expected) {
-    return NextResponse.json(
-      { ok: false, error: "CRON_SHARED_SECRET is not configured" },
-      { status: 503 },
-    );
+  try {
+    const expected = process.env.CRON_SHARED_SECRET;
+    if (!expected) {
+      return NextResponse.json({ ok: false, error: "CRON_SHARED_SECRET is not configured" }, { status: 503 });
+    }
+    const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+    if (!safeEqual(provided, expected)) {
+      return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    }
+    const ownerId = backgroundOwnerId();
+    const data = <T>(resource: string, init?: RequestInit) => adminDataRequest<T>(resource, init);
+    const discovery = await runDiscovery({
+      userId: ownerId,
+      triggerType: "cron",
+      data,
+    });
+    const agentCycle = await runDailyAgentCycle({ data, userId: ownerId });
+    const failed = discovery.status === "failed" || agentCycle.status === "failed";
+    return NextResponse.json({
+      ok: !failed,
+      accepted: true,
+      mode: process.env.APP_MODE ?? "production",
+      action: "daily-discovery-ranking-report",
+      discovery,
+      agent_cycle: agentCycle,
+      automatic_submission: false,
+      timestamp: new Date().toISOString(),
+    }, { status: failed ? 502 : 200 });
+  } catch (error) {
+    return controlError(error);
   }
-
-  const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  if (!safeEqual(provided, expected)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  // The first public deployment verifies scheduling and authentication only.
-  // Job-source adapters are enabled after Supabase and source credentials are configured.
-  return NextResponse.json({
-    ok: true,
-    accepted: true,
-    mode: process.env.APP_MODE ?? "demo",
-    action: "daily-search-pipeline",
-    timestamp: new Date().toISOString(),
-  });
 }

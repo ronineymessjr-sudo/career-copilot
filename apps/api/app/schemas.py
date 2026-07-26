@@ -190,3 +190,20 @@ class GitEvidenceRequest(BaseModel):
     agent_tool: str = "Git + CI"
     junit_path: str = ""
     ci_run_url: str = ""
+
+class AgentJobAnalyzeInput(BaseModel):
+    jd_text: str = Field(min_length=20, max_length=30_000)
+    company: str = "Demo Company"
+    title: str = "AI Internship"
+    city: str = ""
+    district: str = ""
+
+
+class AgentResumeInput(AgentJobAnalyzeInput):
+    persona: Literal["agent_engineer", "ai_product", "ai_solution", "local_transition"] = "agent_engineer"
+
+
+class AgentEvaluateInput(BaseModel):
+    output: str = Field(min_length=1, max_length=30_000)
+    citations: list[str] = Field(default_factory=list)
+    expected_citations: list[str] = Field(default_factory=list)

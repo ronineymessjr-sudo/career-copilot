@@ -1,0 +1,18 @@
+{
+  "version": "0.6.0",
+  "mode": "offline-deterministic-smoke",
+  "parsed_2028": true,
+  "parsed_students": true,
+  "parsed_days_per_week": 3,
+  "parsed_minimum_months": 3,
+  "evaluation_eligible": true,
+  "evaluation_needs_confirmation": false,
+  "package_truth_passed": true,
+  "verified_evidence_count": 2,
+  "draft_evidence_excluded": true,
+  "approved_package_can_be_ready": true,
+  "submission_without_user_confirmation": false,
+  "automatic_job_submission": false,
+  "live_cloudflare_verified": false,
+  "live_supabase_migration_verified": false
+}

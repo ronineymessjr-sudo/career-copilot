@@ -1,1 +1,2 @@
-import { DataPage } from "@/components/data-page";export default function Page(){return <DataPage title="AI 简历工作室" description="所有改写都必须引用 Career Vault 中的真实项目证据。" columns={["版本","目标岗位","证据覆盖","状态","评分"]}/>}
+import { ResumeAgentWorkspace } from "@/components/resume-agent-workspace";
+export default function Page(){ return <ResumeAgentWorkspace/>; }

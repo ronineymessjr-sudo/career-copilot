@@ -1,0 +1,18 @@
+{
+  "version": "0.7.0",
+  "mode": "offline-milestone-05-smoke",
+  "greenhouse_public_source_parsed": true,
+  "source_filtering_passed": true,
+  "discovered_jobs": 1,
+  "deterministic_evaluation_passed": true,
+  "verified_evidence_only": true,
+  "material_exports_safety_flag": true,
+  "gmail_draft_only": true,
+  "gmail_message_generated": true,
+  "source_refresh_preserves_hr_verified_fields": true,
+  "official_ats_hosts_only": true,
+  "final_submission_still_requires_confirmation": true,
+  "live_cloudflare_verified": false,
+  "live_supabase_migration_verified": false,
+  "live_gmail_oauth_verified": false
+}
