@@ -1,10 +1,21 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+IGNORED_DIRECTORIES = {".git", ".next", ".open-next", ".wrangler", "node_modules"}
+
+
+def repository_files():
+    for base, directories, files in os.walk(ROOT):
+        directories[:] = [directory for directory in directories if directory not in IGNORED_DIRECTORIES]
+        for file_name in files:
+            yield Path(base) / file_name
+
+
 REQUIRED = [
     ROOT / "apps/web/wrangler.jsonc",
     ROOT / "apps/web/open-next.config.ts",
@@ -170,8 +181,8 @@ assert "gmail_access_token" not in client_text.lower() or "sessionStorage" in cl
 
 all_text = "\n".join(
     path.read_text(errors="ignore")
-    for path in ROOT.rglob("*")
-    if path.is_file() and path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"} and ".git" not in path.parts
+    for path in repository_files()
+    if path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}
 )
 assert "gmail/v1/users/me/drafts/send" not in all_text
 assert "gmail/v1/users/me/messages/send" not in all_text
@@ -182,10 +193,10 @@ forbidden = [
     re.compile(r"BEGIN PRIVATE KEY"),
     re.compile(r"ronineymessjr@gmail\.com", re.I),
 ]
-for path in ROOT.rglob("*"):
-    if path == Path(__file__).resolve() or ".git" in path.parts:
+for path in repository_files():
+    if path == Path(__file__).resolve():
         continue
-    if not path.is_file() or path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}:
+    if path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}:
         continue
     text = path.read_text(errors="ignore")
     for pattern in forbidden:

@@ -1,3 +1,7 @@
+create schema if not exists career_copilot;
+grant usage on schema career_copilot to authenticated, service_role;
+set search_path = career_copilot, public, extensions;
+
 -- Career Copilot V2 core schema
 create extension if not exists vector;
 create extension if not exists pgcrypto;

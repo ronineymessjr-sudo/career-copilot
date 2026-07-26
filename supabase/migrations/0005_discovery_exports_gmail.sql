@@ -1,8 +1,10 @@
+set search_path = career_copilot, public, extensions;
+
 -- Milestone 05: real public job-source discovery, export audit, and Gmail draft metadata.
 -- Public Greenhouse and Lever GET APIs are ingested by the Cloudflare backend.
 -- Gmail integration creates drafts only; it never sends messages.
 
-create table if not exists public.job_sources (
+create table if not exists career_copilot.job_sources (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null,
@@ -21,7 +23,7 @@ create table if not exists public.job_sources (
   unique(user_id, provider, identifier)
 );
 
-create table if not exists public.discovery_runs (
+create table if not exists career_copilot.discovery_runs (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
   trigger_type text not null default 'manual',
@@ -40,43 +42,43 @@ create table if not exists public.discovery_runs (
 );
 
 create index if not exists job_sources_user_enabled_idx
-  on public.job_sources(user_id, enabled, updated_at desc);
+  on career_copilot.job_sources(user_id, enabled, updated_at desc);
 create index if not exists discovery_runs_user_started_idx
-  on public.discovery_runs(user_id, started_at desc);
+  on career_copilot.discovery_runs(user_id, started_at desc);
 
-alter table public.source_snapshots
+alter table career_copilot.source_snapshots
   drop constraint if exists source_snapshots_source_url_content_hash_key;
 create unique index if not exists source_snapshots_user_url_hash_uidx
-  on public.source_snapshots(user_id, source_url, content_hash);
+  on career_copilot.source_snapshots(user_id, source_url, content_hash);
 
-alter table public.jobs
+alter table career_copilot.jobs
   add column if not exists hr_verified_fields jsonb not null default '[]'::jsonb,
   add column if not exists hr_verified_at timestamptz;
 
-alter table public.application_packages
+alter table career_copilot.application_packages
   add column if not exists gmail_draft_id text,
   add column if not exists gmail_draft_email text,
   add column if not exists gmail_draft_updated_at timestamptz,
   add column if not exists last_exported_at timestamptz,
   add column if not exists export_count integer not null default 0 check (export_count >= 0);
 
-alter table public.job_sources enable row level security;
-alter table public.discovery_runs enable row level security;
+alter table career_copilot.job_sources enable row level security;
+alter table career_copilot.discovery_runs enable row level security;
 
-drop policy if exists job_sources_owner_all on public.job_sources;
+drop policy if exists job_sources_owner_all on career_copilot.job_sources;
 create policy job_sources_owner_all
-  on public.job_sources
+  on career_copilot.job_sources
   for all
   to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
-drop policy if exists discovery_runs_owner_all on public.discovery_runs;
+drop policy if exists discovery_runs_owner_all on career_copilot.discovery_runs;
 create policy discovery_runs_owner_all
-  on public.discovery_runs
+  on career_copilot.discovery_runs
   for all
   to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
-grant select, insert, update, delete on public.job_sources, public.discovery_runs to authenticated;
+grant select, insert, update, delete on career_copilot.job_sources, career_copilot.discovery_runs to authenticated;
