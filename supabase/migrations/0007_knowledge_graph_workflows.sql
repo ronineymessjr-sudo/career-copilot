@@ -5,8 +5,6 @@ set search_path = career_copilot, public, extensions;
 -- Retrieved chunks remain unverified until a user explicitly approves promotion
 -- into Career Vault evidence.
 
-create extension if not exists vector;
-
 create table if not exists career_copilot.career_documents (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
@@ -231,7 +229,7 @@ returns table (
 language sql
 stable
 security invoker
-set search_path = ''
+set search_path = career_copilot, extensions
 as $$
   select
     c.id,
