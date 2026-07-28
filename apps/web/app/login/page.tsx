@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [magicLinkMessage, setMagicLinkMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const supabase = getSupabaseBrowser();
 
@@ -37,6 +38,30 @@ export default function LoginPage() {
     router.replace("/jobs");
   }
 
+  async function sendMagicLink() {
+    setError("");
+    setMagicLinkMessage("");
+    if (!supabase) {
+      setError("Supabase 尚未配置");
+      return;
+    }
+    if (!email.trim()) {
+      setError("请先填写邮箱");
+      return;
+    }
+    setBusy(true);
+    const { error: magicLinkError } = await supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/jobs` },
+    });
+    setBusy(false);
+    if (magicLinkError) {
+      setError(magicLinkError.message);
+      return;
+    }
+    setMagicLinkMessage("登录链接已发送，请在邮箱中打开链接后返回控制台。");
+  }
+
   return <main className="login-screen">
     <section className="login-brand-panel">
       <div className="brand-mark"><Sparkles size={18}/></div>
@@ -50,7 +75,9 @@ export default function LoginPage() {
       <label>邮箱<input type="email" autoComplete="email" value={email} onChange={(event)=>setEmail(event.target.value)} required/></label>
       <label>密码<input type="password" autoComplete="current-password" value={password} onChange={(event)=>setPassword(event.target.value)} required/></label>
       {error ? <div className="form-error">{error}</div> : null}
+      {magicLinkMessage ? <div className="login-proof">{magicLinkMessage}</div> : null}
       <button className="primary-button" type="submit" disabled={busy}>{busy ? "登录中…" : "进入控制台"}<ArrowRight size={15}/></button>
+      <button className="ghost-button" type="button" disabled={busy} onClick={sendMagicLink}>发送无密码登录链接</button>
     </form>
   </main>;
 }
