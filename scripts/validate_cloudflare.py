@@ -106,7 +106,7 @@ scheduler = parse_jsonc(ROOT / "workers/scheduler/wrangler.jsonc")
 assert web["main"] == ".open-next/worker.js"
 assert "nodejs_compat" in web["compatibility_flags"]
 assert web["vars"]["APP_MODE"] == "production"
-assert scheduler["triggers"]["crons"] == ["0 11 * * *", "0 12 * * 0"]
+assert scheduler["triggers"]["crons"] == ["0 11 * * *", "0 12 * * SUN"]
 assert scheduler["services"] == [{"binding": "WEB", "service": "career-copilot-v2"}]
 
 migration = (ROOT / "supabase/migrations/0005_discovery_exports_gmail.sql").read_text()
@@ -225,7 +225,7 @@ assert "backgroundOwnerId" in weekly_route
 assert "generateWeeklyReview" in weekly_route
 
 scheduler_source = (ROOT / "workers/scheduler/src/index.ts").read_text()
-assert 'event.cron === "0 12 * * 0"' in scheduler_source
+assert 'event.cron === "0 12 * * SUN"' in scheduler_source
 assert '"/api/cron/weekly"' in scheduler_source
 
 
