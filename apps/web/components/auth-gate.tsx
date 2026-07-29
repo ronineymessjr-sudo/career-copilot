@@ -20,11 +20,19 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     void supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       if (!data.session) router.replace("/login");
-      else setState("ready");
+      else {
+        void fetch("/api/control/session", { headers: { Authorization: `Bearer ${data.session.access_token}` } })
+          .then(() => { if (active) setState("ready"); })
+          .catch(() => { if (active) setState("ready"); });
+      }
     });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) router.replace("/login");
-      else setState("ready");
+      else {
+        void fetch("/api/control/session", { headers: { Authorization: `Bearer ${session.access_token}` } })
+          .then(() => { if (active) setState("ready"); })
+          .catch(() => { if (active) setState("ready"); });
+      }
     });
     return () => {
       active = false;

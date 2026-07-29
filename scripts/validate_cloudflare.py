@@ -172,7 +172,7 @@ assert "hr_verified_fields" in jobs_patch
 assert "hr_verified_at" in jobs_patch
 
 deploy = (ROOT / "scripts/deploy_cloudflare.sh").read_text()
-for name in ["CRON_SHARED_SECRET", "SUPABASE_SECRET_KEY", "OWNER_USER_ID", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]:
+for name in ["CRON_SHARED_SECRET", "SUPABASE_SECRET_KEY", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]:
     assert f"wrangler secret put {name}" in deploy
 
 # Privileged keys may appear only in server routes/helpers and deployment documentation, never client components.

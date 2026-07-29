@@ -25,7 +25,7 @@ elif [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
   exit 1
 fi
 
-for required_env in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_SECRET_KEY OWNER_USER_ID INTEGRATION_ENCRYPTION_KEY; do
+for required_env in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_SECRET_KEY INTEGRATION_ENCRYPTION_KEY; do
   if [[ -z "${!required_env:-}" ]]; then
     echo "Missing required production variable: $required_env" >&2
     exit 1
@@ -94,7 +94,6 @@ WEB_LOG="$(mktemp)"
   npx opennextjs-cloudflare deploy 2>&1 | tee "$WEB_LOG"
   printf '%s' "$CRON_SHARED_SECRET" | npx wrangler secret put CRON_SHARED_SECRET
   printf '%s' "$SUPABASE_SECRET_KEY" | npx wrangler secret put SUPABASE_SECRET_KEY
-  printf '%s' "$OWNER_USER_ID" | npx wrangler secret put OWNER_USER_ID
   printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
   printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   printf '%s' "$INTEGRATION_ENCRYPTION_KEY" | npx wrangler secret put INTEGRATION_ENCRYPTION_KEY

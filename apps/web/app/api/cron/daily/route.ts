@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     if (!safeEqual(provided, expected)) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
-    const ownerId = backgroundOwnerId();
     const data = <T>(resource: string, init?: RequestInit) => adminDataRequest<T>(resource, init);
+    const ownerId = await backgroundOwnerId(data);
     const discovery = await runDiscovery({
       userId: ownerId,
       triggerType: "cron",

@@ -123,10 +123,13 @@ export async function adminDataRequest<T = any>(
   return payload as T;
 }
 
-export function backgroundOwnerId(): string {
+export async function backgroundOwnerId(data: <T>(resource: string, init?: RequestInit) => Promise<T>): Promise<string> {
   const owner = process.env.OWNER_USER_ID?.trim() ?? "";
-  if (!owner) throw new ControlApiError(503, "OWNER_USER_ID 尚未配置，无法执行定时发现任务");
-  return owner;
+  if (owner) return owner;
+  const profiles = await data<Array<{ user_id?: string }>>("profiles?select=user_id&order=created_at.asc&limit=2");
+  const userIds = [...new Set(profiles.map((profile) => profile.user_id).filter((userId): userId is string => Boolean(userId)))];
+  if (userIds.length === 1) return userIds[0];
+  throw new ControlApiError(503, "定时任务需要唯一的已登录 Career Copilot 用户；请先完成一次无密码登录");
 }
 
 export function controlError(error: unknown): NextResponse {
