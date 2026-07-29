@@ -2,6 +2,7 @@ import { Buffer } from "node:buffer";
 import { NextRequest, NextResponse } from "next/server";
 import { rfc2822Message } from "@/lib/application-export";
 import { currentApplicationSafety } from "@/lib/application-safety";
+import { gmailAccessToken } from "@/lib/integration-credentials";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 function validEmail(value: string): boolean {
@@ -13,8 +14,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const auth = await authenticate(request);
     const { id } = await params;
     const body = await request.json();
-    const gmailAccessToken = String(body.gmail_access_token ?? "").trim();
-    if (!gmailAccessToken) return NextResponse.json({ ok: false, error: "请先连接 Gmail" }, { status: 422 });
     const applications = await dataRequest<Array<Record<string, any>>>(auth, `applications?select=*&id=eq.${encodeURIComponent(id)}&limit=1`);
     const application = applications[0];
     if (!application) return NextResponse.json({ ok: false, error: "投递记录不存在" }, { status: 404 });
@@ -45,10 +44,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const subject = String(applicationPackage.email_subject ?? `应聘 ${job.title} 实习生`).trim();
     const emailBody = String(applicationPackage.email_body ?? applicationPackage.greeting ?? "").trim();
     const raw = Buffer.from(rfc2822Message(recipient, subject, emailBody), "utf8").toString("base64url");
+    const accessToken = await gmailAccessToken(auth.userId);
     const response = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/drafts", {
       method: "POST",
       headers: {
-        authorization: `Bearer ${gmailAccessToken}`,
+        authorization: `Bearer ${accessToken}`,
         "content-type": "application/json",
         accept: "application/json",
       },
