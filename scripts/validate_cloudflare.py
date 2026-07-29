@@ -63,6 +63,11 @@ REQUIRED = [
     ROOT / "scripts/smoke_m07.mjs",
     ROOT / "scripts/production_e2e_m07.mjs",
     ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql",
+    ROOT / "supabase/migrations/0011_daily_application_queue.sql",
+    ROOT / "apps/web/lib/dispatch-rules.mjs",
+    ROOT / "apps/web/lib/dispatch-service.ts",
+    ROOT / "apps/web/app/api/control/dispatches/route.ts",
+    ROOT / "apps/web/app/api/control/dispatches/batch/approve/route.ts",
     ROOT / "apps/web/lib/agent-runtime.mjs",
     ROOT / "apps/web/lib/career-agent-graph.mjs",
     ROOT / "apps/web/lib/agent-service.ts",
@@ -367,10 +372,19 @@ assert "approval_required" in agent_runtime
 for flag in ["agentRuntime: true", "hybridJobRanking: true", "mcpServer: true", "agentEvaluation: true", "publicPortfolioPlayground: true", "deterministicAgentDemoApi: true", "dockerDemoStack: true", "automaticEmailSend: false"]:
     assert flag in runtime
 assert "local_transition" in runtime
+assert "dailyApplicationBatchQueue: true" in runtime
 
 daily_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text()
 assert "runDailyAgentCycle" in daily_route
 assert 'action: "daily-discovery-ranking-report"' in daily_route
+assert "queue_generated: true" in daily_route
+
+dispatch_migration = (ROOT / "supabase/migrations/0011_daily_application_queue.sql").read_text()
+for required in ["daily_application_policies", "application_batches", "application_dispatches", "enable row level security", "application_dispatches_owner_all"]:
+    assert required in dispatch_migration
+dispatch_service = (ROOT / "apps/web/lib/dispatch-service.ts").read_text()
+assert "buildDailyDispatchBatch" in dispatch_service
+assert "final_submission_mode: \"user_browser\"" in dispatch_service
 
 root_scripts = root_package["scripts"]
 for script in ["test:m08", "smoke:m08", "test:m08.1", "smoke:m08.1", "evaluation:m08.1"]:

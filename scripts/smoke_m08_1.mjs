@@ -36,6 +36,7 @@ const smoke = {
   fastapi_agent_endpoints: ["/agent/analyze-job", "/agent/generate-resume", "/agent/evaluate"],
   docker_services: ["web", "api", "postgres-pgvector"],
   automatic_submission: false,
+  daily_application_batch_queue: true,
   automatic_email_send: false,
   live_cloudflare_verified: false,
 };

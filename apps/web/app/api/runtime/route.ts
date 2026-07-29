@@ -9,6 +9,7 @@ export async function GET() {
     controlPlane: "approval-first",
     authRequired: true,
     automaticSubmission: false,
+    dailyApplicationBatchQueue: true,
     automaticInterviewAcceptance: false,
     automaticOfferAcceptance: false,
     publicSourceDiscovery: true,

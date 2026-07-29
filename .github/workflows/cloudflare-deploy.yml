@@ -141,6 +141,7 @@ jobs:
           assert data["automaticEmailSend"] is False, data
           assert data["applicationOwnedIntegrations"] is True, data
           assert data["automaticSubmission"] is False, data
+          assert data["dailyApplicationBatchQueue"] is True, data
           assert data["automaticInterviewAcceptance"] is False, data
           assert data["automaticOfferAcceptance"] is False, data
           PY
