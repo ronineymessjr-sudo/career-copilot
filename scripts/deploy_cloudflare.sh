@@ -25,7 +25,7 @@ elif [[ -z "${CLOUDFLARE_ACCOUNT_ID:-}" ]]; then
   exit 1
 fi
 
-for required_env in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_SECRET_KEY OWNER_USER_ID; do
+for required_env in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_SECRET_KEY OWNER_USER_ID INTEGRATION_ENCRYPTION_KEY; do
   if [[ -z "${!required_env:-}" ]]; then
     echo "Missing required production variable: $required_env" >&2
     exit 1
@@ -97,6 +97,15 @@ WEB_LOG="$(mktemp)"
   printf '%s' "$OWNER_USER_ID" | npx wrangler secret put OWNER_USER_ID
   printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
   printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+  printf '%s' "$INTEGRATION_ENCRYPTION_KEY" | npx wrangler secret put INTEGRATION_ENCRYPTION_KEY
+  if [[ -n "${GOOGLE_OAUTH_CLIENT_ID:-}${GOOGLE_OAUTH_CLIENT_SECRET:-}${GOOGLE_OAUTH_REDIRECT_URI:-}" ]]; then
+    for required_env in GOOGLE_OAUTH_CLIENT_ID GOOGLE_OAUTH_CLIENT_SECRET GOOGLE_OAUTH_REDIRECT_URI; do
+      if [[ -z "${!required_env:-}" ]]; then echo "Incomplete Gmail OAuth configuration: $required_env is missing." >&2; exit 1; fi
+    done
+    printf '%s' "$GOOGLE_OAUTH_CLIENT_ID" | npx wrangler secret put GOOGLE_OAUTH_CLIENT_ID
+    printf '%s' "$GOOGLE_OAUTH_CLIENT_SECRET" | npx wrangler secret put GOOGLE_OAUTH_CLIENT_SECRET
+    printf '%s' "$GOOGLE_OAUTH_REDIRECT_URI" | npx wrangler secret put GOOGLE_OAUTH_REDIRECT_URI
+  fi
   if [[ -n "${OPENAI_API_KEY:-}" ]]; then printf '%s' "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY; fi
 )
 
@@ -138,6 +147,7 @@ assert data['deterministicAgentDemoApi'] is True, data
 assert data['dockerDemoStack'] is True, data
 assert 'local_transition' in data['resumePersonas'], data
 assert data['automaticEmailSend'] is False, data
+assert data['applicationOwnedIntegrations'] is True, data
 assert data['automaticInterviewAcceptance'] is False, data
 assert data['automaticOfferAcceptance'] is False, data
 PY

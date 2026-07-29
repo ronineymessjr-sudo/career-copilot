@@ -13,6 +13,13 @@ export async function GET() {
     automaticOfferAcceptance: false,
     publicSourceDiscovery: true,
     gmailDraftOnly: true,
+    applicationOwnedIntegrations: true,
+    gmailOAuthConfigured: Boolean(
+      process.env.GOOGLE_OAUTH_CLIENT_ID
+      && process.env.GOOGLE_OAUTH_CLIENT_SECRET
+      && process.env.GOOGLE_OAUTH_REDIRECT_URI
+      && process.env.INTEGRATION_ENCRYPTION_KEY,
+    ),
     interviewLearningLoop: true,
     conversionAnalytics: true,
     weeklyReviews: true,
