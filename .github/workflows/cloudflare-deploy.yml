@@ -17,6 +17,8 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-audit --no-fund
+      - name: Restore Linux native OpenNext dependency
+        run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
       - run: npm --workspace apps/web run cf-typegen
       - run: npm --workspace workers/scheduler run cf-typegen
       - run: npm run test:m08.1
@@ -44,10 +46,11 @@ jobs:
           CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           OWNER_USER_ID: ${{ secrets.OWNER_USER_ID }}
+          INTEGRATION_ENCRYPTION_KEY: ${{ secrets.INTEGRATION_ENCRYPTION_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CRON_SHARED_SECRET" ] && [ -n "$SUPABASE_SECRET_KEY" ] && [ -n "$OWNER_USER_ID" ] && [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CRON_SHARED_SECRET" ] && [ -n "$SUPABASE_SECRET_KEY" ] && [ -n "$OWNER_USER_ID" ] && [ -n "$INTEGRATION_ENCRYPTION_KEY" ] && [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
@@ -55,6 +58,9 @@ jobs:
           fi
       - if: steps.auth.outputs.ready == 'true'
         run: npm install --no-audit --no-fund
+      - if: steps.auth.outputs.ready == 'true'
+        name: Restore Linux native OpenNext dependency
+        run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
       - if: steps.auth.outputs.ready == 'true'
         name: Deploy web Worker
         working-directory: apps/web
@@ -73,6 +79,7 @@ jobs:
           CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
           OWNER_USER_ID: ${{ secrets.OWNER_USER_ID }}
+          INTEGRATION_ENCRYPTION_KEY: ${{ secrets.INTEGRATION_ENCRYPTION_KEY }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -80,6 +87,7 @@ jobs:
           printf '%s' "$CRON_SHARED_SECRET" | npx wrangler secret put CRON_SHARED_SECRET
           printf '%s' "$SUPABASE_SECRET_KEY" | npx wrangler secret put SUPABASE_SECRET_KEY
           printf '%s' "$OWNER_USER_ID" | npx wrangler secret put OWNER_USER_ID
+          printf '%s' "$INTEGRATION_ENCRYPTION_KEY" | npx wrangler secret put INTEGRATION_ENCRYPTION_KEY
           printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
           printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
           if [ -n "$OPENAI_API_KEY" ]; then printf '%s' "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY; fi
@@ -131,6 +139,7 @@ jobs:
           assert data["dockerDemoStack"] is True, data
           assert "local_transition" in data["resumePersonas"], data
           assert data["automaticEmailSend"] is False, data
+          assert data["applicationOwnedIntegrations"] is True, data
           assert data["automaticSubmission"] is False, data
           assert data["automaticInterviewAcceptance"] is False, data
           assert data["automaticOfferAcceptance"] is False, data
