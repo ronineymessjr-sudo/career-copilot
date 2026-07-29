@@ -1,23 +1,31 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Download, ExternalLink, FileDown, Inbox, MailPlus, PlugZap, RefreshCw, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, FileDown, Inbox, Layers3, MailPlus, PlugZap, RefreshCw, ShieldCheck } from "lucide-react";
 import { controlDownload, controlFetch } from "@/lib/control-client";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 type Application = Record<string, any>;
+type Dispatch = Record<string, any>;
 const GMAIL_TOKEN_KEY = "career_copilot_gmail_access_token";
 
 export function ApplicationsWorkspace() {
   const [items, setItems] = useState<Application[]>([]);
+  const [dispatches, setDispatches] = useState<Dispatch[]>([]);
+  const [batches, setBatches] = useState<Dispatch[]>([]);
   const [message, setMessage] = useState("");
   const [busyId, setBusyId] = useState("");
   const [gmailConnected, setGmailConnected] = useState(false);
 
   const load = useCallback(async () => {
     try {
-      const result = await controlFetch<{ applications: Application[] }>("/api/control/applications");
+      const [result, queue] = await Promise.all([
+        controlFetch<{ applications: Application[] }>("/api/control/applications"),
+        controlFetch<{ dispatches: Dispatch[]; batches: Dispatch[] }>("/api/control/dispatches"),
+      ]);
       setItems(result.applications ?? []);
+      setDispatches(queue.dispatches ?? []);
+      setBatches(queue.batches ?? []);
       setMessage("");
     } catch (error) { setMessage(error instanceof Error ? error.message : "加载失败"); }
   }, []);
@@ -79,6 +87,19 @@ export function ApplicationsWorkspace() {
     finally { setBusyId(""); }
   }
 
+  async function approveBatch(batch: Dispatch) {
+    setBusyId(`batch-${batch.id}`);
+    try {
+      const result = await controlFetch<{ dispatches: Dispatch[] }>("/api/control/dispatches/batch/approve", {
+        method: "POST",
+        body: JSON.stringify({ batch_id: batch.id }),
+      });
+      setMessage(`本批次的 ${result.dispatches.length} 个入口已准备好。批准不会向任何招聘平台提交申请。`);
+      await load();
+    } catch (error) { setMessage(error instanceof Error ? error.message : "批次批准失败"); }
+    finally { setBusyId(""); }
+  }
+
   async function exportPacket(item: Application, format: "markdown" | "json" | "html" | "eml") {
     const job = item.job ?? {};
     const ext = { markdown: "md", json: "json", html: "html", eml: "eml" }[format];
@@ -115,10 +136,24 @@ export function ApplicationsWorkspace() {
     } finally { setBusyId(""); }
   }
 
+  const latestBatch = batches[0] ?? null;
+  const latestDispatches = latestBatch ? dispatches.filter((item) => String(item.batch_id) === String(latestBatch.id)) : [];
+
   return <section className="control-panel applications-panel">
     <header className="control-heading"><div><span className="eyebrow">Human approval workflow</span><h2>投递管理</h2><p>材料可以导出或创建 Gmail 草稿；系统永远不会自动发送邮件或最终提交。</p></div><div className="heading-actions"><button className={gmailConnected ? "ghost-button connected" : "ghost-button"} onClick={()=>gmailConnected ? disconnectGmail() : void connectGmail()}><PlugZap size={14}/>{gmailConnected ? "清除 Gmail 会话" : "连接 Gmail"}</button><button className="icon-button" onClick={()=>void load()}><RefreshCw size={15}/></button></div></header>
     <p className="oauth-scope-note">Google 的 gmail.compose 授权范围技术上包含管理草稿和发送邮件；本项目仅调用 Drafts Create，仓库中没有发送接口，访问令牌只保留在当前标签页。</p>
     {message ? <div className="control-message">{message}</div> : null}
+    <section className="application-card" aria-label="每日投递批次">
+      <div className="application-main"><div className="application-title"><span>Daily application queue</span><h3>每日待投递批次</h3><p>定时任务只会把已通过真实性检查、审批和资格校验的材料加入队列。</p></div>{latestBatch ? <span className={`application-status status-${latestBatch.status}`}>{String(latestBatch.status).replaceAll("_", " ")}</span> : null}</div>
+      {!latestBatch ? <div className="empty-state"><Layers3 size={22}/><strong>今天尚未生成批次</strong><span>定时任务运行后，这里会显示符合你投递政策的岗位。</span></div> : <>
+        <div className="application-content"><div><strong>候选岗位</strong><p>{latestDispatches.length} 个已验证入口</p></div><div><strong>提交方式</strong><p>打开已登录的招聘平台完成最终提交，再在下方回写结果。</p></div></div>
+        <div className="card-actions">
+          {latestBatch.status === "queued" ? <button className="primary-button" onClick={()=>void approveBatch(latestBatch)} disabled={busyId === `batch-${latestBatch.id}`}>批准本批次并准备入口</button> : null}
+          {latestDispatches.map((dispatch) => <a key={dispatch.id} className="ghost-button" href={dispatch.target_url} target="_blank" rel="noreferrer">{dispatch.job?.company_name ?? "招聘平台"} · {dispatch.job?.title ?? dispatch.channel}<ExternalLink size={13}/></a>)}
+        </div>
+        {latestBatch.status === "queued" ? <p className="oauth-scope-note">批准仅改变 Career Copilot 内部队列状态，不会发送申请、消息或邮件。</p> : null}
+      </>}
+    </section>
     <div className="application-list">
       {items.length === 0 ? <div className="empty-state"><Inbox size={25}/><strong>暂无投递记录</strong><span>岗位材料通过真实性审批后，会进入 READY_TO_SUBMIT。</span></div> : items.map((item)=>{
         const job = item.job ?? {};

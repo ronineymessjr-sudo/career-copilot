@@ -76,6 +76,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         metadata: { external_reference: String(body.external_reference ?? "") },
       }]),
     });
+    await dataRequest(auth, `application_dispatches?application_id=eq.${encodeURIComponent(id)}&status=eq.handoff_ready`, {
+      method: "PATCH",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({
+        status: "submitted",
+        submitted_at: submittedAt,
+        external_reference: String(body.external_reference ?? ""),
+        updated_at: submittedAt,
+      }),
+    });
     return NextResponse.json({ ok: true, application: updated[0] });
   } catch (error) {
     return controlError(error);

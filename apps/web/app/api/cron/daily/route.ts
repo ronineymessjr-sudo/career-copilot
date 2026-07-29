@@ -33,10 +33,11 @@ export async function POST(request: NextRequest) {
       ok: !failed,
       accepted: true,
       mode: process.env.APP_MODE ?? "production",
-      action: "daily-discovery-ranking-report",
+      action: "daily-discovery-ranking-queue",
       discovery,
       agent_cycle: agentCycle,
       automatic_submission: false,
+      platform_submission_mode: "user_browser_after_batch_handoff",
       timestamp: new Date().toISOString(),
     }, { status: failed ? 502 : 200 });
   } catch (error) {

@@ -1,4 +1,5 @@
 import { buildCareerAgentGraph } from "@/lib/career-agent-graph.mjs";
+import { buildDailyDispatchBatch } from "@/lib/dispatch-service";
 import { embedTexts } from "@/lib/embedding-service";
 import {
   MCP_TOOL_DEFINITIONS,
@@ -247,11 +248,12 @@ export async function runDailyAgentCycle({ data, userId }: { data: AgentData; us
       headers: { Prefer: "resolution=merge-duplicates,return=representation" },
       body: JSON.stringify([{ user_id: userId, report_date: report.report_date, run_id: run.id, summary: report, ranked_job_ids: report.recommended_job_ids, skill_gaps: report.top_skill_gaps, updated_at: new Date().toISOString() }]),
     });
+    const dispatchBatch = await buildDailyDispatchBatch({ data, userId, batchDate: report.report_date });
     await data(`agent_runs?id=eq.${enc(run.id)}`, {
       method: "PATCH",
-      body: JSON.stringify({ status: "completed", output: report, confidence: 0.88, completed_at: new Date().toISOString(), duration_ms: Date.now() - startedAt }),
+      body: JSON.stringify({ status: "completed", output: { ...report, dispatch_batch: { id: dispatchBatch.batch.id, queued: dispatchBatch.dispatches.length } }, confidence: 0.88, completed_at: new Date().toISOString(), duration_ms: Date.now() - startedAt }),
     });
-    return { status: "completed", run_id: run.id, report, ranked: ranked.length };
+    return { status: "completed", run_id: run.id, report, ranked: ranked.length, dispatch_batch: { id: dispatchBatch.batch.id, queued: dispatchBatch.dispatches.length, reused: dispatchBatch.reused } };
   } catch (error) {
     await data(`agent_runs?id=eq.${enc(run.id)}`, {
       method: "PATCH",

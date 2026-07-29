@@ -5,12 +5,13 @@ import { authenticate, controlError, dataRequest } from "@/lib/supabase-control"
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticate(request);
-    const [applications, jobs, packages, evaluations, profiles] = await Promise.all([
+    const [applications, jobs, packages, evaluations, profiles, dispatches] = await Promise.all([
       dataRequest<Array<Record<string, any>>>(auth, "applications?select=*&order=updated_at.desc"),
       dataRequest<Array<Record<string, any>>>(auth, "jobs?select=*"),
       dataRequest<Array<Record<string, any>>>(auth, "application_packages?select=*"),
       dataRequest<Array<Record<string, any>>>(auth, "job_evaluations?select=*"),
       dataRequest<Array<Record<string, any>>>(auth, "profiles?select=id&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, "application_dispatches?select=*&order=updated_at.desc"),
     ]);
     const profileId = profiles[0]?.id;
     const evidence = profileId
@@ -19,6 +20,7 @@ export async function GET(request: NextRequest) {
     const jobById = new Map(jobs.map((item) => [String(item.id), item]));
     const packageById = new Map(packages.map((item) => [String(item.id), item]));
     const evaluationByJob = new Map(evaluations.map((item) => [String(item.job_id), item]));
+    const dispatchByApplication = new Map(dispatches.map((item) => [String(item.application_id), item]));
     const result = applications.map((application) => {
       const job = jobById.get(String(application.job_id)) ?? null;
       const applicationPackage = packageById.get(String(application.package_id)) ?? null;
@@ -44,6 +46,7 @@ export async function GET(request: NextRequest) {
         ...application,
         job,
         application_package: applicationPackage,
+        dispatch: dispatchByApplication.get(String(application.id)) ?? null,
         evaluation,
         current_safety: { evidence_check: evidenceCheck, evaluated_live: Boolean(liveEvaluation) },
         readiness: computeReadiness({ evaluation, applicationPackage: safetyPackage, application }),
