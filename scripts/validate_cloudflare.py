@@ -131,6 +131,13 @@ assert "operationalObservability: true" in runtime
 assert "automaticInterviewAcceptance: false" in runtime
 assert "automaticOfferAcceptance: false" in runtime
 
+layout = (ROOT / "apps/web/app/layout.tsx").read_text()
+assert 'dynamic = "force-dynamic"' in layout
+assert "__CAREER_COPILOT_PUBLIC_CONFIG__" in layout
+browser_supabase = (ROOT / "apps/web/lib/supabase-browser.ts").read_text()
+assert "runtimePublicConfig" in browser_supabase
+assert "__CAREER_COPILOT_PUBLIC_CONFIG__" in browser_supabase
+
 source_lib = (ROOT / "apps/web/lib/job-sources.mjs").read_text()
 assert "boards-api.greenhouse.io" in source_lib
 assert "api.lever.co" in source_lib
