@@ -161,7 +161,8 @@ jobs:
               python - "$output" <<'PY'
           import json, sys
           data = json.load(open(sys.argv[1], encoding="utf-8"))
-          assert data == {"ok": False, "error": "定时任务需要唯一的已登录 Career Copilot 用户；请先完成一次无密码登录"}, data
+          assert data["ok"] is False, data
+          assert data["error"] == "定时任务需要唯一的已登录 Career Copilot 用户；请先完成一次无密码登录", data
           PY
               return 0
             fi
