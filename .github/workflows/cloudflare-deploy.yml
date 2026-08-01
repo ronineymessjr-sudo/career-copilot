@@ -90,6 +90,8 @@ jobs:
           printf '%s' "$INTEGRATION_ENCRYPTION_KEY" | npx wrangler secret put INTEGRATION_ENCRYPTION_KEY
           printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
           printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+          printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx wrangler secret put SUPABASE_URL
+          printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put SUPABASE_PUBLISHABLE_KEY
           if [ -n "$OPENAI_API_KEY" ]; then printf '%s' "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY; fi
       - if: steps.auth.outputs.ready == 'true'
         name: Deploy scheduler Worker

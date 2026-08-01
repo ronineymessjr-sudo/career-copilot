@@ -13,8 +13,8 @@ export const dynamic = "force-dynamic";
 
 export default function RootLayout({children}:{children:React.ReactNode}) {
   const publicConfig = {
-    supabaseUrl: process.env["NEXT_PUBLIC_SUPABASE_URL"] ?? "",
-    supabasePublishableKey: process.env["NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"] ?? "",
+    supabaseUrl: process.env.SUPABASE_URL ?? "",
+    supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY ?? "",
   };
   return <html lang="zh-CN"><body><script dangerouslySetInnerHTML={{ __html: `globalThis.__CAREER_COPILOT_PUBLIC_CONFIG__=${JSON.stringify(publicConfig)};` }}/>{children}</body></html>;
 }
