@@ -120,7 +120,7 @@ printf '\n'
 python - <<'PY'
 import json
 data=json.load(open('/tmp/career-copilot-runtime.json',encoding='utf-8'))
-assert data['version']=='1.1.0', data
+assert data['version']=='2.0.0', data
 assert data['interviewLearningLoop'] is True, data
 assert data['conversionAnalytics'] is True, data
 assert data['weeklyReviews'] is True, data

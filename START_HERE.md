@@ -1,4 +1,4 @@
-# Career Copilot V2 Complete Platform R3 — 完整源码入口
+# Career Copilot V2 Complete Platform R4 — 完整源码入口
 
 这是独立的 **R3 完整源码包**，解压目录就是项目根目录，不需要叠加 R2 或任何旧补丁。
 

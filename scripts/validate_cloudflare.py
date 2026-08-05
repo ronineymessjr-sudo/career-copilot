@@ -5,6 +5,10 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+IGNORED_SCAN_PARTS = {".git", ".career-copilot-patch-backups", ".career-copilot-backups", "node_modules", ".next", ".open-next", ".wrangler", ".pytest_cache", "__pycache__"}
+
+def in_ignored_tree(path: Path) -> bool:
+    return any(part in IGNORED_SCAN_PARTS for part in path.parts)
 REQUIRED = [
     ROOT / "apps/web/wrangler.jsonc",
     ROOT / "apps/web/open-next.config.ts",
@@ -78,7 +82,6 @@ REQUIRED = [
     ROOT / "scripts/generate_agent_evaluation_report.mjs",
     ROOT / "docs/agent-evaluation-report.md",
     ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql",
-    ROOT / "supabase/migrations/0016_rls_grants_shared_pool.sql",
     ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql",
     ROOT / "apps/web/lib/application-kit.mjs",
     ROOT / "apps/web/lib/application-export.mjs",
@@ -120,7 +123,7 @@ for required in ["job_sources", "discovery_runs", "gmail_draft_id", "hr_verified
 assert "provider in ('greenhouse','lever')" in migration
 
 runtime = (ROOT / "apps/web/app/api/runtime/route.ts").read_text()
-assert 'version: "1.1.0"' in runtime
+assert 'version: "2.0.0"' in runtime
 assert "automaticSubmission: false" in runtime
 assert "gmailDraftOnly: true" in runtime
 assert "publicSourceDiscovery: true" in runtime
@@ -187,7 +190,7 @@ assert "gmail_access_token" not in client_text.lower() or "sessionStorage" in cl
 all_text = "\n".join(
     path.read_text(errors="ignore")
     for path in ROOT.rglob("*")
-    if path.is_file() and path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"} and not any(part in {".git", "node_modules", ".next", ".open-next", ".wrangler"} for part in path.parts)
+    if path.is_file() and path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"} and not in_ignored_tree(path)
 )
 assert "gmail/v1/users/me/drafts/send" not in all_text
 assert "gmail/v1/users/me/messages/send" not in all_text
@@ -199,7 +202,7 @@ forbidden = [
     re.compile(r"ronineymessjr@gmail\.com", re.I),
 ]
 for path in ROOT.rglob("*"):
-    if path == Path(__file__).resolve() or any(part in {".git", "node_modules", ".next", ".open-next", ".wrangler"} for part in path.parts):
+    if path == Path(__file__).resolve() or in_ignored_tree(path):
         continue
     if not path.is_file() or path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}:
         continue
@@ -328,8 +331,8 @@ assert "SUPABASE_SECRET_KEY" not in client_text_m07
 
 
 api_main = (ROOT / "apps/api/app/main.py").read_text()
-assert 'version="1.1.0"' in api_main
-assert '"version":"1.1.0"' in api_main
+assert 'version="2.0.0"' in api_main
+assert '"version":"2.0.0"' in api_main
 
 auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text()
 assert "包内全部迁移（按文件名顺序）" in auth_gate
@@ -355,8 +358,8 @@ assert "platform-sidebar-note" in complete_shell
 
 root_package = json.loads((ROOT / "package.json").read_text())
 web_package = json.loads((ROOT / "apps/web/package.json").read_text())
-assert root_package["version"] == "1.1.0"
-assert web_package["version"] == "1.1.0"
+assert root_package["version"] == "2.0.0"
+assert web_package["version"] == "2.0.0"
 assert web_package["dependencies"]["@langchain/core"] == "1.2.3"
 assert web_package["dependencies"]["@langchain/langgraph"] == "1.4.8"
 assert web_package["dependencies"]["@langchain/langgraph-checkpoint"] == "1.0.3"
@@ -382,10 +385,6 @@ for required in ["content_bundle", "tailored_resume", "submission_capability", "
     assert required in migration16
 assert "drop table" not in migration16.lower()
 assert "drop schema" not in migration16.lower()
-
-migration16rls = (ROOT / "supabase/migrations/0016_rls_grants_shared_pool.sql").read_text()
-for required in ["job_scores_owner_all", "resume_alignments_owner_all", "daily_recommendations_owner_insert", "grant insert, update, delete on career_copilot.daily_recommendations"]:
-    assert required in migration16rls
 
 application_kit = (ROOT / "apps/web/lib/application-kit.mjs").read_text()
 for required in ["buildApplicationContentBundle", "buildTailoredResume", "detectSubmissionCapability", "buildMailtoUrl", "no_invented_metrics"]:

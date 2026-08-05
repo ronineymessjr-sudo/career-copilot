@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bot, CheckCircle2, ChevronDown, ClipboardCheck, Copy, Download, ExternalLink, FileText, Inbox, RefreshCw, Save, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Bot, CalendarClock, CheckCircle2, ChevronDown, ClipboardCheck, Copy, Download, Edit3, ExternalLink, FileText, History, Inbox, RefreshCw, Save, ShieldCheck, Sparkles } from "lucide-react";
 import { controlDownload, controlFetch } from "@/lib/control-client";
 
 type Application = Record<string, any>;
@@ -50,7 +50,63 @@ function MaterialBlock({ label, value }: { label: string; value: string }) {
   return <article className="application-kit-block"><header><strong>{label}</strong><CopyButton value={value}/></header><p>{value}</p></article>;
 }
 
-function ApplicationMaterials({ item, onOpenExport }: { item: Application; onOpenExport: (path: string, filename: string, open: boolean) => Promise<void> }) {
+function MaterialEditor({ item, onSaved }: { item: Application; onSaved: () => Promise<void> }) {
+  const bundle = item.application_package?.content_bundle ?? {};
+  const [form, setForm] = useState({
+    greeting: String(bundle.greeting ?? item.application_package?.greeting ?? ""),
+    cover_letter: String(bundle.cover_letter ?? ""),
+    self_introduction: String(bundle.self_introduction ?? ""),
+    why_role: String(bundle.why_role ?? ""),
+    why_company: String(bundle.why_company ?? ""),
+    project_answer: String(bundle.project_answer ?? ""),
+    availability_answer: String(bundle.availability_answer ?? ""),
+  });
+  const [saving, setSaving] = useState(false);
+  const [note, setNote] = useState("");
+  async function save() {
+    setSaving(true);
+    try { await controlFetch(`/api/control/applications/${item.id}/materials`, { method: "PATCH", body: JSON.stringify({ content_bundle: form, note }) }); await onSaved(); }
+    finally { setSaving(false); }
+  }
+  return <details className="application-material-editor"><summary><Edit3 size={14}/>编辑并保存新版本</summary><div className="application-editor-grid">
+    <label>招呼语<textarea rows={3} value={form.greeting} onChange={(event) => setForm({ ...form, greeting: event.target.value })}/></label>
+    <label>求职信<textarea rows={7} value={form.cover_letter} onChange={(event) => setForm({ ...form, cover_letter: event.target.value })}/></label>
+    <label>自我介绍<textarea rows={4} value={form.self_introduction} onChange={(event) => setForm({ ...form, self_introduction: event.target.value })}/></label>
+    <label>为什么申请岗位<textarea rows={4} value={form.why_role} onChange={(event) => setForm({ ...form, why_role: event.target.value })}/></label>
+    <label>为什么选择公司<textarea rows={4} value={form.why_company} onChange={(event) => setForm({ ...form, why_company: event.target.value })}/></label>
+    <label>项目经历回答<textarea rows={5} value={form.project_answer} onChange={(event) => setForm({ ...form, project_answer: event.target.value })}/></label>
+    <label>到岗时间回答<textarea rows={3} value={form.availability_answer} onChange={(event) => setForm({ ...form, availability_answer: event.target.value })}/></label>
+    <label>版本说明<input value={note} onChange={(event) => setNote(event.target.value)} placeholder="例如：缩短求职信，突出数据分析项目"/></label>
+    <button className="primary-button compact" type="button" onClick={() => void save()} disabled={saving}><Save size={14}/>{saving ? "保存中…" : "保存材料新版本"}</button>
+  </div></details>;
+}
+
+const TRACKING_STATUSES = [
+  ["prepared", "准备材料"], ["needs_information", "需要补齐"], ["ready_to_submit", "可以投递"], ["submitted", "已投递"],
+  ["test", "收到笔试"], ["interview", "进入面试"], ["offer", "收到 Offer"], ["rejected", "被拒绝"], ["closed", "岗位已关闭"], ["paused", "已暂停"],
+] as const;
+
+function StatusTracker({ item, onSaved }: { item: Application; onSaved: () => Promise<void> }) {
+  const [status, setStatus] = useState(String(item.status ?? "prepared"));
+  const [reason, setReason] = useState(String(item.last_status_reason ?? ""));
+  const [followUp, setFollowUp] = useState(item.next_follow_up_at ? String(item.next_follow_up_at).slice(0, 16) : "");
+  const [note, setNote] = useState(String(item.follow_up_note ?? ""));
+  const [saving, setSaving] = useState(false);
+  async function save() {
+    setSaving(true);
+    try { await controlFetch(`/api/control/applications/${item.id}/status`, { method: "POST", body: JSON.stringify({ status, reason, next_follow_up_at: followUp ? new Date(followUp).toISOString() : null, follow_up_note: note }) }); await onSaved(); }
+    finally { setSaving(false); }
+  }
+  return <details className="application-status-tracker"><summary><CalendarClock size={14}/>状态、跟进与历史</summary><div className="application-status-form">
+    <label>当前状态<select value={status} onChange={(event) => setStatus(event.target.value)}>{TRACKING_STATUSES.map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+    <label>状态说明<input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="例如：已收到线上笔试邀请"/></label>
+    <label>下次跟进时间<input type="datetime-local" value={followUp} onChange={(event) => setFollowUp(event.target.value)}/></label>
+    <label>跟进备注<input value={note} onChange={(event) => setNote(event.target.value)} placeholder="联系人、下一步和准备事项"/></label>
+    <button className="ghost-button" type="button" onClick={() => void save()} disabled={saving}><Save size={14}/>{saving ? "保存中…" : "保存状态"}</button>
+  </div>{Array.isArray(item.status_timeline) && item.status_timeline.length ? <div className="application-timeline"><strong><History size={14}/>状态历史</strong>{item.status_timeline.slice(-8).reverse().map((event: Record<string, any>, index: number) => <div key={`${event.at}-${index}`}><span>{event.label}</span><small>{event.reason || "用户状态更新"}</small><time>{event.at ? new Date(event.at).toLocaleString("zh-CN") : ""}</time></div>)}</div> : null}</details>;
+}
+
+function ApplicationMaterials({ item, onOpenExport, onSaved }: { item: Application; onOpenExport: (path: string, filename: string, open: boolean) => Promise<void>; onSaved: () => Promise<void> }) {
   const job = item.job ?? {};
   const pack = item.application_package ?? {};
   const bundle = pack.content_bundle ?? {};
@@ -60,6 +116,7 @@ function ApplicationMaterials({ item, onOpenExport }: { item: Application; onOpe
   return <div className="application-kit-panel">
     <div className="application-kit-actions">
       <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=resume`, `${basename}-定制简历.html`, true)}><FileText size={14}/>定制简历 / 保存 PDF</button>
+      <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=docx`, `${basename}-定制简历.docx`, false)}><Download size={14}/>下载 DOCX</button>
       {pack.resume_version_id ? <button type="button" onClick={() => void onOpenExport(`/api/control/resumes/${pack.resume_version_id}/file`, pack.resume_filename || `${basename}-原始简历`, false)}><Download size={14}/>下载原始简历</button> : null}
       <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=kit`, `${basename}-投递材料.html`, true)}><ClipboardCheck size={14}/>打开完整材料包</button>
       <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=answers`, `${basename}-申请问答.md`, false)}><Download size={14}/>下载申请问答</button>
@@ -72,11 +129,12 @@ function ApplicationMaterials({ item, onOpenExport }: { item: Application; onOpe
       {answers.map((answer: Record<string, any>) => <MaterialBlock key={String(answer.key || answer.label)} label={String(answer.label || "申请回答")} value={String(answer.value || "")}/>)}
     </div>
     {attachments.length ? <section className="application-attachment-list"><strong>附件检查</strong><div>{attachments.map((attachment: Record<string, any>) => <span key={String(attachment.key)} className={attachment.key === "resume" || attachment.key === "cover_letter" ? "ready" : "check"}><CheckCircle2 size={13}/>{attachment.label}</span>)}</div></section> : null}
-    <p className="application-kit-note">定制简历只使用已保存画像、已有简历和已核验项目证据，不会编造经历或数据。外部招聘平台的最终提交仍需要你确认。</p>
+    <MaterialEditor item={item} onSaved={onSaved}/>
+    <p className="application-kit-note">定制简历只使用已保存画像、已有简历和已核验项目证据，不会编造经历或数据。每次编辑都会保存独立版本；外部招聘平台的最终提交仍需要你确认。</p>
   </div>;
 }
 
-function ApplicationRow({ item, activeHandoffId, busyId, onStart, onConfirm, onApprove, onOpenExport }: { item: Application; activeHandoffId: string; busyId: string; onStart: (item: Application) => Promise<void>; onConfirm: (item: Application) => Promise<void>; onApprove: (item: Application) => Promise<void>; onOpenExport: (path: string, filename: string, open: boolean) => Promise<void> }) {
+function ApplicationRow({ item, activeHandoffId, busyId, onStart, onConfirm, onApprove, onOpenExport, onReload }: { item: Application; activeHandoffId: string; busyId: string; onStart: (item: Application) => Promise<void>; onConfirm: (item: Application) => Promise<void>; onApprove: (item: Application) => Promise<void>; onOpenExport: (path: string, filename: string, open: boolean) => Promise<void>; onReload: () => Promise<void> }) {
   const job = item.job ?? {};
   const pack = item.application_package ?? {};
   const readiness = item.readiness ?? { blockers: [] };
@@ -95,7 +153,8 @@ function ApplicationRow({ item, activeHandoffId, busyId, onStart, onConfirm, onA
         : canApprove ? <button className="primary-button" type="button" onClick={() => void onApprove(item)} disabled={busyId === `approve-${item.id}`}><CheckCircle2 size={15}/>{busyId === `approve-${item.id}` ? "确认中…" : "确认材料并进入投递"}</button>
         : <Link className="ghost-button" href={`/jobs?job=${encodeURIComponent(String(job.id ?? ""))}`}>返回岗位处理</Link>}
     </div>
-    {pack.id ? <details className="platform-application-details application-kit-details"><summary><ChevronDown size={14}/>查看简历与全部投递文案</summary><ApplicationMaterials item={item} onOpenExport={onOpenExport}/></details> : readiness.blockers?.length ? <details className="platform-application-details"><summary><ChevronDown size={14}/>查看阻塞原因</summary><div><ul>{readiness.blockers.map((blocker: string) => <li key={blocker}>{blocker}</li>)}</ul></div></details> : null}
+    {pack.id ? <details className="platform-application-details application-kit-details"><summary><ChevronDown size={14}/>查看简历与全部投递文案</summary><ApplicationMaterials item={item} onOpenExport={onOpenExport} onSaved={onReload}/></details> : readiness.blockers?.length ? <details className="platform-application-details"><summary><ChevronDown size={14}/>查看阻塞原因</summary><div><ul>{readiness.blockers.map((blocker: string) => <li key={blocker}>{blocker}</li>)}</ul></div></details> : null}
+    <StatusTracker item={item} onSaved={onReload}/>
   </article>;
 }
 
@@ -192,7 +251,7 @@ export function ApplicationsWorkspace() {
     finally { setBusyId(""); }
   }
 
-  const rowProps = { activeHandoffId, busyId, onStart: startSubmission, onConfirm: confirmSubmitted, onApprove: approve, onOpenExport: openExport };
+  const rowProps = { activeHandoffId, busyId, onStart: startSubmission, onConfirm: confirmSubmitted, onApprove: approve, onOpenExport: openExport, onReload: load };
   return <section className="platform-workspace">
     <header className="platform-page-head"><div><h1>投递管理</h1><p>系统每天推荐岗位并准备定制简历、求职信、招呼语和常见问答；支持的渠道直接打开已准备动作，其他渠道跳转真实申请页。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
 

@@ -1,4 +1,4 @@
-# Career Copilot V2 — Complete Platform R3
+# Career Copilot V2 — Complete Platform R4
 
 Career Copilot 是一个多用户岗位聚合、个性化推荐与投递准备工作台。
 
@@ -11,7 +11,7 @@ Career Copilot 是一个多用户岗位聚合、个性化推荐与投递准备�
 - 招聘邮箱 `mailto:` 预填
 - 真实招聘页面一键跳转
 - 项目证据可选，不再作为所有岗位的通用阻塞条件
-- 迁移 `0016_application_kits_one_click_handoff.sql`
+- 迁移 `0020_platform_scale_quality_analytics.sql`
 
 ## 技术栈
 

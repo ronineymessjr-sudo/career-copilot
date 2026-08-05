@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle2, ChevronDown, ExternalLink, FileText, Filter, Plus, RefreshCw, Search, SearchCheck, Send, SlidersHorizontal, X } from "lucide-react";
+import { AlertTriangle, Bookmark, CheckCircle2, ChevronDown, ExternalLink, FileText, Filter, Heart, Plus, RefreshCw, Search, SearchCheck, Send, SlidersHorizontal, ThumbsDown, X } from "lucide-react";
 import { controlFetch } from "@/lib/control-client";
 import type { ApplicationPlan } from "@/lib/application-plan.mjs";
 
@@ -14,11 +14,13 @@ type Job = Record<string, any> & {
   recommendation?: { score: number; fit: string; label: string; reasons: string[]; gaps: string[] } | null;
   application_package?: Record<string, any> | null;
   application?: Record<string, any> | null;
+  feedback?: { feedback_type?: string; reason?: string } | null;
+  hidden_by_preference?: boolean;
 };
 
 type PlanResponse = { plan: ApplicationPlan; application_package: Record<string, any> | null };
 type PlanState = PlanResponse & { error?: string };
-type FilterKey = "all" | "recommended" | "ready" | "verify" | "submitted";
+type FilterKey = "all" | "recommended" | "saved" | "ready" | "verify" | "submitted";
 type HandoffResponse = {
   target_url: string;
   channel: string;
@@ -93,7 +95,7 @@ function PlanPanel({ job, state, busyId, onVerify, onConfirm }: { job: Job; stat
   </div>;
 }
 
-function JobRow({ job, planState, busyId, onPlan, onVerify, onConfirm }: { job: Job; planState?: PlanState; busyId: string; onPlan: (job: Job) => Promise<void>; onVerify: (job: Job, patch: VerificationPatch) => Promise<void>; onConfirm: (job: Job, state: PlanState) => Promise<void> }) {
+function JobRow({ job, planState, busyId, onPlan, onVerify, onConfirm, onFeedback }: { job: Job; planState?: PlanState; busyId: string; onPlan: (job: Job) => Promise<void>; onVerify: (job: Job, patch: VerificationPatch) => Promise<void>; onConfirm: (job: Job, state: PlanState) => Promise<void>; onFeedback: (job: Job, feedbackType: string) => Promise<void> }) {
   const state = eligibility(job);
   const applicationStatus = String(job.application?.status ?? "");
   const planning = busyId === `plan-${job.id}`;
@@ -107,6 +109,11 @@ function JobRow({ job, planState, busyId, onPlan, onVerify, onConfirm }: { job: 
       <strong>{job.title}</strong>
       <small>{[job.city, job.district, job.workplace, job.salary].filter(Boolean).join(" · ") || "地点与薪资待确认"}</small>
       <div className="platform-reason-line">{recommendation.reasons?.slice(0, 2).map((reason: string) => <span key={reason}>{reason}</span>)}</div>
+      <div className="platform-job-feedback" aria-label="推荐反馈">
+        <button type="button" className={job.feedback?.feedback_type === "interested" ? "active" : ""} onClick={() => void onFeedback(job, "interested")} disabled={busyId === `feedback-${job.id}`} title="感兴趣"><Heart size={14}/>感兴趣</button>
+        <button type="button" className={job.feedback?.feedback_type === "saved" ? "active" : ""} onClick={() => void onFeedback(job, "saved")} disabled={busyId === `feedback-${job.id}`} title="收藏"><Bookmark size={14}/>收藏</button>
+        <button type="button" className={job.feedback?.feedback_type === "not_interested" ? "active negative" : ""} onClick={() => void onFeedback(job, "not_interested")} disabled={busyId === `feedback-${job.id}`} title="减少类似推荐"><ThumbsDown size={14}/>不感兴趣</button>
+      </div>
       <details className="platform-job-details"><summary><ChevronDown size={14}/>岗位详情与推荐解释</summary><div><p>{job.requirements || job.description || "暂无完整岗位说明"}</p>{recommendation.gaps?.length ? <section><strong>需要注意</strong><ul>{recommendation.gaps.slice(0, 4).map((gap: string) => <li key={gap}>{gap}</li>)}</ul></section> : null}{job.source_url ? <a href={job.source_url} target="_blank" rel="noreferrer">查看原岗位<ExternalLink size={14}/></a> : null}</div></details>
     </div>
     <span className={`platform-status ${state.tone}`}>{state.label}</span>
@@ -148,14 +155,16 @@ export function JobsWorkspace() {
   const counts = useMemo(() => openJobs.reduce((result, job) => {
     const key = eligibility(job).key;
     result.all += 1; result[key] += 1;
-    if (Number(job.recommendation?.score ?? 0) >= 70) result.recommended += 1;
+    if (!job.hidden_by_preference && Number(job.recommendation?.score ?? 0) >= 60) result.recommended += 1;
+    if (job.feedback?.feedback_type === "saved") result.saved += 1;
     return result;
-  }, { all: 0, recommended: 0, ready: 0, verify: 0, submitted: 0 }), [openJobs]);
+  }, { all: 0, recommended: 0, saved: 0, ready: 0, verify: 0, submitted: 0 }), [openJobs]);
 
   const visibleJobs = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const rows = openJobs.filter((job) => {
-      if (filter === "recommended" && Number(job.recommendation?.score ?? 0) < 70) return false;
+      if (filter === "recommended" && (job.hidden_by_preference || Number(job.recommendation?.score ?? 0) < 60)) return false;
+      if (filter === "saved" && job.feedback?.feedback_type !== "saved") return false;
       if (!["all", "recommended"].includes(filter) && eligibility(job).key !== filter) return false;
       if (needle && !`${job.company_name} ${job.title} ${job.description} ${job.requirements}`.toLowerCase().includes(needle)) return false;
       if (location && !`${job.city} ${job.district} ${job.address}`.includes(location)) return false;
@@ -191,6 +200,23 @@ export function JobsWorkspace() {
     finally { setBusyId(""); }
   }
 
+
+  async function feedback(job: Job, feedbackType: string) {
+    setBusyId(`feedback-${job.id}`);
+    try {
+      const current = job.feedback?.feedback_type;
+      if (current === feedbackType) {
+        await controlFetch(`/api/control/jobs/${job.id}/feedback`, { method: "DELETE" });
+        setMessage("已取消岗位反馈，岗位仍保留在完整岗位池中。");
+      } else {
+        await controlFetch(`/api/control/jobs/${job.id}/feedback`, { method: "POST", body: JSON.stringify({ feedback_type: feedbackType }) });
+        setMessage(feedbackType === "not_interested" ? "已减少类似岗位的推荐；完整岗位池仍可查看。" : feedbackType === "saved" ? "岗位已收藏。" : "已记录感兴趣，后续推荐会参考这次反馈。");
+      }
+      await load();
+    } catch (error) { setMessage(error instanceof Error ? error.message : "反馈保存失败"); }
+    finally { setBusyId(""); }
+  }
+
   async function confirmAndApply(job: Job, state: PlanState) {
     const pack = state.application_package;
     if (!pack?.id || state.plan.status !== "ready") return;
@@ -213,7 +239,7 @@ export function JobsWorkspace() {
     finally { setBusyId(""); }
   }
 
-  const filters: Array<[FilterKey, string, number]> = [["all", "全部岗位", counts.all], ["recommended", "为我推荐", counts.recommended], ["ready", "条件可投", counts.ready], ["verify", "需确认", counts.verify], ["submitted", "已投递", counts.submitted]];
+  const filters: Array<[FilterKey, string, number]> = [["all", "全部岗位", counts.all], ["recommended", "为我推荐", counts.recommended], ["saved", "已收藏", counts.saved], ["ready", "条件可投", counts.ready], ["verify", "需确认", counts.verify], ["submitted", "已投递", counts.submitted]];
   const hasActiveFilters = Boolean(query || location || source || workplace || filter !== "all");
   function resetFilters() { setFilter("all"); setQuery(""); setLocation(""); setSource(""); setWorkplace(""); setSort("recommendation"); }
 
@@ -240,7 +266,7 @@ export function JobsWorkspace() {
     <section className="platform-data-panel" aria-label="完整岗位池">
       <div className="platform-table-head platform-job-table-head"><span>推荐度</span><span>岗位与来源</span><span>资格状态</span><span>操作</span></div>
       <div className="platform-job-list">
-        {visibleJobs.length ? visibleJobs.map((job) => <JobRow key={job.id} job={job} planState={plans[job.id]} busyId={busyId} onPlan={plan} onVerify={verify} onConfirm={confirmAndApply}/>) : openJobs.length ? <div className="platform-empty-state"><Filter size={22}/><strong>当前筛选没有结果</strong><p>岗位没有被删除，清除筛选即可查看完整岗位池。</p><button onClick={resetFilters}>查看全部岗位</button></div> : <div className="platform-empty-state"><SearchCheck size={22}/><strong>岗位池还是空的</strong><p>连接自动岗位来源，或者导入任意招聘平台的真实 JD。</p><div><Link href="/sources">连接岗位来源</Link></div></div>}
+        {visibleJobs.length ? visibleJobs.map((job) => <JobRow key={job.id} job={job} planState={plans[job.id]} busyId={busyId} onPlan={plan} onVerify={verify} onConfirm={confirmAndApply} onFeedback={feedback}/>) : openJobs.length ? <div className="platform-empty-state"><Filter size={22}/><strong>当前筛选没有结果</strong><p>岗位没有被删除，清除筛选即可查看完整岗位池。</p><button onClick={resetFilters}>查看全部岗位</button></div> : <div className="platform-empty-state"><SearchCheck size={22}/><strong>岗位池还是空的</strong><p>连接自动岗位来源，或者导入任意招聘平台的真实 JD。</p><div><Link href="/sources">连接岗位来源</Link></div></div>}
       </div>
     </section>
 

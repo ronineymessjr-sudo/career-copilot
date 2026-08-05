@@ -3,7 +3,7 @@
 本版新增：
 
 ```text
-0016_application_kits_one_click_handoff.sql
+0020_platform_scale_quality_analytics.sql
 ```
 
 它只执行增量修改：
@@ -23,7 +23,7 @@ npx supabase db push --dry-run
 npx supabase db push
 ```
 
-从已安装 R2 升级时，dry-run 通常只应显示 `0016_application_kits_one_click_handoff.sql`。若还缺少旧迁移，先核对远端迁移历史，不得直接 reset。
+从已安装 R2 升级时，dry-run 通常只应显示 `0020_platform_scale_quality_analytics.sql`。若还缺少旧迁移，先核对远端迁移历史，不得直接 reset。
 
 ## 禁止操作
 

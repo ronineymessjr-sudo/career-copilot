@@ -1,6 +1,7 @@
 import { evaluateJob, parseJobIntake, preserveVerifiedJobFields } from "@/lib/control-rules.mjs";
 import { discoverFromSource, type JobSourceRecord } from "@/lib/job-sources.mjs";
 import { stableSourceId } from "@/lib/supabase-control";
+import { jobFingerprint, nextLifecycleState } from "@/lib/platform-scale.mjs";
 
 type Gateway = <T>(resource: string, init?: RequestInit) => Promise<T>;
 
@@ -93,9 +94,11 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
       let imported = 0;
       let updated = 0;
       let skipped = Math.max(0, result.seen - result.jobs.length);
+      const seenSourceIds = new Set<string>();
 
       for (const discovered of result.jobs) {
         const sourceId = await stableSourceId([source.provider, source.identifier, discovered.externalId]);
+        seenSourceIds.add(sourceId);
         const parsed = parseJobIntake({
           source_id: sourceId,
           company: discovered.company,
@@ -149,6 +152,11 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
             source_payload: discovered.sourcePayload,
           },
           status: parsed.status,
+          job_fingerprint: jobFingerprint({ company_name: parsed.company, title: parsed.title, city: parsed.city, source_url: parsed.source_url }),
+          lifecycle_state: "open",
+          last_seen_at: new Date().toISOString(),
+          closed_at: null,
+          missed_discovery_count: 0,
           updated_at: new Date().toISOString(),
         };
         const existingJob = existingBySource.get(sourceId);
@@ -202,6 +210,26 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
         });
       }
 
+      const existingForSource = currentJobs.filter((job) => String(job.raw_payload?.discovery_source_id ?? "") === String(source.id));
+      for (const existing of existingForSource) {
+        if (seenSourceIds.has(String(existing.source_id))) continue;
+        const lifecycle = nextLifecycleState(existing, false, { closeAfterMisses: 3 });
+        await data(`jobs?id=eq.${encode(String(existing.id))}`, {
+          method: "PATCH", headers: { Prefer: "return=minimal" }, body: JSON.stringify({
+            lifecycle_state: lifecycle.lifecycle_state,
+            missed_discovery_count: lifecycle.missed_discovery_count,
+            closed_at: lifecycle.closed ? new Date().toISOString() : null,
+            status: lifecycle.closed ? "archived" : existing.status,
+            updated_at: new Date().toISOString(),
+          }),
+        });
+        await data("job_lifecycle_checks", {
+          method: "POST", headers: { Prefer: "return=minimal" }, body: JSON.stringify([{
+            job_id: existing.id, source_id: source.id, lifecycle_state: lifecycle.lifecycle_state, reason: lifecycle.reason,
+          }]),
+        }).catch(() => null);
+      }
+
       summary.jobs_imported += imported;
       summary.jobs_updated += updated;
       summary.jobs_skipped += skipped;
@@ -211,16 +239,23 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
         last_checked_at: new Date().toISOString(),
         last_status: "success",
         last_error: "",
+        consecutive_failures: 0,
+        next_retry_at: null,
+        health_score: 100,
         last_result: sourceResult,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "unknown discovery error";
       summary.errors.push({ source_id: source.id, source_name: source.name, error: message });
       summary.sources.push({ source_id: source.id, name: source.name, provider: source.provider, error: message });
+      const failures = Math.max(0, Number((source as Record<string, any>).consecutive_failures ?? 0)) + 1;
       await updateSource(data, source.id, {
         last_checked_at: new Date().toISOString(),
         last_status: "failed",
         last_error: message.slice(0, 800),
+        consecutive_failures: failures,
+        next_retry_at: new Date(Date.now() + Math.min(24, 2 ** Math.min(failures, 5)) * 60 * 60 * 1000).toISOString(),
+        health_score: Math.max(0, 100 - failures * 20),
         last_result: { error: message },
       });
     }

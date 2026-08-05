@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
       return rpcResult(id, {
         protocolVersion: "2025-06-18",
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: "career-copilot-mcp", version: "1.1.0" },
+        serverInfo: { name: "career-copilot-mcp", version: "2.0.0" },
         instructions: "All data is user-scoped. Draft tools never submit. Consequential tools return approval_required and are not executed.",
       });
     }

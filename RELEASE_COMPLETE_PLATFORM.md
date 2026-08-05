@@ -1,9 +1,9 @@
-# Career Copilot V2 Complete Platform R3 Release
+# Career Copilot V2 Complete Platform R4 Release
 
-- Application version: `1.1.0`
+- Application version: `2.0.0`
 - Release: `complete-application-kit-one-click-handoff-2026.08.05`
 - Base repository commit: `615265f`
-- Latest migration: `0016_application_kits_one_click_handoff.sql`
+- Latest migration: `0020_platform_scale_quality_analytics.sql`
 - Delivery: full source, not incremental
 
 ## 完成的用户流程

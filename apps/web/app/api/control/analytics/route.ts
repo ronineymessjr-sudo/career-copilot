@@ -15,6 +15,9 @@ export async function GET(request: NextRequest) {
       upcoming_interviews: bundle.upcomingInterviews,
       open_skill_gaps: bundle.openGaps.slice(0, 12),
       source_health: bundle.sourceHealth,
+      product_funnel: bundle.productFunnel,
+      source_quality: bundle.sourceQuality,
+      daily_facts: bundle.dailyFacts,
       observability: {
         recent_events: bundle.operationalEvents.slice(0, 20),
         recent_failures: recentFailures,

@@ -51,7 +51,7 @@ npm --workspace apps/web run cf:build
 
 - OpenNext 构建未通过；
 - 0016 未应用；
-- `/api/runtime` 不是 `1.1.0`；
+- `/api/runtime` 不是 `2.0.0`；
 - 定制简历或材料包无法打开；
 - 点击投递没有打开预填邮件或真实申请链接；
 - 仅打开页面却被记录成已提交。

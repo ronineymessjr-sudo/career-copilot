@@ -1,10 +1,10 @@
-# Career Copilot Complete Platform R3 部署检查清单
+# Career Copilot Complete Platform R4 部署检查清单
 
 ## 数据库
 
 - [ ] `supabase migration list` 已核对
 - [ ] `supabase db push --dry-run` 只显示预期迁移
-- [ ] 已应用 `0016_application_kits_one_click_handoff.sql`
+- [ ] 已应用 `0020_platform_scale_quality_analytics.sql`
 - [ ] 未执行 reset、DROP TABLE 或 DROP SCHEMA
 - [ ] 原用户、岗位、简历和投递记录仍存在
 
@@ -20,7 +20,7 @@
 
 ## R3 功能验收
 
-- [ ] `/api/runtime` 返回版本 `1.1.0`
+- [ ] `/api/runtime` 返回版本 `2.0.0`
 - [ ] 运行今日推荐后生成个人推荐与完整投递包
 - [ ] 选择岗位后自动选出最佳简历
 - [ ] 可打开“定制简历 / 保存 PDF”

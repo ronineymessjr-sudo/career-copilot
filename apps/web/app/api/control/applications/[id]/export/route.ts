@@ -1,6 +1,8 @@
+import { Buffer } from "node:buffer";
 import { NextRequest, NextResponse } from "next/server";
 import { answersMarkdown, fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message, tailoredResumeHtml } from "@/lib/application-export.mjs";
 import { currentApplicationSafety } from "@/lib/application-safety";
+import { tailoredResumeDocx } from "@/lib/docx-export.mjs";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -29,6 +31,17 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ ok: false, error: "Career Vault 证据已变化，请重新生成材料", details: safety.evidenceCheck }, { status: 409 });
     }
     const slug = fileSlug(job);
+    if (format === "docx") {
+      const bytes = Buffer.from(tailoredResumeDocx(application, job, applicationPackage));
+      return new NextResponse(bytes, {
+        status: 200,
+        headers: {
+          "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "content-disposition": `attachment; filename*=UTF-8''${encodeURIComponent(`${slug}.docx`)}`,
+          "cache-control": "private, no-store",
+        },
+      });
+    }
     let body: string;
     let contentType: string;
     let extension: string;

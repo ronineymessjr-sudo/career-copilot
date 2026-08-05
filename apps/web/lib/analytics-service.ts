@@ -1,20 +1,25 @@
 import { buildWeeklyReview, computeApplicationAnalytics } from "@/lib/interview-learning.mjs";
+import { buildProductFunnel, sourceQualitySummary } from "@/lib/platform-scale.mjs";
 
 type DataFn = <T>(resource: string, init?: RequestInit) => Promise<T>;
 
 export async function loadAnalyticsBundle(options: { userId: string; days?: number; data: DataFn }) {
   const days = Math.max(0, Math.min(Number(options.days ?? 90), 3650));
   const owner = encodeURIComponent(options.userId);
-  const [applications, events, jobs, packages, interviews, offers, gaps, discoveryRuns, operationalEvents] = await Promise.all([
+  const [applications, events, jobs, packages, interviews, offers, gaps, discoveryRuns, operationalEvents, feedback, recommendations, sources, dailyFacts] = await Promise.all([
     options.data<Array<Record<string, any>>>(`applications?select=*&user_id=eq.${owner}&order=created_at.desc`),
     options.data<Array<Record<string, any>>>(`application_events?select=*&user_id=eq.${owner}&order=created_at.desc&limit=1000`),
-    options.data<Array<Record<string, any>>>(`jobs?select=*&user_id=eq.${owner}`),
+    options.data<Array<Record<string, any>>>(`jobs?select=*`),
     options.data<Array<Record<string, any>>>(`application_packages?select=*&user_id=eq.${owner}`),
     options.data<Array<Record<string, any>>>(`interviews?select=*&user_id=eq.${owner}&order=scheduled_at.desc`),
     options.data<Array<Record<string, any>>>(`offers?select=*&user_id=eq.${owner}`),
     options.data<Array<Record<string, any>>>(`skill_gaps?select=*&user_id=eq.${owner}&order=severity.desc,updated_at.desc`),
     options.data<Array<Record<string, any>>>(`discovery_runs?select=*&user_id=eq.${owner}&order=started_at.desc&limit=50`),
     options.data<Array<Record<string, any>>>(`operational_events?select=*&user_id=eq.${owner}&order=created_at.desc&limit=100`),
+    options.data<Array<Record<string, any>>>(`user_job_feedback?select=*&user_id=eq.${owner}&order=updated_at.desc`).catch(() => []),
+    options.data<Array<Record<string, any>>>(`daily_recommendations?select=*&user_id=eq.${owner}&order=recommendation_date.desc&limit=90`).catch(() => []),
+    options.data<Array<Record<string, any>>>(`job_sources?select=*&order=updated_at.desc`).catch(() => []),
+    options.data<Array<Record<string, any>>>(`analytics_daily_facts?select=*&user_id=eq.${owner}&order=fact_date.desc&limit=365`).catch(() => []),
   ]);
   const analytics = computeApplicationAnalytics(
     { applications, events, jobs, packages, interviews, offers },
@@ -25,10 +30,13 @@ export async function loadAnalyticsBundle(options: { userId: string; days?: numb
     .sort((a, b) => String(a.scheduled_at).localeCompare(String(b.scheduled_at)))
     .slice(0, 8);
   const openGaps = gaps.filter((item) => item.status === "open" || item.status === "in_progress");
+  const sourceQuality = sourceQualitySummary(sources, jobs);
   const sourceHealth = {
     recent_runs: discoveryRuns.slice(0, 10),
     failures_last_10: discoveryRuns.slice(0, 10).filter((item) => item.status === "failed" || item.status === "partial").length,
+    quality: sourceQuality,
   };
+  const productFunnel = buildProductFunnel({ jobs, recommendations: recommendations.flatMap((item) => item.ranked_job_ids ?? []), feedback, packages, applications });
   return {
     analytics,
     applications,
@@ -43,6 +51,10 @@ export async function loadAnalyticsBundle(options: { userId: string; days?: numb
     operationalEvents,
     upcomingInterviews,
     sourceHealth,
+    sourceQuality,
+    productFunnel,
+    dailyFacts,
+    feedback,
   };
 }
 
