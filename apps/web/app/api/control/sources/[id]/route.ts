@@ -23,6 +23,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const body = await request.json();
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (typeof body.enabled === "boolean") patch.enabled = body.enabled;
+    if (body.scope === "private" || body.scope === "shared") patch.scope = body.scope;
     if (typeof body.name === "string" && body.name.trim()) patch.name = body.name.trim().slice(0, 160);
     const filters = normalizedFilters(body.filters);
     if (filters) patch.filters = filters;

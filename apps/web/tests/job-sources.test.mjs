@@ -35,5 +35,24 @@ test("source filters enforce keywords, exclusions, locations, and internship bou
 test("source endpoints use official public ATS paths", () => {
   assert.equal(sourceEndpoint({ id: "1", user_id: "u", name: "A", provider: "greenhouse", identifier: "acme", base_url: "http://127.0.0.1:3000" }), "https://boards-api.greenhouse.io/v1/boards/acme/jobs?content=true");
   assert.equal(sourceEndpoint({ id: "2", user_id: "u", name: "B", provider: "lever", identifier: "acme", base_url: "http://169.254.169.254" }), "https://api.lever.co/v0/postings/acme?mode=json&limit=100");
+  assert.equal(sourceEndpoint({ id: "3", user_id: "u", name: "C", provider: "ashby", identifier: "acme" }), "https://api.ashbyhq.com/posting-api/job-board/acme?includeCompensation=true");
   assert.equal(htmlToText("<p>A &amp; B</p><li>C</li>"), "A & B\nC");
+});
+
+test("Ashby adapter maps public job board postings", async () => {
+  const source = { id: "s3", user_id: "u1", name: "Ashby AI", provider: "ashby", identifier: "ashby-ai", filters: { keywords: ["agent"], internships_only: true } };
+  const payload = { jobs: [{ id: "a1", title: "AI Agent Intern", location: "Remote", isRemote: true, department: "Engineering", descriptionPlain: "Agent internship with Python and RAG", jobUrl: "https://jobs.ashbyhq.com/ashby-ai/a1", applyUrl: "https://jobs.ashbyhq.com/ashby-ai/a1/application", publishedAt: "2026-08-01T00:00:00Z", isListed: true }] };
+  const fetcher = async () => new Response(JSON.stringify(payload), { status: 200 });
+  const result = await discoverFromSource(source, fetcher);
+  assert.equal(result.jobs.length, 1);
+  assert.equal(result.jobs[0].externalId, "a1");
+  assert.equal(result.jobs[0].workplace, "remote");
+  assert.equal(result.jobs[0].applyUrl, "https://jobs.ashbyhq.com/ashby-ai/a1/application");
+});
+
+
+test("source filtering is broad by default and only restricts to internships when explicitly enabled", () => {
+  const job = { title: "Software Engineer", rawText: "Full-time React role", location: "Remote" };
+  assert.equal(passesSourceFilters(job, {}), true);
+  assert.equal(passesSourceFilters(job, { internships_only: true }), false);
 });

@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateJob } from "@/lib/control-rules.mjs";
+import { mergeJobOverride } from "@/lib/job-user-view.mjs";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const auth = await authenticate(request);
     const { id } = await params;
-    const [jobs, profiles] = await Promise.all([
+    const [jobs, profiles, overrides] = await Promise.all([
       dataRequest<Array<Record<string, any>>>(auth, `jobs?select=*&id=eq.${encodeURIComponent(id)}&limit=1`),
-      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=id&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=*&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, `job_user_overrides?select=*&job_id=eq.${encodeURIComponent(id)}&limit=1`).catch(() => []),
     ]);
-    const job = jobs[0];
+    const job = jobs[0] ? mergeJobOverride(jobs[0], overrides[0] ?? null) : null;
     if (!job) return NextResponse.json({ ok: false, error: "岗位不存在" }, { status: 404 });
-    const profileId = profiles[0]?.id;
+    const profile = profiles[0] ?? {};
+    const profileId = profile.id;
     const evidence = profileId
       ? await dataRequest<Array<Record<string, any>>>(auth, `career_evidence?select=*&profile_id=eq.${encodeURIComponent(String(profileId))}&active=eq.true`)
       : [];
@@ -21,7 +24,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       company: job.company_name,
       company_tier: job.company_tier_text,
     };
-    const evaluation = evaluateJob(normalizedJob, evidence) as Record<string, any>;
+    const evaluation = evaluateJob(normalizedJob, evidence, new Date(), profile) as Record<string, any>;
     const rows = await dataRequest<Array<Record<string, unknown>>>(
       auth,
       "job_evaluations?on_conflict=user_id,job_id",

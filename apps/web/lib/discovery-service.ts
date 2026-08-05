@@ -1,5 +1,5 @@
 import { evaluateJob, parseJobIntake, preserveVerifiedJobFields } from "@/lib/control-rules.mjs";
-import { discoverFromSource, type JobSourceRecord } from "@/lib/job-sources";
+import { discoverFromSource, type JobSourceRecord } from "@/lib/job-sources.mjs";
 import { stableSourceId } from "@/lib/supabase-control";
 
 type Gateway = <T>(resource: string, init?: RequestInit) => Promise<T>;
@@ -63,10 +63,11 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
   const runId = runs[0]?.id ? String(runs[0].id) : null;
   const sources = await data<JobSourceRecord[]>(sourceQuery(userId, sourceIds));
   const [profiles, currentJobs] = await Promise.all([
-    data<Array<Record<string, any>>>(`profiles?select=id&user_id=eq.${encode(userId)}&limit=1`),
+    data<Array<Record<string, any>>>(`profiles?select=*&user_id=eq.${encode(userId)}&limit=1`),
     data<Array<Record<string, any>>>(`jobs?select=*&user_id=eq.${encode(userId)}`),
   ]);
-  const profileId = profiles[0]?.id ? String(profiles[0].id) : "";
+  const profile = profiles[0] ?? {};
+  const profileId = profile.id ? String(profile.id) : "";
   const evidence = profileId
     ? await data<Array<Record<string, any>>>(`career_evidence?select=*&profile_id=eq.${encode(profileId)}&active=eq.true&verification_status=eq.verified`)
     : [];
@@ -110,6 +111,7 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
         }) as Record<string, any>;
         const discoveredJobRow = {
           user_id: userId,
+          visibility: source.scope === "shared" ? "public" : "private",
           source_id: sourceId,
           company_name: parsed.company,
           company_tier_text: parsed.company_tier,
@@ -165,7 +167,7 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
         else imported += 1;
         existingBySource.set(sourceId, job);
 
-        const evaluation = evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence) as Record<string, any>;
+        const evaluation = evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence, new Date(), profile) as Record<string, any>;
         await data("job_evaluations?on_conflict=user_id,job_id", {
           method: "POST",
           headers: { Prefer: "resolution=merge-duplicates,return=minimal" },

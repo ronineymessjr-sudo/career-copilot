@@ -46,13 +46,33 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const current = await dataRequest<Array<Record<string, unknown>>>(
       auth,
-      `jobs?select=id,hr_verified_fields&id=eq.${encodeURIComponent(id)}&limit=1`,
+      `jobs?select=id,user_id,visibility,hr_verified_fields&id=eq.${encodeURIComponent(id)}&limit=1`,
     );
     if (!current[0]) return NextResponse.json({ ok: false, error: "岗位不存在" }, { status: 404 });
 
-    patch.hr_verified_fields = [...new Set([...verifiedFields(current[0].hr_verified_fields), ...updatedFields])];
-    patch.hr_verified_at = new Date().toISOString();
-    patch.updated_at = new Date().toISOString();
+    const now = new Date().toISOString();
+    const mergedVerifiedFields = [...new Set([...verifiedFields(current[0].hr_verified_fields), ...updatedFields])];
+    const isSharedFromAnotherAccount = current[0].visibility === "public" && String(current[0].user_id ?? "") !== auth.userId;
+
+    if (isSharedFromAnotherAccount) {
+      const overridePatch: Record<string, unknown> = {
+        user_id: auth.userId,
+        job_id: id,
+        verified_fields: mergedVerifiedFields,
+        updated_at: now,
+      };
+      for (const key of updatedFields) overridePatch[key] = patch[key];
+      const rows = await dataRequest<Array<Record<string, unknown>>>(auth, "job_user_overrides?on_conflict=user_id,job_id", {
+        method: "POST",
+        headers: { Prefer: "resolution=merge-duplicates,return=representation" },
+        body: JSON.stringify([overridePatch]),
+      });
+      return NextResponse.json({ ok: true, job_override: rows[0], requires_reevaluation: true, scope: "current_user" });
+    }
+
+    patch.hr_verified_fields = mergedVerifiedFields;
+    patch.hr_verified_at = now;
+    patch.updated_at = now;
     const rows = await dataRequest<Array<Record<string, unknown>>>(
       auth,
       `jobs?id=eq.${encodeURIComponent(id)}`,
@@ -63,7 +83,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       },
     );
     if (!rows[0]) return NextResponse.json({ ok: false, error: "岗位不存在" }, { status: 404 });
-    return NextResponse.json({ ok: true, job: rows[0], requires_reevaluation: true });
+    return NextResponse.json({ ok: true, job: rows[0], requires_reevaluation: true, scope: current[0].visibility === "public" ? "platform" : "private" });
   } catch (error) {
     return controlError(error);
   }

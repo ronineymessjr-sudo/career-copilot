@@ -1,0 +1,28 @@
+{
+  "version": "1.0.0",
+  "mode": "offline-milestone-08-smoke",
+  "agent_runtime_present": true,
+  "hybrid_ranking_ok": true,
+  "blocked_job_capped_below_b": true,
+  "verified_evidence_only": true,
+  "resume_personas": [
+    "agent_engineer",
+    "ai_product",
+    "ai_solution"
+  ],
+  "grounding_evaluation_passed": true,
+  "rag_metrics_present": [
+    "citation_coverage",
+    "mrr",
+    "precision_at_k",
+    "recall_at_k"
+  ],
+  "mcp_tool_count": 8,
+  "consequential_mcp_tools_require_approval": true,
+  "automatic_submission": false,
+  "automatic_email_send": false,
+  "automatic_interview_acceptance": false,
+  "automatic_offer_acceptance": false,
+  "live_cloudflare_verified": false,
+  "live_supabase_migration_verified": false
+}

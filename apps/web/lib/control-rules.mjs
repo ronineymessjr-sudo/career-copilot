@@ -1,6 +1,7 @@
 const ROLE_KEYWORDS = [
-  "agent", "智能体", "langchain", "langgraph", "rag", "大模型", "llm", "全栈",
-  "fastapi", "ai 产品", "产品助理", "解决方案", "实施", "prompt", "mcp",
+  "开发", "工程", "产品", "设计", "运营", "市场", "销售", "财务", "法务", "人力",
+  "数据", "分析", "测试", "实施", "解决方案", "咨询", "研究", "供应链", "客户成功",
+  "agent", "智能体", "大模型", "llm", "全栈", "后端", "前端", "移动端", "算法",
 ];
 
 const SKILL_ALIASES = {
@@ -21,6 +22,16 @@ const SKILL_ALIASES = {
   figma: ["figma", "原型"],
   prd: ["prd", "需求文档"],
   cloudflare: ["cloudflare", "worker", "workers"],
+  excel: ["excel", "电子表格"],
+  analytics: ["analytics", "数据分析", "指标分析"],
+  research: ["用户研究", "市场研究", "research"],
+  operations: ["运营", "operations"],
+  marketing: ["市场营销", "营销", "marketing"],
+  sales: ["销售", "商务拓展", "business development"],
+  finance: ["财务", "会计", "finance", "accounting"],
+  design: ["视觉设计", "交互设计", "ui", "ux", "photoshop", "illustrator"],
+  testing: ["测试", "qa", "quality assurance"],
+  communication: ["沟通", "协调", "communication"],
 };
 
 const LOCATION_SEGMENTS = [
@@ -286,95 +297,146 @@ export function validatePackageEvidence(applicationPackage, evidence = []) {
   };
 }
 
-export function evaluateJob(job, evidence = [], today = new Date()) {
+export function evaluateJob(job, evidence = [], today = new Date(), profile = {}) {
   const hard_filter_reasons = [];
   const confirmation_questions = [];
   let eligible = true;
   let needs_confirmation = false;
   const todayIso = today.toISOString().slice(0, 10);
+  const preferences = profile?.preferences && typeof profile.preferences === "object" ? profile.preferences : {};
+  const targetRoles = Array.isArray(preferences.target_roles) ? preferences.target_roles.map(lower).filter(Boolean) : [];
+  const preferredLocations = Array.isArray(preferences.locations) ? preferences.locations.map(lower).filter(Boolean) : [];
+  const preferredWorkModes = Array.isArray(preferences.work_modes) ? preferences.work_modes.map(lower).filter(Boolean) : [];
+  const profileKeywords = Array.isArray(preferences.keywords) ? preferences.keywords.map(lower).filter(Boolean) : [];
+  const profileConfigured = Boolean(
+    normalize(profile?.major) || normalize(profile?.degree) || targetRoles.length || preferredLocations.length || profileKeywords.length
+  );
+  const internshipOnly = preferences.internship_only === true;
+  const isInternship = job.is_internship === true;
 
-  if (!job.is_internship) {
+  if (internshipOnly && !isInternship) {
     eligible = false;
-    hard_filter_reasons.push("不是在校实习岗位");
+    hard_filter_reasons.push("当前画像只考虑实习岗位");
   }
   if (!["open", "active", "unknown"].includes(lower(job.status || "open"))) {
     eligible = false;
     hard_filter_reasons.push("岗位当前不是开放状态");
   }
-  if (job.accepts_students === false) {
-    eligible = false;
-    hard_filter_reasons.push("明确不接受在校生");
-  } else if (job.accepts_students == null) {
+
+  const graduationYear = Number(profile?.graduation_year ?? (today.getFullYear() + 1));
+  const availabilityDays = Math.max(1, Number(profile?.availability_days ?? 3));
+  const availabilityMonths = Math.max(1, Number(profile?.availability_months ?? 3));
+
+  if (!profileConfigured) {
     needs_confirmation = true;
-    confirmation_questions.push("是否接受在校生？");
+    confirmation_questions.push("先完善个人画像，系统才能判断届别、地点和时间要求");
+  } else if (isInternship) {
+    if (job.accepts_students === false) {
+      eligible = false;
+      hard_filter_reasons.push("明确不接受在校生");
+    } else if (job.accepts_students == null) {
+      needs_confirmation = true;
+      confirmation_questions.push("是否接受在校生？");
+    }
+
+    const graduationText = String(job.graduation_requirement ?? "");
+    const years = [...graduationText.matchAll(/20\d{2}/g)].map((match) => Number(match[0]));
+    if (years.length && !years.includes(graduationYear)) {
+      eligible = false;
+      hard_filter_reasons.push(`岗位届别要求不包含 ${graduationYear} 届`);
+    } else if (graduationYear === 2028 && job.accepts_2028 === false) {
+      eligible = false;
+      hard_filter_reasons.push("明确不接受 2028 届");
+    } else if (!years.length && (graduationYear !== 2028 || job.accepts_2028 == null)) {
+      needs_confirmation = true;
+      confirmation_questions.push(`是否接受 ${graduationYear} 届？`);
+    }
+
+    if (job.days_per_week != null && Number(job.days_per_week) > availabilityDays) {
+      eligible = false;
+      hard_filter_reasons.push(`岗位要求每周 ${job.days_per_week} 天，超过当前可实习 ${availabilityDays} 天`);
+    } else if (job.days_per_week == null) {
+      needs_confirmation = true;
+      confirmation_questions.push("每周最低出勤天数是多少？");
+    }
+    if (job.minimum_months != null && Number(job.minimum_months) > availabilityMonths) {
+      eligible = false;
+      hard_filter_reasons.push(`岗位要求至少 ${job.minimum_months} 个月，超过当前可持续 ${availabilityMonths} 个月`);
+    } else if (job.minimum_months == null) {
+      needs_confirmation = true;
+      confirmation_questions.push("最短实习周期是多少？");
+    }
+  } else {
+    const graduationText = String(job.graduation_requirement ?? "");
+    const years = [...graduationText.matchAll(/20\d{2}/g)].map((match) => Number(match[0]));
+    if (profileConfigured && years.length && !years.includes(graduationYear)) {
+      eligible = false;
+      hard_filter_reasons.push(`岗位届别要求不包含 ${graduationYear} 届`);
+    }
   }
-  if (job.accepts_2028 === false) {
-    eligible = false;
-    hard_filter_reasons.push("明确不接受 2028 届");
-  } else if (job.accepts_2028 == null) {
-    needs_confirmation = true;
-    confirmation_questions.push("是否接受 2028 届？");
-  }
-  if (job.days_per_week != null && Number(job.days_per_week) < 3) {
-    eligible = false;
-    hard_filter_reasons.push("每周出勤少于 3 天");
-  } else if (job.days_per_week == null) {
-    needs_confirmation = true;
-    confirmation_questions.push("每周最低出勤天数是多少？");
-  }
-  if (job.minimum_months != null && Number(job.minimum_months) < 3) {
-    eligible = false;
-    hard_filter_reasons.push("最短实习周期少于 3 个月");
-  } else if (job.minimum_months == null) {
-    needs_confirmation = true;
-    confirmation_questions.push("最短实习周期是多少？");
-  }
+
   if (job.deadline && String(job.deadline) < todayIso) {
     eligible = false;
     hard_filter_reasons.push("投递已截止");
   }
 
   const text = lower(`${job.title} ${job.description} ${job.requirements ?? ""}`);
-  const roleHits = ROLE_KEYWORDS.filter((keyword) => text.includes(keyword)).length;
-  const role_score = Math.min(25, 6 + roleHits * 3);
-  const jobSkills = mentionedSkills(job);
+  const genericRoleHits = ROLE_KEYWORDS.filter((keyword) => text.includes(keyword)).length;
+  const targetRoleHits = targetRoles.filter((keyword) => text.includes(keyword));
+  const role_score = targetRoles.length
+    ? Math.min(25, targetRoleHits.length ? 16 + targetRoleHits.length * 3 : 7 + Math.min(5, genericRoleHits))
+    : Math.min(20, 10 + genericRoleHits * 2);
+
+  const explicitSkills = mentionedSkills(job);
+  const evidenceSkills = (evidence ?? [])
+    .filter((item) => item?.active !== false && (item?.verification_status ?? "verified") === "verified")
+    .map((item) => lower(item?.skill))
+    .filter((skill) => skill && text.includes(skill));
+  const preferenceSkills = profileKeywords.filter((skill) => text.includes(skill));
+  const jobSkills = [...new Set([...explicitSkills, ...evidenceSkills, ...preferenceSkills])];
   const profileSkills = verifiedSkillSet(evidence);
+  for (const keyword of profileKeywords) profileSkills.add(keyword);
   const matched_skills = jobSkills.filter((skill) => profileSkills.has(skill)).sort();
   const missing_skills = jobSkills.filter((skill) => !profileSkills.has(skill)).sort();
   const skill_score = jobSkills.length === 0 ? 12 : Math.min(25, Math.round(25 * matched_skills.length / jobSkills.length));
+
   const segment = segmentFor(job);
-  const location_score = Object.fromEntries(LOCATION_SEGMENTS)[segment];
-  const schedule_score = Number(job.days_per_week ?? 0) >= 3 && Number(job.minimum_months ?? 0) >= 3 ? 10 : 5;
-  const company_score = { small: 10, medium: 7, large: 3, unknown: 5 }[job.company_tier ?? "unknown"] ?? 5;
+  const locationText = lower(`${job.city ?? ""} ${job.district ?? ""} ${job.address ?? ""} ${job.workplace ?? ""}`);
+  const workplace = lower(job.workplace);
+  const locationMatch = preferredLocations.some((item) => locationText.includes(item));
+  const workModeMatch = preferredWorkModes.some((item) => item === workplace || locationText.includes(item));
+  const location_score = !preferredLocations.length && !preferredWorkModes.length ? 8 : locationMatch || workModeMatch ? 15 : 5;
+  const schedule_score = !isInternship || (Number(job.days_per_week ?? availabilityDays) <= availabilityDays && Number(job.minimum_months ?? availabilityMonths) <= availabilityMonths) ? 10 : 3;
+  const company_score = { small: 7, medium: 8, large: 8, unknown: 6 }[job.company_tier ?? "unknown"] ?? 6;
   const matched_evidence = (evidence ?? []).filter((item) => {
     if (item.active === false || (item.verification_status ?? "verified") !== "verified") return false;
     const skill = lower(item.skill);
     return matched_skills.some((matched) => skill.includes(matched) || matched.includes(skill));
   }).slice(0, 6);
-  const evidence_score = Math.min(10, 2 + matched_evidence.length * 2);
+  const evidence_score = Math.min(10, matched_evidence.length ? 2 + matched_evidence.length * 2 : 1);
   const source_score = Math.max(1, Math.min(5, Number(job.source_reliability ?? 3)));
   let total_score = Math.max(0, Math.min(100, role_score + skill_score + location_score + schedule_score + company_score + evidence_score + source_score));
   if (!eligible) total_score = Math.min(total_score, 59);
 
-  let inferred_hr_preference = "基于 JD 的推断：偏好信息不足，需要向 HR 确认实际工作重心。";
+  let inferred_hr_preference = "基于 JD 的推断：偏好信息不足，需要向招聘方确认实际工作重心。";
   if (includesAny(text, ["快速", "独立", "从0到1", "mvp", "落地", "交付"])) {
-    inferred_hr_preference = "基于 JD 的推断：团队更重工程落地、快速交付和独立解决问题。";
+    inferred_hr_preference = "基于 JD 的推断：团队更重快速交付、独立解决问题和结果落地。";
   } else if (includesAny(text, ["prd", "需求", "用户", "原型", "产品"])) {
     inferred_hr_preference = "基于 JD 的推断：团队更重产品思维、需求拆解和跨团队沟通。";
-  } else if (includesAny(text, ["客户", "实施", "解决方案"])) {
+  } else if (includesAny(text, ["客户", "实施", "解决方案", "销售"])) {
     inferred_hr_preference = "基于 JD 的推断：团队更重客户沟通、方案实施和结果交付。";
   }
 
   const risks = [];
-  if (missing_skills.length) risks.push(`技术缺口：${missing_skills.slice(0, 5).join("、")}`);
-  if (needs_confirmation) risks.push("届别、出勤或周期信息不完整，不能直接提交");
-  if (job.company_tier === "small") risks.push("小团队可能要求完整交付，需要确认导师、代码评审和任务边界");
+  if (missing_skills.length) risks.push(`能力缺口：${missing_skills.slice(0, 5).join("、")}`);
+  if (needs_confirmation) risks.push("画像或岗位条件不完整，不能直接提交");
+  if (job.company_tier === "small") risks.push("小团队可能要求完整交付，需要确认导师、评审机制和任务边界");
 
   return {
     eligible,
     needs_confirmation,
     hard_filter_reasons,
-    confirmation_questions,
+    confirmation_questions: [...new Set(confirmation_questions)],
     role_score,
     skill_score,
     location_score,
@@ -401,18 +463,31 @@ export function buildApplicationPackage(job, evaluation, evidence = [], resumeVe
     return (evaluation.matched_skills ?? []).some((matched) => skill.includes(matched) || matched.includes(skill));
   }).slice(0, 3);
   const fallbackEvidence = selectedEvidence.length ? selectedEvidence : verified.slice(0, 3);
-  const engineering = /后端|全栈|开发|python|fastapi|langchain|langgraph|rag|agent|mcp/i.test(`${job.title} ${job.description}`);
-  const product = /产品经理|产品助理|prd|原型|用户研究|产品运营/i.test(`${job.title} ${job.description}`);
-  const resumeName = engineering ? "AI Agent研发版" : product ? "AI产品版" : "本地过渡版";
   const selectedResumeId = String(options?.selected_resume_id ?? "");
-  const resume = (selectedResumeId ? resumeVersions.find((item) => String(item.id) === selectedResumeId) : null)
-    ?? resumeVersions.find((item) => item.name === resumeName)
+  const activeResumes = (resumeVersions ?? []).filter((item) => item?.status !== "archived");
+  const resume = (selectedResumeId ? activeResumes.find((item) => String(item.id) === selectedResumeId) : null)
+    ?? activeResumes.find((item) => String(item.target_job_id ?? "") === String(job?.id ?? "") && item.status === "approved")
+    ?? activeResumes.find((item) => item.status === "approved")
+    ?? activeResumes[0]
     ?? null;
-  const resolvedResumeName = resume?.name ?? resumeName;
-  const highlighted = [...new Set([...(evaluation.matched_skills ?? []), "python", "fastapi", "langgraph", "rag"])].slice(0, 6);
+  const resolvedResumeName = resume?.name ?? "通用简历";
+  const candidate = options?.profile && typeof options.profile === "object" ? options.profile : {};
+  const profileKeywords = Array.isArray(candidate?.preferences?.keywords) ? candidate.preferences.keywords.map(String) : [];
+  const highlighted = [...new Set([...(evaluation.matched_skills ?? []), ...profileKeywords])].filter(Boolean).slice(0, 6);
   const projects = [...new Set(fallbackEvidence.map((item) => item.project).filter(Boolean))].slice(0, 2);
   const projectText = projects.join("、") || "已核验项目证据";
-  const greeting = `您好，我是 2028 届人工智能本科生，看到贵司的“${job.title}”实习岗位。我具备 ${highlighted.slice(0, 4).join("、") || "AI 应用开发"} 的项目实践，相关证据来自 ${projectText}。我可稳定实习每周至少 3 天、持续至少 3 个月，想进一步了解团队当前核心项目及实习生交付边界。`;
+  const graduationYear = Number(candidate.graduation_year ?? (new Date().getFullYear() + 1));
+  const major = String(candidate.major ?? "").trim();
+  const degree = String(candidate.degree ?? "").trim();
+  const hasConfirmedIdentity = Boolean(major || degree);
+  const identity = hasConfirmedIdentity ? `${graduationYear} 届${major}${degree}` : "一名关注该岗位的候选人";
+  const availabilityDays = Number(candidate.availability_days ?? 0);
+  const availabilityMonths = Number(candidate.availability_months ?? 0);
+  const capability = highlighted.slice(0, 4).join("、") || "与岗位相关的能力";
+  const scheduleText = job.is_internship && availabilityDays > 0 && availabilityMonths > 0
+    ? `我目前可每周投入 ${availabilityDays} 天、持续 ${availabilityMonths} 个月。`
+    : "";
+  const greeting = `您好，我是${identity}，关注贵司的“${job.title}”。我具备 ${capability} 的实践，相关证据来自 ${projectText}。${scheduleText}希望进一步了解团队的工作重点、交付标准和招聘流程。`;
   const evidenceRefs = fallbackEvidence.map((item) => ({
     id: item.id ?? null,
     skill: item.skill,
@@ -423,13 +498,13 @@ export function buildApplicationPackage(job, evaluation, evidence = [], resumeVe
   const blockers = [];
   if (evaluation.needs_confirmation) blockers.push(...evaluation.confirmation_questions);
   if (!evidenceRefs.length) blockers.push("Career Vault 中没有可引用的已核验证据");
-  const truthPassed = evidenceRefs.length > 0 && Boolean(job.is_internship);
+  const truthPassed = evidenceRefs.length > 0;
   return {
     resume_version_id: resume?.id ?? null,
     resume_version_name: resolvedResumeName,
     resume_filename: resume?.file_path?.split("/").pop() ?? "",
     greeting,
-    email_subject: job.channel === "email" ? `应聘 ${job.title} 实习生｜2028届人工智能本科生` : null,
+    email_subject: job.channel === "email" ? `应聘 ${job.title}｜${hasConfirmedIdentity ? `${graduationYear}届${major}${degree}` : "候选人"}` : null,
     email_body: job.channel === "email" ? `${greeting}\n\n项目证据：\n- ${evidenceRefs.map((item) => `${item.project}：${item.evidence}`).join("\n- ")}` : null,
     highlighted_keywords: highlighted,
     evidence_refs: evidenceRefs,

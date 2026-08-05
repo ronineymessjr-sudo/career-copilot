@@ -1,0 +1,16 @@
+{
+  "version": "0.9.0",
+  "mode": "offline-milestone-07-smoke",
+  "document_chunking_ok": true,
+  "lexical_fallback_ok": true,
+  "citation_contains_provenance": true,
+  "retrieval_requires_human_verification": true,
+  "rejected_candidate_not_promoted": true,
+  "approved_candidate_requires_explicit_decision": true,
+  "durable_interrupt_workflow_present": true,
+  "pgvector_rpc_present": true,
+  "automatic_evidence_promotion": false,
+  "automatic_submission": false,
+  "live_cloudflare_verified": false,
+  "live_supabase_migration_verified": false
+}

@@ -1,5 +1,7 @@
-import { redirect } from "next/navigation";
+import { AppShell } from "@/components/app-shell";
+import { AuthGate } from "@/components/auth-gate";
+import { OverviewWorkspace } from "@/components/overview-workspace";
 
 export default function Home() {
-  redirect("/jobs");
+  return <AppShell><AuthGate><OverviewWorkspace/></AuthGate></AppShell>;
 }

@@ -6,6 +6,15 @@ export const metadata: Metadata = {
   description: "岗位匹配、简历选择、材料检查与投递记录工作台",
 };
 
+// Public Supabase values are supplied as Worker runtime variables. Keeping the
+// layout dynamic prevents Next from baking an empty build-time value into the
+// browser bundle when secrets are attached after deployment.
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({children}:{children:React.ReactNode}) {
-  return <html lang="zh-CN"><body>{children}</body></html>;
+  const publicConfig = {
+    supabaseUrl: process.env.SUPABASE_URL ?? "",
+    supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY ?? "",
+  };
+  return <html lang="zh-CN"><body><script dangerouslySetInnerHTML={{ __html: `globalThis.__CAREER_COPILOT_PUBLIC_CONFIG__=${JSON.stringify(publicConfig)};` }}/>{children}</body></html>;
 }

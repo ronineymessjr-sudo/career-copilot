@@ -1,37 +1,59 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateJob, jobIdentityParts, parseJobIntake, preserveVerifiedJobFields } from "@/lib/control-rules.mjs";
 import { firstByKey } from "@/lib/application-view.mjs";
+import { mergeJobOverride, selectJobPoolRows } from "@/lib/job-user-view.mjs";
+import { personalizeJob, profileCompleteness } from "@/lib/recommendation-profile.mjs";
 import { authenticate, controlError, dataRequest, stableSourceId } from "@/lib/supabase-control";
 
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticate(request);
-    const [jobs, evaluations, packages, applications, profiles] = await Promise.all([
+    const [jobs, evaluations, packages, applications, profiles, overrides] = await Promise.all([
       dataRequest<Array<Record<string, any>>>(auth, "jobs?select=*&order=updated_at.desc"),
       dataRequest<Array<Record<string, any>>>(auth, "job_evaluations?select=*&order=evaluated_at.desc"),
       dataRequest<Array<Record<string, any>>>(auth, "application_packages?select=*&order=updated_at.desc"),
       dataRequest<Array<Record<string, any>>>(auth, "applications?select=*&order=updated_at.desc"),
-      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=id&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=*&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, "job_user_overrides?select=*&order=updated_at.desc").catch(() => []),
     ]);
-    const profileId = profiles[0]?.id;
+    const profile = profiles[0] ?? {};
+    const profileId = profile.id;
     const evidence = profileId
       ? await dataRequest<Array<Record<string, any>>>(auth, `career_evidence?select=*&profile_id=eq.${encodeURIComponent(String(profileId))}&active=eq.true`)
       : [];
     const evaluationByJob = firstByKey(evaluations, "job_id");
+    const overrideByJob = firstByKey(overrides, "job_id");
     const packageByJob = firstByKey(packages, "job_id");
     const applicationByJob = firstByKey(applications, "job_id");
+    const poolRows = selectJobPoolRows(jobs, {
+      currentUserId: auth.userId,
+      applicationJobIds: applications.map((item) => String(item.job_id)),
+      packageJobIds: packages.map((item) => String(item.job_id)),
+    });
+    const enrichedJobs: Array<Record<string, any>> = poolRows.map((baseJob) => {
+      const job = mergeJobOverride(baseJob, overrideByJob.get(String(baseJob.id)) ?? null);
+      const stored = evaluationByJob.get(String(job.id)) ?? null;
+      const live = evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence, new Date(), profile) as Record<string, any>;
+      const evaluation = { ...stored, ...live, evaluated_live: true };
+      return {
+        ...job,
+        evaluation,
+        recommendation: personalizeJob(job, evaluation, profile),
+        application_package: packageByJob.get(String(job.id)) ?? null,
+        application: applicationByJob.get(String(job.id)) ?? null,
+      };
+    });
     return NextResponse.json({
       ok: true,
-      jobs: jobs.map((job) => {
-        const stored = evaluationByJob.get(String(job.id)) ?? null;
-        const live = evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence) as Record<string, any>;
-        return {
-          ...job,
-          evaluation: { ...stored, ...live, evaluated_live: true },
-          application_package: packageByJob.get(String(job.id)) ?? null,
-          application: applicationByJob.get(String(job.id)) ?? null,
-        };
-      }),
+      profile,
+      profile_completeness: profileCompleteness(profile),
+      jobs: enrichedJobs,
+      pool: {
+        total: enrichedJobs.length,
+        open: enrichedJobs.filter((job) => ["open", "active", "unknown"].includes(String(job.status ?? "open"))).length,
+        recommended: enrichedJobs.filter((job) => Number(job.recommendation?.score ?? 0) >= 70).length,
+        sources: new Set(enrichedJobs.map((job) => String(job.source_name || job.channel || "manual"))).size,
+      },
     });
   } catch (error) {
     return controlError(error);
@@ -44,9 +66,10 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = parseJobIntake(body) as Record<string, any>;
     const sourceId = parsed.source_id || await stableSourceId(jobIdentityParts(parsed));
-    const existing = await dataRequest<Array<Record<string, any>>>(auth, `jobs?select=*&source_id=eq.${encodeURIComponent(String(sourceId))}&limit=1`);
+    const existing = await dataRequest<Array<Record<string, any>>>(auth, `jobs?select=*&user_id=eq.${encodeURIComponent(auth.userId)}&source_id=eq.${encodeURIComponent(String(sourceId))}&limit=1`);
     const discoveredRow = {
       user_id: auth.userId,
+      visibility: "private",
       source_id: sourceId,
       company_name: parsed.company,
       company_tier_text: parsed.company_tier,

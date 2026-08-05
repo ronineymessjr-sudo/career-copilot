@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateJob, validateApplicationTransition, validatePackageEvidence } from "@/lib/control-rules.mjs";
+import { mergeJobOverride } from "@/lib/job-user-view.mjs";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 async function logEvent(auth: Awaited<ReturnType<typeof authenticate>>, applicationId: string, fromStatus: string | null, toStatus: string, note: string) {
@@ -31,17 +32,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (decision === "approved" && !truthPassed) {
       return NextResponse.json({ ok: false, error: "真实性检查未通过，不能批准" }, { status: 409 });
     }
-    const [jobs, profiles] = await Promise.all([
+    const [jobs, profiles, overrides] = await Promise.all([
       dataRequest<Array<Record<string, any>>>(auth, `jobs?select=*&id=eq.${encodeURIComponent(String(applicationPackage.job_id))}&limit=1`),
-      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=id&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=*&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, `job_user_overrides?select=*&job_id=eq.${encodeURIComponent(String(applicationPackage.job_id))}&limit=1`).catch(() => []),
     ]);
-    const job = jobs[0];
+    const job = jobs[0] ? mergeJobOverride(jobs[0], overrides[0] ?? null) : null;
     if (!job) return NextResponse.json({ ok: false, error: "岗位不存在" }, { status: 404 });
-    const profileId = profiles[0]?.id;
+    const profile = profiles[0] ?? {};
+    const profileId = profile.id;
     const evidence = profileId
       ? await dataRequest<Array<Record<string, any>>>(auth, `career_evidence?select=*&profile_id=eq.${encodeURIComponent(String(profileId))}&active=eq.true`)
       : [];
-    const currentEvaluation = evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence) as Record<string, any>;
+    const currentEvaluation = evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence, new Date(), profile) as Record<string, any>;
     const currentEvidenceCheck = validatePackageEvidence(applicationPackage, evidence) as Record<string, any>;
     if (decision === "approved" && currentEvaluation.eligible !== true) {
       return NextResponse.json({ ok: false, error: "岗位尚未通过最新硬性资格检查", details: currentEvaluation.hard_filter_reasons }, { status: 409 });

@@ -51,7 +51,7 @@ export async function executeAgentTask({
         const profiles = await data<Row[]>("profiles", {
           method: "POST",
           headers: { Prefer: "return=representation" },
-          body: JSON.stringify([{ user_id: userId, graduation_year: 2028, major: "人工智能", degree: "本科" }]),
+          body: JSON.stringify([{ user_id: userId, graduation_year: new Date().getFullYear() + 1, major: "", degree: "", preferences: { target_roles: [], locations: [], work_modes: [], industries: [], keywords: [], excluded_keywords: [], internship_only: false } }]),
         });
         profile = profiles[0];
       }

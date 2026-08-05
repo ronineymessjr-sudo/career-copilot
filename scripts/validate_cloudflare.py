@@ -318,7 +318,9 @@ assert 'version="1.0.1"' in api_main
 assert '"version":"1.0.1"' in api_main
 
 auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text()
-assert "0001" in auth_gate
+assert "包内全部迁移（按文件名顺序）" in auth_gate
+assert (ROOT / "supabase/migrations/0011_daily_application_queue.sql").exists()
+assert (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").exists()
 
 open_submission = (ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts").read_text()
 assert "submission_handoff_opened" in open_submission
@@ -331,9 +333,10 @@ assert "招聘页面已打开" in applications_workspace
 assert "external_submission_performed: false" in applications_workspace
 assert "Gmail" not in applications_workspace
 
-compact_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text()
-assert compact_shell.count('["/') == 2
-assert compact_shell.count('["/') == 2 and 'focus-nav' in compact_shell
+complete_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text()
+for label in ["platform-frame", "岗位发现", "岗位来源", "platform-sidebar", "数据看板", "我的画像", "platform-nav", "项目证据"]:
+    assert label in complete_shell
+assert "platform-sidebar-note" in complete_shell
 
 root_package = json.loads((ROOT / "package.json").read_text())
 web_package = json.loads((ROOT / "apps/web/package.json").read_text())
@@ -342,6 +345,11 @@ assert web_package["version"] == "1.0.1"
 assert web_package["dependencies"]["@langchain/core"] == "1.2.3"
 assert web_package["dependencies"]["@langchain/langgraph"] == "1.4.8"
 assert web_package["dependencies"]["@langchain/langgraph-checkpoint"] == "1.0.3"
+
+
+migration14 = (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").read_text()
+for required in ["job_user_overrides", "visibility", "jobs_pool_select", "job_sources_scope_check", "ashby"]:
+    assert required in migration14
 
 migration8 = (ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql").read_text()
 for required in [

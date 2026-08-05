@@ -37,7 +37,7 @@ test("explicit 2028 and verified evidence can produce a high-grade evaluation", 
     { skill: "RAG", project: "RAG Demo", evidence: "中文检索", verification_status: "verified", active: true },
     { skill: "Docker", project: "Camera Market", evidence: "容器化", verification_status: "verified", active: true },
   ];
-  const result = evaluateJob(job, evidence, new Date("2026-07-24T00:00:00Z"));
+  const result = evaluateJob(job, evidence, new Date("2026-07-24T00:00:00Z"), { graduation_year: 2028, major: "人工智能", degree: "本科", availability_days: 5, availability_months: 6, preferences: { internship_only: true, target_roles: ["AI 开发"], locations: ["远程"], work_modes: ["remote"], keywords: ["Python", "FastAPI", "LangGraph", "RAG", "Docker"] } });
   assert.equal(result.eligible, true);
   assert.equal(result.needs_confirmation, false);
   assert.ok(["S", "A"].includes(result.grade));
@@ -53,7 +53,7 @@ test("package excludes unverified evidence", () => {
     { id: "v1", skill: "Python", project: "Verified", evidence: "真实证据", verification_status: "verified", active: true },
     { id: "u1", skill: "FastAPI", project: "Draft", evidence: "未核验", verification_status: "draft", active: true },
   ];
-  const evaluation = evaluateJob(job, evidence, new Date("2026-07-24T00:00:00Z"));
+  const evaluation = evaluateJob(job, evidence, new Date("2026-07-24T00:00:00Z"), { graduation_year: 2028, major: "人工智能", degree: "本科", availability_days: 5, availability_months: 6, preferences: { internship_only: true, target_roles: ["AI 开发"], locations: ["远程"], work_modes: ["remote"], keywords: ["Python", "FastAPI", "LangGraph", "RAG", "Docker"] } });
   const pack = buildApplicationPackage(job, evaluation, evidence, []);
   assert.equal(pack.evidence_refs.length, 1);
   assert.equal(pack.evidence_refs[0].id, "v1");
@@ -82,7 +82,7 @@ test("explicit 2027-only restriction rejects a 2028 applicant", () => {
     company: "Year Locked",
     title: "AI 开发实习生",
   });
-  const result = evaluateJob(job, [], new Date("2026-07-24T00:00:00Z"));
+  const result = evaluateJob(job, [], new Date("2026-07-24T00:00:00Z"), { graduation_year: 2028, major: "人工智能", degree: "本科", availability_days: 5, availability_months: 6, preferences: { internship_only: true, target_roles: ["AI 开发"], locations: ["远程"], work_modes: ["remote"], keywords: ["Python", "FastAPI", "LangGraph", "RAG", "Docker"] } });
   assert.equal(job.accepts_2028, false);
   assert.equal(result.eligible, false);
   assert.ok(result.hard_filter_reasons.includes("明确不接受 2028 届"));
@@ -94,7 +94,7 @@ test("package truth check blocks when Career Vault has no verified evidence", ()
     company: "No Evidence",
     title: "Python 实习生",
   });
-  const evaluation = evaluateJob(job, [], new Date("2026-07-24T00:00:00Z"));
+  const evaluation = evaluateJob(job, [], new Date("2026-07-24T00:00:00Z"), { graduation_year: 2028, major: "人工智能", degree: "本科", availability_days: 5, availability_months: 6, preferences: { internship_only: true, target_roles: ["AI 开发"], locations: ["远程"], work_modes: ["remote"], keywords: ["Python", "FastAPI", "LangGraph", "RAG", "Docker"] } });
   const pack = buildApplicationPackage(job, evaluation, [], []);
   assert.equal(pack.truth_check.passed, false);
   assert.ok(pack.truth_check.blockers.includes("Career Vault 中没有可引用的已核验证据"));

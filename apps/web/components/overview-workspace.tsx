@@ -1,0 +1,112 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowRight, BarChart3, BriefcaseBusiness, CheckCircle2, CircleAlert, Clock3, DatabaseZap, FileText, Radar, RefreshCw, Send, UserRound } from "lucide-react";
+import { controlFetch } from "@/lib/control-client";
+
+type Row = Record<string, any>;
+type OverviewState = {
+  jobs: Row[];
+  pool: Row;
+  sources: Row[];
+  runs: Row[];
+  applications: Row[];
+  profile: Row | null;
+  completeness: Row;
+  analytics: Row | null;
+};
+
+export function OverviewWorkspace() {
+  const [state, setState] = useState<OverviewState>({ jobs: [], pool: {}, sources: [], runs: [], applications: [], profile: null, completeness: {}, analytics: null });
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [jobs, sources, applications, profile, analytics] = await Promise.all([
+        controlFetch<{ jobs: Row[]; pool: Row }>("/api/control/jobs"),
+        controlFetch<{ sources: Row[]; runs: Row[] }>("/api/control/sources").catch(() => ({ sources: [], runs: [] })),
+        controlFetch<{ applications: Row[] }>("/api/control/applications").catch(() => ({ applications: [] })),
+        controlFetch<{ profile: Row; completeness: Row }>("/api/control/profile"),
+        controlFetch<Row>("/api/control/analytics?days=30").catch(() => null),
+      ]);
+      setState({ jobs: jobs.jobs ?? [], pool: jobs.pool ?? {}, sources: sources.sources ?? [], runs: sources.runs ?? [], applications: applications.applications ?? [], profile: profile.profile, completeness: profile.completeness ?? {}, analytics });
+      setMessage("");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "今日简报加载失败");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
+
+  const recommended = useMemo(() => [...state.jobs].filter((job) => String(job.status ?? "open") !== "archived").sort((a, b) => Number(b.recommendation?.score ?? 0) - Number(a.recommendation?.score ?? 0)).slice(0, 6), [state.jobs]);
+  const ready = state.applications.filter((item) => item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true);
+  const blocked = state.applications.filter((item) => item.status !== "submitted" && !(item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true));
+  const enabledSources = state.sources.filter((source) => source.enabled !== false);
+  const latestRun = state.runs[0] ?? null;
+  const metrics = state.analytics?.analytics?.metrics ?? {};
+
+  const actions = [
+    state.completeness.score < 80 ? { tone: "warn", title: "完善求职画像", copy: `当前完整度 ${state.completeness.score ?? 0}%，补齐后推荐会更准确。`, href: "/profile", label: "完善画像" } : null,
+    enabledSources.length === 0 ? { tone: "warn", title: "还没有自动岗位来源", copy: "连接 Greenhouse、Lever 或 Ashby 公司站点，岗位池才会持续增长。", href: "/sources", label: "连接来源" } : null,
+    state.jobs.length === 0 ? { tone: "warn", title: "岗位池还是空的", copy: "运行一次来源发现，或导入任意招聘平台的真实 JD。", href: "/sources", label: "开始聚合" } : null,
+    ready.length ? { tone: "ok", title: `${ready.length} 个岗位已经可以投递`, copy: "简历和材料已匹配，等待你最后确认。", href: "/applications", label: "继续投递" } : null,
+    blocked.length ? { tone: "neutral", title: `${blocked.length} 个投递需要补齐`, copy: "查看缺少的岗位条件、简历或项目证据。", href: "/applications", label: "查看缺口" } : null,
+  ].filter(Boolean) as Array<Record<string, string>>;
+
+  return <section className="platform-workspace">
+    <header className="platform-page-head overview"><div><h1>今日简报</h1><p>先看岗位池、推荐结果和投递状态，再决定今天最值得做的事情。</p></div><button className="platform-refresh" onClick={() => void load()} disabled={loading}><RefreshCw size={16}/>{loading ? "加载中" : "刷新"}</button></header>
+    {message ? <div className="platform-message">{message}</div> : null}
+
+    <section className="platform-metric-strip" aria-label="今日概览">
+      <article><BriefcaseBusiness size={18}/><span>开放岗位</span><strong>{state.pool.open ?? state.jobs.length}</strong><small>完整岗位池</small></article>
+      <article><BarChart3 size={18}/><span>推荐岗位</span><strong>{state.pool.recommended ?? recommended.filter((job) => Number(job.recommendation?.score ?? 0) >= 70).length}</strong><small>画像匹配 ≥ 70</small></article>
+      <article><Radar size={18}/><span>自动来源</span><strong>{enabledSources.length}</strong><small>3 类公开 ATS 可接入</small></article>
+      <article><Send size={18}/><span>待投递</span><strong>{ready.length}</strong><small>等待最终确认</small></article>
+      <article><UserRound size={18}/><span>画像完整度</span><strong>{state.completeness.score ?? 0}%</strong><small>每个账号独立推荐</small></article>
+    </section>
+
+    <div className="platform-overview-grid">
+      <section className="platform-panel platform-priority-panel">
+        <header className="platform-panel-head"><div><h2>今日优先岗位</h2><p>从完整岗位池中，按当前账号画像排序。</p></div><Link href="/jobs">查看全部<ArrowRight size={15}/></Link></header>
+        <div className="platform-priority-list">
+          {recommended.length ? recommended.map((job) => <Link href={`/jobs?job=${encodeURIComponent(String(job.id))}`} key={job.id} className="platform-priority-row">
+            <span className={`platform-score fit-${job.recommendation?.fit ?? "possible"}`}>{job.recommendation?.score ?? job.evaluation?.total_score ?? "--"}</span>
+            <span className="platform-priority-copy"><small>{job.company_name || "待核验公司"}</small><strong>{job.title}</strong><em>{[job.city, job.workplace, job.source_name].filter(Boolean).join(" · ") || "岗位信息待完善"}</em></span>
+            <span className="platform-priority-fit">{job.recommendation?.label ?? "待推荐"}</span>
+          </Link>) : <div className="platform-empty-state"><BriefcaseBusiness size={22}/><strong>还没有岗位</strong><p>连接岗位来源后，推荐会出现在这里。</p><Link href="/sources">连接来源</Link></div>}
+        </div>
+      </section>
+
+      <section className="platform-panel platform-action-panel">
+        <header className="platform-panel-head"><div><h2>今天需要处理</h2><p>只显示会影响推荐或投递的事项。</p></div></header>
+        <div className="platform-action-list">
+          {actions.length ? actions.slice(0, 5).map((item) => <Link href={item.href} key={`${item.title}-${item.href}`} className={`platform-action-item ${item.tone}`}>
+            {item.tone === "ok" ? <CheckCircle2 size={18}/> : item.tone === "warn" ? <CircleAlert size={18}/> : <Clock3 size={18}/>}<span><strong>{item.title}</strong><small>{item.copy}</small></span><em>{item.label}<ArrowRight size={14}/></em>
+          </Link>) : <div className="platform-empty-state compact"><CheckCircle2 size={21}/><strong>当前没有阻塞事项</strong><p>可以直接浏览岗位池或查看数据看板。</p></div>}
+        </div>
+      </section>
+    </div>
+
+    <section className="platform-panel platform-data-overview">
+      <header className="platform-panel-head"><div><h2>招聘数据看板</h2><p>岗位来源、推荐覆盖和真实投递转化。</p></div><Link href="/analytics">完整数据看板<ArrowRight size={15}/></Link></header>
+      <div className="platform-data-grid">
+        <article><span>最近来源任务</span><strong>{latestRun?.status ?? "尚未运行"}</strong><small>{latestRun ? `扫描 ${latestRun.jobs_seen ?? 0} · 新增 ${latestRun.jobs_imported ?? 0} · 更新 ${latestRun.jobs_updated ?? 0}` : "前往岗位来源运行发现"}</small></article>
+        <article><span>近 30 天申请</span><strong>{metrics.applications ?? state.applications.length}</strong><small>准备、投递和后续状态</small></article>
+        <article><span>回复率</span><strong>{metrics.reply_rate ?? 0}%</strong><small>以真实投递状态计算</small></article>
+        <article><span>面试率</span><strong>{metrics.interview_rate ?? 0}%</strong><small>避免用模拟数据冒充结果</small></article>
+      </div>
+    </section>
+
+    <section className="platform-shortcut-grid">
+      <Link href="/sources"><DatabaseZap size={18}/><span><strong>岗位来源</strong><small>管理自动 ATS 和链接导入</small></span></Link>
+      <Link href="/profile"><UserRound size={18}/><span><strong>我的画像</strong><small>决定推荐排序和资格判断</small></span></Link>
+      <Link href="/resumes"><FileText size={18}/><span><strong>简历版本</strong><small>让系统自动选择最匹配版本</small></span></Link>
+      <Link href="/applications"><Send size={18}/><span><strong>投递管理</strong><small>查看待投递、缺口和历史</small></span></Link>
+    </section>
+  </section>;
+}

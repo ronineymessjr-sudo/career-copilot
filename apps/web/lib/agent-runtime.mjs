@@ -21,55 +21,50 @@ const SKILLS = {
 
 export const RESUME_PERSONAS = {
   agent_engineer: {
-    label: "AI Agent 研发版",
-    roleFamily: "AI Agent Engineer",
-    prioritySkills: ["python", "fastapi", "langgraph", "rag", "mcp", "docker", "cloudflare", "postgresql"],
-    projectOrder: ["Career Copilot", "Camera Market Strategy", "PhotoAtelier"],
-    emphasis: ["LangGraph 可恢复工作流", "RAG / pgvector 与引用评测", "FastAPI、Docker 与 Cloudflare 交付"],
-    summary: "面向 AI Agent、RAG 与全栈工程岗位，强调可验证的工作流、检索、评测和部署能力。",
+    label: "工程研发版",
+    roleFamily: "Engineering",
+    prioritySkills: ["python", "typescript", "javascript", "react", "next.js", "fastapi", "postgresql", "docker"],
+    projectOrder: [],
+    emphasis: ["工程实现与问题解决", "可验证的项目成果", "测试、协作与交付能力"],
+    summary: "面向软件开发、数据、算法和工程岗位，强调技术深度、项目成果与可靠交付。",
   },
   ai_product: {
-    label: "AI 产品版",
-    roleFamily: "AI Product",
-    prioritySkills: ["prd", "figma", "analytics", "agent", "rag", "evaluation"],
-    projectOrder: ["PhotoAtelier", "Career Copilot", "Camera Market Strategy"],
-    emphasis: ["PRD 与用户流程", "Figma 原型与产品判断", "指标、增长和 AI 能力落地"],
-    summary: "面向 AI 产品岗位，强调需求拆解、用户流程、指标、原型与 AI 能力落地。",
+    label: "产品与运营版",
+    roleFamily: "Product and Operations",
+    prioritySkills: ["prd", "figma", "analytics", "research", "operations", "communication"],
+    projectOrder: [],
+    emphasis: ["需求分析与用户理解", "产品方案和运营执行", "指标、协作与复盘"],
+    summary: "面向产品、运营、用户研究和项目岗位，强调需求判断、执行和数据复盘。",
   },
   ai_solution: {
-    label: "AI 解决方案版",
-    roleFamily: "AI Solution",
-    prioritySkills: ["agent", "mcp", "fastapi", "docker", "cloudflare", "postgresql", "analytics"],
-    projectOrder: ["Career Copilot", "PhotoAtelier", "Camera Market Strategy"],
-    emphasis: ["企业 Agent 流程设计", "系统集成与部署", "客户需求澄清与交付文档"],
-    summary: "面向 AI 解决方案与交付岗位，强调需求分析、系统集成、部署与可解释交付。",
+    label: "解决方案与商务版",
+    roleFamily: "Solutions and Business",
+    prioritySkills: ["communication", "analytics", "sales", "operations", "implementation", "research"],
+    projectOrder: [],
+    emphasis: ["客户需求澄清", "方案表达与跨团队协作", "实施、交付和结果跟进"],
+    summary: "面向解决方案、咨询、实施、客户成功和商务岗位，强调沟通、方案与交付。",
   },
   local_transition: {
-    label: "本地过渡版",
-    roleFamily: "Technical Internship",
-    prioritySkills: ["python", "postgresql", "analytics", "fastapi", "javascript", "react", "docker"],
-    projectOrder: ["Camera Market Strategy", "Career Copilot", "PhotoAtelier"],
-    emphasis: ["Python / SQL 与数据分析", "软件实施和业务流程", "可迁移的全栈交付能力"],
-    summary: "面向南通、南京本地的软件开发、数据分析、ERP 实施与产品助理岗位，强调低门槛可迁移技术能力。",
+    label: "通用岗位版",
+    roleFamily: "General",
+    prioritySkills: ["communication", "excel", "analytics", "research", "operations", "testing"],
+    projectOrder: [],
+    emphasis: ["可迁移能力", "真实经历和成果", "学习速度、协作和执行"],
+    summary: "面向暂未明确分类或跨方向岗位，突出与目标 JD 最相关的真实经历。",
   },
 };
 
 
 export function buildGreetingDraft({ job, score = null, persona = null }) {
   const selectedPersona = persona ?? recommendResumePersona(job, score);
-  const config = RESUME_PERSONAS[selectedPersona] ?? RESUME_PERSONAS.agent_engineer;
+  const config = RESUME_PERSONAS[selectedPersona] ?? RESUME_PERSONAS.local_transition;
   const matched = (score?.matched_skills ?? extractJobSkills(job)).slice(0, 4);
-  const role = job?.title ?? "该实习岗位";
-  const proof = selectedPersona === "ai_product"
-    ? "我有 AI 产品流程、PRD、原型与数据分析项目经验"
-    : selectedPersona === "local_transition"
-      ? "我具备 Python、SQL、FastAPI、前端与软件流程实践，可快速迁移到开发、数据或实施场景"
-      : "我独立完成过 LangGraph、RAG、MCP、FastAPI 与全栈部署项目";
-  const skills = matched.length ? `，与岗位中的 ${matched.join("、")} 较匹配` : "";
+  const role = job?.title ?? "该岗位";
+  const skills = matched.length ? `我在 ${matched.join("、")} 方面有相关实践` : "我已根据岗位要求整理相关经历和项目证据";
   return {
     persona: selectedPersona,
     persona_label: config.label,
-    greeting: `您好，我是2028届人工智能本科生，关注${role}。${proof}${skills}。我希望进一步确认岗位是否接受2028届、每周到岗要求和最短实习周期，谢谢。`,
+    greeting: `您好，我关注贵司的“${role}”。${skills}，希望进一步了解岗位的工作重点、能力要求和招聘流程，谢谢。`,
     status: "waiting_for_confirmation",
     automatic_send: false,
   };
@@ -328,18 +323,13 @@ export function rankJobsHybrid(jobs = [], evidence = [], applications = []) {
 export function recommendResumePersona(job) {
   const title = normalized(job?.title ?? "");
   const text = normalized(`${job?.title ?? ""} ${job?.description ?? ""} ${job?.requirements ?? ""}`);
-  const location = normalized(`${job?.city ?? ""} ${job?.district ?? ""} ${job?.workplace ?? ""}`);
-  const engineeringSignals = ["agent", "智能体", "rag", "llm", "大模型", "langgraph", "langchain", "mcp", "fastapi", "后端", "全栈", "研发"];
-  const transitionSignals = ["erp", "运维", "数据分析", "软件实施", "产品助理", "linux", "技术支持", "开发实习"];
-  const priorityLocal = ["南通", "崇川", "通州", "开发区", "南京", "建邺", "建业", "浦口"].some((term) => location.includes(term));
-  const explicitProductTitle = ["产品经理", "产品实习", "产品助理", "product manager", "product intern", "产品运营"].some((term) => title.includes(term));
-  if (explicitProductTitle && !priorityLocal) return "ai_product";
-  if (engineeringSignals.some((term) => title.includes(term))) return "agent_engineer";
-  if (priorityLocal && !engineeringSignals.some((term) => text.includes(term)) && transitionSignals.some((term) => text.includes(term))) return "local_transition";
-  if (["解决方案", "实施", "交付", "客户", "售前", "数字化"].some((term) => text.includes(term))) return "ai_solution";
-  if (!engineeringSignals.some((term) => text.includes(term)) && transitionSignals.some((term) => text.includes(term))) return "local_transition";
-  if (["prd", "figma", "用户研究", "增长", "运营"].some((term) => text.includes(term))) return "ai_product";
-  return "agent_engineer";
+  const productSignals = ["产品", "运营", "用户研究", "增长", "内容", "prd", "figma", "product", "operation"];
+  const solutionSignals = ["解决方案", "实施", "咨询", "客户成功", "售前", "销售", "商务", "交付", "consulting", "sales"];
+  const engineeringSignals = ["开发", "研发", "工程", "算法", "数据", "测试", "后端", "前端", "全栈", "python", "java", "javascript", "typescript", "sql", "engineer"];
+  if (productSignals.some((term) => title.includes(term) || text.includes(term))) return "ai_product";
+  if (solutionSignals.some((term) => title.includes(term) || text.includes(term))) return "ai_solution";
+  if (engineeringSignals.some((term) => title.includes(term) || text.includes(term))) return "agent_engineer";
+  return "local_transition";
 }
 
 function orderProjects(projects, order = []) {
@@ -355,14 +345,13 @@ function orderProjects(projects, order = []) {
 
 export function buildRecruiterGreeting({ job, persona = null, matchedSkills = [], evidence = [] }) {
   const selectedPersona = persona ?? recommendResumePersona(job);
-  const config = RESUME_PERSONAS[selectedPersona] ?? RESUME_PERSONAS.agent_engineer;
-  const company = job?.company_name ?? job?.company ?? "贵司";
-  const title = job?.title ?? "该实习岗位";
+  const config = RESUME_PERSONAS[selectedPersona] ?? RESUME_PERSONAS.local_transition;
+  const title = job?.title ?? "该岗位";
   const proof = verifiedEvidence(evidence).slice(0, 2).map((item) => item.project).filter(Boolean);
   const keywords = matchedSkills.slice(0, 4);
   const capability = keywords.length ? keywords.join("、") : config.prioritySkills.slice(0, 4).join("、");
   const projectText = proof.length ? `，并完成过${[...new Set(proof)].join("、")}等项目` : "";
-  return `您好，我是2028届人工智能本科生，关注${title}。我具备${capability}相关实践${projectText}，能够把需求拆成可测试、可追踪的工程流程。希望进一步确认岗位是否接受2028届、每周到岗要求及实习周期，谢谢。`;
+  return `您好，我关注贵司的“${title}”。我具备${capability}相关实践${projectText}，希望进一步了解岗位的工作重点、能力要求和招聘流程，谢谢。`;
 }
 
 export function buildPlaygroundResult({ job, evidence = [], applications = [] }) {

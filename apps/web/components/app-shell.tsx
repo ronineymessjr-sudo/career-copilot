@@ -2,30 +2,45 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BriefcaseBusiness, Send } from "lucide-react";
+import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, Home, Radar, Send, UserRound } from "lucide-react";
 
-const nav = [
-  ["/jobs", "选岗位", BriefcaseBusiness],
-  ["/applications", "待投递", Send],
+const primaryNav = [
+  ["/", "今日简报", Home],
+  ["/jobs", "岗位发现", BriefcaseBusiness],
+  ["/sources", "岗位来源", Radar],
+  ["/applications", "投递管理", Send],
+  ["/analytics", "数据看板", BarChart3],
 ] as const;
+
+const resourceNav = [
+  ["/profile", "我的画像", UserRound],
+  ["/resumes", "简历版本", FileText],
+  ["/career-vault", "项目证据", BookOpenCheck],
+] as const;
+
+function isActive(pathname: string, href: string) {
+  return href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-
-  return <div className="focus-frame">
-    <header className="focus-header">
-      <div className="focus-header-inner">
-        <Link href="/jobs" className="focus-brand" aria-label="Career Copilot 岗位页">
-          <span className="focus-brand-mark" aria-hidden="true">C</span>
-          <span className="focus-brand-copy"><strong>Career Copilot</strong><small>实习投递工作台</small></span>
-        </Link>
-        <nav className="focus-nav" aria-label="主要导航">
-          {nav.map(([href, label, Icon]) => <Link key={href} href={href} className={pathname === href ? "focus-nav-item active" : "focus-nav-item"}>
-            <Icon size={16}/><span>{label}</span>
-          </Link>)}
-        </nav>
-      </div>
-    </header>
-    <main className="focus-main">{children}</main>
+  return <div className="platform-frame">
+    <aside className="platform-sidebar">
+      <Link href="/" className="platform-brand" aria-label="Career Copilot 今日简报">
+        <span className="platform-brand-mark">C</span>
+        <span><strong>Career Copilot</strong><small>招聘聚合与投递工作台</small></span>
+      </Link>
+      <nav className="platform-nav" aria-label="核心工作区">
+        <span className="platform-nav-label">工作台</span>
+        {primaryNav.map(([href, label, Icon]) => <Link key={href} href={href} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}
+        <span className="platform-nav-label resources">个人资料</span>
+        {resourceNav.map(([href, label, Icon]) => <Link key={href} href={href} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}
+      </nav>
+      <div className="platform-sidebar-note"><strong>完整岗位池</strong><span>浏览全部岗位，再按当前账号画像排序和解释。</span></div>
+    </aside>
+    <div className="platform-content">
+      <header className="platform-mobile-header"><Link href="/" className="platform-mobile-brand"><span>C</span><strong>Career Copilot</strong></Link><nav>{primaryNav.map(([href, label]) => <Link key={href} href={href} className={isActive(pathname, href) ? "active" : ""}>{label}</Link>)}</nav></header>
+      <main className="platform-main">{children}</main>
+    </div>
   </div>;
 }

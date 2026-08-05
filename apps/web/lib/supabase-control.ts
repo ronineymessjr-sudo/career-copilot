@@ -18,6 +18,8 @@ export class ControlApiError extends Error {
   }
 }
 
+const DATA_SCHEMA = "career_copilot";
+
 function config() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";
   const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? "";
@@ -57,6 +59,8 @@ export async function dataRequest<T>(
   const headers = new Headers(init.headers);
   headers.set("apikey", key);
   headers.set("Authorization", `Bearer ${auth.token}`);
+  headers.set("Accept-Profile", DATA_SCHEMA);
+  headers.set("Content-Profile", DATA_SCHEMA);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   const response = await fetch(`${url}/rest/v1/${resource}`, {
     ...init,
@@ -94,6 +98,8 @@ export async function adminDataRequest<T>(
   const { url, key } = adminConfig();
   const headers = new Headers(init.headers);
   headers.set("apikey", key);
+  headers.set("Accept-Profile", DATA_SCHEMA);
+  headers.set("Content-Profile", DATA_SCHEMA);
   // Supabase sb_secret_* keys are opaque API keys, not JWTs. Sending them as
   // Authorization: Bearer would be rejected as an invalid JWT.
   headers.delete("Authorization");

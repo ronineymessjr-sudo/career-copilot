@@ -10,12 +10,12 @@ create type approval_status as enum ('pending','approved','rejected');
 create table if not exists profiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null,
-  graduation_year int not null default 2028,
-  major text not null default '人工智能',
-  degree text not null default '本科',
+  graduation_year int not null default (extract(year from current_date)::integer + 1),
+  major text not null default '',
+  degree text not null default '',
   availability_days int not null default 3,
   availability_months int not null default 3,
-  preferences jsonb not null default '{}'::jsonb,
+  preferences jsonb not null default '{"target_roles":[],"locations":[],"work_modes":[],"industries":[],"keywords":[],"excluded_keywords":[],"internship_only":false}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

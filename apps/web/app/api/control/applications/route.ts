@@ -11,11 +11,12 @@ export async function GET(request: NextRequest) {
       dataRequest<Array<Record<string, any>>>(auth, "jobs?select=*"),
       dataRequest<Array<Record<string, any>>>(auth, "application_packages?select=*"),
       dataRequest<Array<Record<string, any>>>(auth, "job_evaluations?select=*&order=evaluated_at.desc"),
-      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=id&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=*&limit=1"),
     ]);
     const dispatches = await dataRequest<Array<Record<string, any>>>(auth, "application_dispatches?select=*&order=updated_at.desc")
       .catch(() => []);
-    const profileId = profiles[0]?.id;
+    const profile = profiles[0] ?? {};
+    const profileId = profile.id;
     const evidence = profileId
       ? await dataRequest<Array<Record<string, any>>>(auth, `career_evidence?select=*&profile_id=eq.${encodeURIComponent(String(profileId))}&active=eq.true`)
       : [];
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
       const dispatch = dispatchByApplication.get(String(application.id)) ?? null;
       const storedEvaluation = evaluationByJob.get(String(application.job_id)) ?? null;
       const liveEvaluation = job
-        ? evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence) as Record<string, any>
+        ? evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence, new Date(), profile) as Record<string, any>
         : null;
       const evaluation = liveEvaluation ? { ...storedEvaluation, ...liveEvaluation } : storedEvaluation;
       const evidenceCheck = applicationPackage

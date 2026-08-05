@@ -1,0 +1,15 @@
+{
+  "version": "0.8.0",
+  "mode": "offline-milestone-06-smoke",
+  "interview_plan_uses_verified_evidence": true,
+  "interview_plan_excludes_draft_evidence": true,
+  "low_score_creates_skill_gap": true,
+  "analytics_pre_submission_rejection_not_counted": true,
+  "conversion_funnel_reconciles": true,
+  "weekly_review_draft_only": true,
+  "interview_or_offer_status_requires_confirmation": true,
+  "automatic_interview_acceptance": false,
+  "automatic_offer_acceptance": false,
+  "live_cloudflare_verified": false,
+  "live_supabase_migration_verified": false
+}

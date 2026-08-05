@@ -93,7 +93,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       <div>
         <strong className="auth-state-label">需要配置</strong>
         <h2>Supabase 尚未连接</h2>
-        <p>配置公开 URL、Publishable Key，并执行 0001–0008 及后续迁移后，岗位与投递控制台才会开放。</p>
+        <p>配置公开 URL、Publishable Key，并执行 包内全部迁移（按文件名顺序）后，岗位与投递控制台才会开放。</p>
         <Link className="ghost-button" href="/settings">查看部署设置</Link>
       </div>
     </section>;

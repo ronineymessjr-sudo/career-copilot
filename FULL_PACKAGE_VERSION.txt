@@ -1,5 +1,6 @@
-Career Copilot V2
-Version: 1.0.1-carbon-pro-full-source
-Package date: 2026-08-05
-Package type: complete source tree, not incremental patch
-Validated: 75 tests passed, Cloudflare milestone 08.1 validation passed
+Career Copilot V2 Complete Platform
+Application version: 1.0.1
+Release label: complete-platform-carbon-2026.08.05
+Base repository commit: 615265f
+Delivery: full source, not incremental
+Latest database migration: 0014_complete_platform_job_pool.sql

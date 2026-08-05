@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
-const PROVIDERS = new Set(["greenhouse", "lever"]);
+const PROVIDERS = new Set(["greenhouse", "lever", "ashby"]);
 
 function filters(input: unknown): Record<string, unknown> {
   if (!input || typeof input !== "object" || Array.isArray(input)) return {};
@@ -10,7 +10,7 @@ function filters(input: unknown): Record<string, unknown> {
   for (const key of ["keywords", "exclude_keywords", "locations"] as const) {
     if (Array.isArray(source[key])) result[key] = source[key].map(String).map((item) => item.trim()).filter(Boolean).slice(0, 30);
   }
-  result.internships_only = source.internships_only !== false;
+  result.internships_only = source.internships_only === true;
   const maxJobs = Number(source.max_jobs ?? 100);
   result.max_jobs = Number.isFinite(maxJobs) ? Math.max(1, Math.min(200, Math.trunc(maxJobs))) : 100;
   return result;
@@ -23,7 +23,11 @@ export async function GET(request: NextRequest) {
       dataRequest<Array<Record<string, unknown>>>(auth, "job_sources?select=*&order=updated_at.desc"),
       dataRequest<Array<Record<string, unknown>>>(auth, "discovery_runs?select=*&order=started_at.desc&limit=20"),
     ]);
-    return NextResponse.json({ ok: true, sources, runs });
+    return NextResponse.json({
+      ok: true,
+      sources: sources.map((source) => ({ ...source, manageable: String(source.user_id ?? "") === auth.userId })),
+      runs,
+    });
   } catch (error) {
     return controlError(error);
   }
@@ -36,7 +40,7 @@ export async function POST(request: NextRequest) {
     const provider = String(body.provider ?? "").trim().toLowerCase();
     const name = String(body.name ?? "").trim();
     const identifier = String(body.identifier ?? "").trim();
-    if (!PROVIDERS.has(provider)) return NextResponse.json({ ok: false, error: "仅支持 Greenhouse 和 Lever" }, { status: 422 });
+    if (!PROVIDERS.has(provider)) return NextResponse.json({ ok: false, error: "仅支持 Greenhouse、Lever 和 Ashby 的公开岗位接口" }, { status: 422 });
     if (!name || !identifier) return NextResponse.json({ ok: false, error: "来源名称和站点标识不能为空" }, { status: 422 });
     if (!/^[A-Za-z0-9._-]{2,100}$/.test(identifier)) {
       return NextResponse.json({ ok: false, error: "站点标识格式不正确" }, { status: 422 });
@@ -50,6 +54,7 @@ export async function POST(request: NextRequest) {
         provider,
         identifier,
         enabled: body.enabled !== false,
+        scope: body.scope === "shared" ? "shared" : "private",
         filters: filters(body.filters),
         updated_at: new Date().toISOString(),
       }]),

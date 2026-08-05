@@ -1,26 +1,68 @@
-# 数据库部署说明
+# 生产数据库部署说明
 
-本完整源码包面向 **现有生产环境的代码重新部署**。
-
-## 当前生产项目
+## 生产项目
 
 - Supabase project ref：`woywgfoqurumrkyoznnb`
-- 生产数据、岗位、简历、证据和投递记录已经在线
-- `0013_dispatch_policy_channel_alignment.sql` 已在生产环境应用
+- 生产岗位、画像、简历、证据、投递记录和 Auth 用户必须保留。
+- 已知生产迁移至少已执行至 0013。
+- 本次完整平台新增：`0014_complete_platform_job_pool.sql`。
 
-## 部署时应做
+## 包内迁移文件
 
-- 保持现有 Supabase 项目连接。
-- 只部署 Web Worker 和 Scheduler Worker。
-- 核对 Worker secrets 名称仍然存在。
-- 不删除表、不清空数据、不重置 auth 用户。
+迁移编号允许跳号，必须按文件名排序处理：
 
-## 部署时不要做
+```text
+0001_core.sql
+0002_engineering_evidence.sql
+0003_supabase_runtime_ci_benchmarks.sql
+0004_cloudflare_control_plane.sql
+0005_discovery_exports_gmail.sql
+0006_interview_learning_analytics.sql
+0007_knowledge_graph_workflows.sql
+0008_agent_runtime_mcp_evaluation.sql
+0011_daily_application_queue.sql
+0013_dispatch_policy_channel_alignment.sql
+0014_complete_platform_job_pool.sql
+```
 
-- 不运行 `DROP SCHEMA`、`DROP TABLE`、数据库 reset 或 destructive seed。
-- 不新建一个空 Supabase 项目替换生产项目。
-- 不把本地示例数据覆盖到生产数据。
+0011 已补回完整源码包，保证全新环境的迁移链可复现。它在现有生产环境已经存在时不应被重复误操作。
 
-## 新建数据库的特殊情况
+## 正确流程
 
-当前包保留仓库中现有的迁移文件，但本次任务不是“从零迁移到新 Supabase”。若未来要迁移到全新数据库，应先从生产项目导出并审计完整 schema，再执行迁移演练；不要直接对生产环境试错。
+```bash
+npx supabase link --project-ref woywgfoqurumrkyoznnb
+npx supabase migration list
+npx supabase db push --dry-run
+```
+
+只有在结果与生产历史一致、并且仅显示预期待部署迁移时，才能运行：
+
+```bash
+npx supabase db push
+```
+
+## 发生历史不一致时
+
+停止部署并检查：
+
+- 远端 schema 是否已经包含该改动
+- `supabase_migrations.schema_migrations` 是否记录正确
+- 是否曾经直接通过 SQL Editor 应用迁移
+
+不得自动运行：
+
+- `supabase db reset`
+- `DROP SCHEMA`
+- `DROP TABLE`
+- 未审计的 `migration repair`
+- 示例数据覆盖生产数据
+
+## 0014 的数据影响
+
+- 新增 public/private 岗位可见性。
+- 新增每用户岗位核验覆盖表。
+- 新增 shared/private 来源范围。
+- 增加 Ashby provider。
+- 已自动发现的 Greenhouse、Lever、Ashby 岗位进入共享岗位池。
+- 既有岗位来源保持私有，必须由拥有者明确选择共享，避免泄露内部来源。
+- 不删除岗位、投递、用户或证据数据。

@@ -32,12 +32,13 @@ if [[ "$SKIP_INSTALL" -eq 0 ]]; then
 fi
 
 npm --workspace workers/scheduler run cf-typegen
-npm run test:m08.1
-npm run test:integrations
+npm run test:complete
 
 if [[ "$SKIP_PYTHON" -eq 0 ]]; then
   python -m pytest apps/api/tests -q
   python scripts/validate_cloudflare.py
+  python scripts/verify_complete_package.py
+  npm run smoke:m08.1
 fi
 
 npm --workspace apps/web run check

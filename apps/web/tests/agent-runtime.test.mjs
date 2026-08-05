@@ -78,9 +78,9 @@ test("all four resume personas are available", () => {
   assert.deepEqual(Object.keys(RESUME_PERSONAS).sort(), ["agent_engineer", "ai_product", "ai_solution", "local_transition"].sort());
 });
 
-test("local transition persona is recommended for local non-AI technical internship", () => {
+test("solution persona is recommended for implementation roles", () => {
   const localJob = { ...job, title: "ERP实施实习生", description: "南通崇川区，负责软件实施、SQL和客户流程", requirements: "ERP与SQL基础", city: "南通", district: "崇川" };
-  assert.equal(recommendResumePersona(localJob), "local_transition");
+  assert.equal(recommendResumePersona(localJob), "ai_solution");
 });
 
 test("greeting draft never enables automatic send", () => {
@@ -88,7 +88,8 @@ test("greeting draft never enables automatic send", () => {
   const greeting = buildGreetingDraft({ job, score });
   assert.equal(greeting.automatic_send, false);
   assert.equal(greeting.status, "waiting_for_confirmation");
-  assert.ok(greeting.greeting.includes("2028届"));
+  assert.ok(greeting.greeting.includes(job.title));
+  assert.equal(greeting.greeting.includes("2028届人工智能本科生"), false);
 });
 
 test("grounding passes only with complete citations", () => {

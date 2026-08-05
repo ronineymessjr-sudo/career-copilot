@@ -38,12 +38,12 @@ export function ResumeAgentWorkspace() {
     finally { setBusy(false); }
   }
   return <section className="control-panel resume-agent-page">
-    <header className="control-heading"><div><span className="eyebrow">Grounded resume personas</span><h2>AI 简历工作室</h2><p>按目标岗位生成研发、产品或解决方案版本。未核验证据永远不会进入简历。</p></div><button className="icon-button" onClick={() => void load()}><RefreshCw size={15}/></button></header>
+    <header className="control-heading"><div><span className="eyebrow">Grounded resume personas</span><h2>简历版本工作室</h2><p>按目标岗位生成工程、产品运营、解决方案或通用版本。未核验证据永远不会进入简历。</p></div><button className="icon-button" onClick={() => void load()}><RefreshCw size={15}/></button></header>
     {message ? <div className="control-message">{message}</div> : null}
     <div className="resume-agent-layout">
       <form className="control-form" onSubmit={generate}>
         <label>目标岗位<select value={jobId} onChange={(event) => setJobId(event.target.value)} required>{jobs.map((job) => <option value={job.id} key={job.id}>{job.company_name} · {job.title}</option>)}</select></label>
-        <label>Persona<select value={persona} onChange={(event) => setPersona(event.target.value)}><option value="agent_engineer">AI Agent 研发版</option><option value="ai_product">AI 产品版</option><option value="ai_solution">AI 解决方案版</option><option value="local_transition">本地过渡版</option></select></label>
+        <label>Persona<select value={persona} onChange={(event) => setPersona(event.target.value)}><option value="agent_engineer">工程研发版</option><option value="ai_product">产品与运营版</option><option value="ai_solution">解决方案与商务版</option><option value="local_transition">通用岗位版</option></select></label>
         <button className="primary-button" disabled={busy || !jobId}><Sparkles size={14}/>{busy ? "生成中…" : "生成简历草稿"}</button>
         <Link href="/agents" className="ghost-button">查看 Agent Trace 与评测</Link>
       </form>

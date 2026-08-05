@@ -37,12 +37,13 @@ if (-not $SkipInstall) {
 }
 
 Run-Step "生成 Scheduler Cloudflare 类型" { npm --workspace workers/scheduler run cf-typegen }
-Run-Step "运行核心 Node 测试" { npm run test:m08.1 }
-Run-Step "运行投递与简历匹配测试" { npm run test:integrations }
+Run-Step "运行完整 Node 测试" { npm run test:complete }
 
 if (-not $SkipPython) {
   Run-Step "运行 Python API 测试" { python -m pytest apps/api/tests -q }
   Run-Step "验证 Cloudflare 项目结构" { python scripts/validate_cloudflare.py }
+  Run-Step "验证完整交付包" { python scripts/verify_complete_package.py }
+  Run-Step "运行离线生产 Smoke" { npm run smoke:m08.1 }
 }
 
 Run-Step "检查 Web TypeScript" { npm --workspace apps/web run check }

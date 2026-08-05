@@ -137,7 +137,7 @@ export function createAgentServices() {
       const job = (context.jobs ?? []).find((item: Row) => String(item.id) === String(input.job_id));
       if (!job) throw new Error("岗位不存在");
       const score = rankJobHybrid(job, context.evidence ?? [], context.applications ?? []);
-      return generateResumeDraft({ persona: input.persona, job, evidence: context.evidence ?? [], score: score as any });
+      return generateResumeDraft({ persona: input.persona, job, evidence: context.evidence ?? [], score });
     },
     async dailyReport(_input: Row, context: Row) {
       const rankedResult = await rankWithOptionalVectors(context.jobs ?? [], context.evidence ?? [], context.applications ?? []);
@@ -180,7 +180,7 @@ export function createAgentServices() {
         const job = (context.jobs ?? []).find((item: Row) => String(item.id) === String(input.arguments?.job_id));
         if (!job) throw new Error("岗位不存在");
         const score = rankJobHybrid(job, context.evidence ?? [], context.applications ?? []);
-        return generateResumeDraft({ persona: input.arguments?.persona, job, evidence: context.evidence ?? [], score: score as any });
+        return generateResumeDraft({ persona: input.arguments?.persona, job, evidence: context.evidence ?? [], score });
       }
       return { tool: tool.name, approval_required: false, result: null };
     },
@@ -241,7 +241,7 @@ export async function runDailyAgentCycle({ data, userId }: { data: AgentData; us
     const rankedResult = await rankWithOptionalVectors(context.jobs, context.evidence, context.applications);
     const ranked = rankedResult.ranked;
     await persistRankings(data, userId, run.id, ranked);
-    const report = { ...buildDailyAgentReport(ranked, context.skillGaps), semantic_mode: rankedResult.mode };
+    const report: Record<string, any> = { ...buildDailyAgentReport(ranked, context.skillGaps), semantic_mode: rankedResult.mode };
     await data("daily_agent_reports?on_conflict=user_id,report_date", {
       method: "POST",
       headers: { Prefer: "resolution=merge-duplicates,return=representation" },

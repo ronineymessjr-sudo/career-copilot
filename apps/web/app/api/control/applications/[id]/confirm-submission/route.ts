@@ -25,15 +25,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
     const [jobs, profiles] = await Promise.all([
       dataRequest<Array<Record<string, any>>>(auth, `jobs?select=*&id=eq.${encodeURIComponent(String(application.job_id))}&limit=1`),
-      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=id&limit=1"),
+      dataRequest<Array<Record<string, any>>>(auth, "profiles?select=*&limit=1"),
     ]);
     const job = jobs[0];
     if (!job) return NextResponse.json({ ok: false, error: "岗位不存在" }, { status: 404 });
-    const profileId = profiles[0]?.id;
+    const profile = profiles[0] ?? {};
+    const profileId = profile.id;
     const evidence = profileId
       ? await dataRequest<Array<Record<string, any>>>(auth, `career_evidence?select=*&profile_id=eq.${encodeURIComponent(String(profileId))}&active=eq.true`)
       : [];
-    const currentEvaluation = evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence) as Record<string, any>;
+    const currentEvaluation = evaluateJob({ ...job, company: job.company_name, company_tier: job.company_tier_text }, evidence, new Date(), profile) as Record<string, any>;
     if (currentEvaluation.eligible !== true || currentEvaluation.needs_confirmation === true) {
       return NextResponse.json({
         ok: false,

@@ -1,0 +1,34 @@
+{
+  "product": "Career Copilot V2",
+  "milestone": "06",
+  "version": "0.8.0",
+  "date": "2026-07-24",
+  "implementation_commit": "c3292fdb54430baf3f020fa22732f1fb15e7e51e",
+  "validation": {
+    "node_deterministic_tests": {"passed": 26, "total": 26},
+    "fastapi_tests": {"passed": 10, "total": 10},
+    "web_typescript_static_files": 60,
+    "scheduler_typescript_static_files": 1,
+    "cloudflare_validator": "passed",
+    "python_compile": "passed",
+    "workflow_yaml": "passed",
+    "deployment_shell": "passed",
+    "offline_smoke": "passed"
+  },
+  "sandbox_limitations": {
+    "npm_install": "timed_out",
+    "full_typecheck": "production_gate",
+    "next_build": "production_gate",
+    "opennext_build": "production_gate",
+    "live_supabase_migration": "production_gate",
+    "live_cloudflare_deployment": "production_gate",
+    "authenticated_production_e2e": "production_gate"
+  },
+  "safety": {
+    "automatic_submission": false,
+    "automatic_interview_acceptance": false,
+    "automatic_offer_acceptance": false,
+    "weekly_review_automatic_actions": false,
+    "production_e2e_redacts_credentials_and_tokens": true
+  }
+}

@@ -58,6 +58,9 @@ export function sourceEndpoint(source) {
     if (source.provider === "greenhouse") {
         return `https://boards-api.greenhouse.io/v1/boards/${id}/jobs?content=true`;
     }
+    if (source.provider === "ashby") {
+        return `https://api.ashbyhq.com/posting-api/job-board/${id}?includeCompensation=true`;
+    }
     return `https://api.lever.co/v0/postings/${id}?mode=json&limit=100`;
 }
 function greenhouseJobs(source, payload) {
@@ -133,6 +136,57 @@ function leverJobs(source, payload) {
             }];
     });
 }
+
+function ashbyJobs(source, payload) {
+    const jobs = Array.isArray(payload?.jobs) ? payload.jobs : [];
+    return jobs.flatMap((raw) => {
+        if (!raw || typeof raw !== "object") return [];
+        const item = raw;
+        if (item.isListed === false) return [];
+        const title = text(item.title);
+        const sourceUrl = text(item.jobUrl || item.hostedUrl || item.applyUrl);
+        const applyUrl = text(item.applyUrl) || sourceUrl;
+        const externalId = text(item.id || item.jobPostingId || sourceUrl);
+        if (!title || !sourceUrl || !externalId) return [];
+        const secondaryLocations = Array.isArray(item.secondaryLocations)
+            ? item.secondaryLocations.map((entry) => text(entry?.location)).filter(Boolean)
+            : [];
+        const location = [text(item.location), ...secondaryLocations].filter(Boolean).join(" / ");
+        const compensation = item.compensation && typeof item.compensation === "object"
+            ? [text(item.compensation.compensationTierSummary), text(item.compensation.scrapeableCompensationSalarySummary)].filter(Boolean).join(" · ")
+            : "";
+        const rawText = [
+            title,
+            location,
+            text(item.department),
+            text(item.team),
+            text(item.employmentType),
+            text(item.descriptionPlain) || htmlToText(item.descriptionHtml || item.description),
+            compensation,
+        ].filter(Boolean).join("\n");
+        const workplace = item.isRemote === true
+            ? "remote"
+            : normalizeWorkplace(item.workplaceType || (lowerLocation(location).includes("remote") ? "remote" : "unknown"));
+        return [{
+            externalId,
+            company: source.name,
+            title,
+            rawText,
+            sourceUrl,
+            applyUrl,
+            location,
+            workplace,
+            publishedAt: normalizeDate(item.publishedAt || item.updatedAt),
+            deadline: normalizeDate(item.applicationDeadline),
+            salary: compensation,
+            sourcePayload: item,
+        }];
+    });
+}
+function lowerLocation(value) {
+    return String(value ?? "").toLowerCase();
+}
+
 function stringList(value) {
     if (!Array.isArray(value))
         return [];
@@ -150,7 +204,7 @@ export function passesSourceFilters(job, filters) {
         return false;
     if (locations.length && !locations.some((item) => haystack.includes(item)))
         return false;
-    if (config.internships_only !== false && !/(实习|intern|internship)/i.test(haystack))
+    if (config.internships_only === true && !/(实习|intern|internship)/i.test(haystack))
         return false;
     return true;
 }
@@ -167,7 +221,7 @@ export async function discoverFromSource(source, fetcher = fetch) {
     if (Number.isFinite(contentLength) && contentLength > 5_000_000)
         throw new Error(`${source.provider} source response is too large`);
     const payload = await response.json();
-    const parsed = source.provider === "greenhouse" ? greenhouseJobs(source, payload) : leverJobs(source, payload);
+    const parsed = source.provider === "greenhouse" ? greenhouseJobs(source, payload) : source.provider === "ashby" ? ashbyJobs(source, payload) : leverJobs(source, payload);
     const maxJobs = Math.max(1, Math.min(200, Number(source.filters?.max_jobs ?? 100)));
     const jobs = parsed.filter((job) => passesSourceFilters(job, source.filters)).slice(0, maxJobs);
     return { endpoint, seen: parsed.length, jobs };

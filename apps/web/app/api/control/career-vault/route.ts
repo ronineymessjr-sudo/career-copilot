@@ -1,19 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
-
-async function ensureProfile(auth: Awaited<ReturnType<typeof authenticate>>) {
-  const profiles = await dataRequest<Array<Record<string, unknown>>>(
-    auth,
-    `profiles?select=*&user_id=eq.${encodeURIComponent(auth.userId)}&limit=1`,
-  );
-  if (profiles[0]) return profiles[0];
-  const created = await dataRequest<Array<Record<string, unknown>>>(auth, "profiles", {
-    method: "POST",
-    headers: { Prefer: "return=representation" },
-    body: JSON.stringify([{ user_id: auth.userId, graduation_year: 2028, major: "人工智能", degree: "本科" }]),
-  });
-  return created[0];
-}
+import { ensureProfile } from "@/lib/profile-service";
 
 export async function GET(request: NextRequest) {
   try {
