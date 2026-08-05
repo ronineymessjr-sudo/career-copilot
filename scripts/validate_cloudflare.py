@@ -372,6 +372,16 @@ for required in [
 assert "alter column graduation_year drop not null" in migration15.lower()
 assert "alter column graduation_year drop default" in migration15.lower()
 
+migration16 = (ROOT / "supabase/migrations/0016_rls_grants_shared_pool.sql").read_text()
+for required in [
+    "job_scores_owner_all",
+    "resume_alignments_owner_all",
+    "daily_recommendations_owner_insert",
+    "daily_recommendations_owner_update",
+    "grant insert, update, delete on career_copilot.daily_recommendations",
+]:
+    assert required in migration16
+
 profile_service = (ROOT / "apps/web/lib/profile-service.ts").read_text()
 agent_controller = (ROOT / "apps/web/lib/agent-controller.ts").read_text()
 assert "graduation_year: null" in profile_service
