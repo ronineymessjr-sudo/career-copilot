@@ -1,1 +1,7 @@
-import { DataPage } from "@/components/data-page";export default function Page(){return <DataPage title="规则与连接" description="管理地区、公司规模、自动化边界、模型和数据源。" columns={["规则","值","来源","状态","优先级"]}/>}
+import { AppShell } from "@/components/app-shell";
+import { AuthGate } from "@/components/auth-gate";
+import { ConnectionsWorkspace } from "@/components/connections-workspace";
+
+export default function Page() {
+  return <AppShell><AuthGate><ConnectionsWorkspace/></AuthGate></AppShell>;
+}

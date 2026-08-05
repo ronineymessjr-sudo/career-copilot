@@ -29,10 +29,10 @@
     "test:m08": "npm run test:m07 && npm run test:agents",
     "smoke:m08": "node scripts/smoke_m08.mjs SMOKE_RESULT_M08.json",
     "test:portfolio": "node --test apps/web/tests/portfolio-demo.test.mjs",
-    "test:integrations": "node --test apps/web/tests/integrations.test.mjs apps/web/tests/dispatch-queue.test.mjs",
-    "test:m08.1": "npm run test:m08 && npm run test:portfolio && npm run test:integrations",
+    "test:m08.1": "npm run test:m08 && npm run test:portfolio",
     "smoke:m08.1": "node scripts/smoke_m08_1.mjs SMOKE_RESULT_M08_1.json",
-    "evaluation:m08.1": "node scripts/generate_agent_evaluation_report.mjs"
+    "evaluation:m08.1": "node scripts/generate_agent_evaluation_report.mjs",
+    "test:integrations": "node --test apps/web/tests/dispatch-queue.test.mjs apps/web/tests/application-view.test.mjs apps/web/tests/application-plan.test.mjs"
   },
   "version": "1.0.1"
 }

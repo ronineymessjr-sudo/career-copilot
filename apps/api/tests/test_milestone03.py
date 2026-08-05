@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import stat
 import subprocess
 from pathlib import Path
 
@@ -9,6 +11,14 @@ import httpx
 
 from app.integrations.supabase_rest import SupabaseRestClient
 from app.supabase_sync import sync_local_to_supabase
+
+
+def _rmtree_force(repo: Path) -> None:
+    def _onerror(func, path, exc_info):
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+
+    shutil.rmtree(repo, onerror=_onerror)
 
 
 def test_supabase_client_injects_user_ownership_and_auth_headers():
@@ -59,7 +69,7 @@ def test_git_evidence_collects_diff_without_ai_attribution(client):
     project_root = Path(__file__).resolve().parents[3]
     repo = project_root / "apps" / "api" / "data" / "test_git_evidence_repo"
     if repo.exists():
-        shutil.rmtree(repo)
+        _rmtree_force(repo)
     repo.mkdir(parents=True)
     subprocess.run(["git", "init"], cwd=repo, check=True, capture_output=True)
     subprocess.run(["git", "config", "user.email", "test@example.com"], cwd=repo, check=True)
@@ -98,7 +108,7 @@ def test_git_evidence_collects_diff_without_ai_attribution(client):
         assert summary["automated_runs"] == 1
         assert summary["git_insertions"] >= 1
     finally:
-        shutil.rmtree(repo, ignore_errors=True)
+        _rmtree_force(repo)
 
 
 def test_full_local_state_can_map_to_supabase_data_api(client):

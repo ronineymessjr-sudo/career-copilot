@@ -16,6 +16,16 @@ test("daily queue keeps only approved, truthful and eligible applications", () =
   assert.deepEqual(selected.map((item) => item.application.id), ["a1"]);
 });
 
+test("generic platform jobs are eligible for the default queue", () => {
+  const platform = { ...ready, application: { ...ready.application, id: "a-platform", channel: "platform" } };
+  assert.deepEqual(selectDispatchCandidates([platform]).map((item) => item.application.id), ["a-platform"]);
+});
+
+test("known recruitment-site aliases normalize to platform", () => {
+  const platform = { ...ready, application: { ...ready.application, id: "a-platform", channel: "shixiseng" } };
+  assert.deepEqual(selectDispatchCandidates([platform]).map((item) => item.application.id), ["a-platform"]);
+});
+
 test("daily queue observes the configured daily limit and score floor", () => {
   const lower = { ...ready, application: { ...ready.application, id: "a2" }, job: { ...ready.job, id: "j2" }, score: { eligible: true, final_score: 79 } };
   const selected = selectDispatchCandidates([lower, ready], { daily_limit: 1, minimum_score: 75 });
@@ -28,4 +38,6 @@ test("dispatch policy is bounded and always keeps batch approval enabled by defa
   assert.equal(policy.daily_limit, 20);
   assert.equal(policy.minimum_score, 0);
   assert.equal(policy.require_batch_approval, true);
+  assert.ok(policy.allowed_channels.includes("platform"));
+  assert.ok(policy.allowed_workplaces.includes("hybrid"));
 });

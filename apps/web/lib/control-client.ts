@@ -2,22 +2,57 @@
 
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
-export async function accessToken(): Promise<string> {
+const REFRESH_MARGIN_SECONDS = 90;
+
+function loginUrl() {
+  if (typeof window === "undefined") return "/login";
+  const next = `${window.location.pathname}${window.location.search}`;
+  return `/login?reason=session_expired&next=${encodeURIComponent(next)}`;
+}
+
+async function expireSession(message = "登录已失效，请重新登录"): Promise<never> {
+  const supabase = getSupabaseBrowser();
+  await supabase?.auth.signOut().catch(() => undefined);
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.assign(loginUrl());
+  }
+  throw new Error(message);
+}
+
+async function sessionToken(forceRefresh = false): Promise<string> {
   const supabase = getSupabaseBrowser();
   if (!supabase) throw new Error("Supabase 尚未配置");
   const { data, error } = await supabase.auth.getSession();
   if (error) throw error;
-  const token = data.session?.access_token;
-  if (!token) throw new Error("请先登录");
-  return token;
+  let session = data.session;
+  if (!session) return expireSession("请先登录");
+  const expiresSoon = Number(session.expires_at ?? 0) <= Math.floor(Date.now() / 1000) + REFRESH_MARGIN_SECONDS;
+  if (forceRefresh || expiresSoon) {
+    const refreshed = await supabase.auth.refreshSession();
+    if (refreshed.error || !refreshed.data.session) return expireSession();
+    session = refreshed.data.session;
+  }
+  return session.access_token;
 }
 
-export async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
-  const token = await accessToken();
+export async function accessToken(): Promise<string> {
+  return sessionToken(false);
+}
+
+async function fetchWithToken(path: string, init: RequestInit, token: string): Promise<Response> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   return fetch(path, { ...init, headers, cache: "no-store" });
+}
+
+export async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  let response = await fetchWithToken(path, init, await sessionToken(false));
+  if (response.status === 401 || response.status === 403) {
+    response = await fetchWithToken(path, init, await sessionToken(true));
+  }
+  if (response.status === 401 || response.status === 403) return expireSession();
+  return response;
 }
 
 export async function controlFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -36,7 +71,11 @@ export async function controlDownload(path: string, filename: string, openInNewT
   const blob = await response.blob();
   const url = URL.createObjectURL(blob);
   if (openInNewTab) {
-    window.open(url, "_blank", "noopener,noreferrer");
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    if (!opened) {
+      URL.revokeObjectURL(url);
+      throw new Error("浏览器阻止了新窗口，请允许弹窗后重试");
+    }
     setTimeout(() => URL.revokeObjectURL(url), 60_000);
     return;
   }

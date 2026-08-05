@@ -1,183 +1,146 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { CheckCircle2, Download, ExternalLink, FileDown, Inbox, Layers3, MailPlus, PlugZap, RefreshCw, ShieldCheck } from "lucide-react";
-import { controlDownload, controlFetch } from "@/lib/control-client";
-import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CheckCircle2, ChevronDown, ExternalLink, Inbox, RefreshCw, ShieldCheck } from "lucide-react";
+import { controlFetch } from "@/lib/control-client";
 
 type Application = Record<string, any>;
-type Dispatch = Record<string, any>;
-const GMAIL_TOKEN_KEY = "career_copilot_gmail_access_token";
+
+type HandoffResponse = {
+  target_url: string;
+  channel: string;
+  mode: "browser_handoff";
+  external_submission_performed: false;
+};
+
+function ApplicationRow({
+  item,
+  activeHandoffId,
+  busyId,
+  onStart,
+  onConfirm,
+}: {
+  item: Application;
+  activeHandoffId: string;
+  busyId: string;
+  onStart: (item: Application) => Promise<void>;
+  onConfirm: (item: Application) => Promise<void>;
+}) {
+  const job = item.job ?? {};
+  const pack = item.application_package ?? {};
+  const readiness = item.readiness ?? { blockers: [] };
+  const ready = item.status === "ready_to_submit" && readiness.ready_to_submit === true;
+  const opened = activeHandoffId === String(item.id);
+
+  return <article className="focus-application-row">
+    <div className="focus-application-copy">
+      <span>{job.company_name ?? "待核验公司"}</span>
+      <strong>{job.title ?? "岗位"}</strong>
+      <small>{pack.resume_version_name ? `简历：${pack.resume_version_name}` : "简历待匹配"}</small>
+    </div>
+
+    {ready ? <div className="focus-application-actions">
+      <button className="primary-button" type="button" onClick={() => void onStart(item)} disabled={busyId === `open-${item.id}`}>
+        <ExternalLink size={12}/>{busyId === `open-${item.id}` ? "连接中…" : "打开并投递"}
+      </button>
+      {opened ? <button className="ghost-button" type="button" onClick={() => void onConfirm(item)} disabled={busyId === `confirm-${item.id}`}>确认完成</button> : null}
+    </div> : item.status === "submitted" ? <span className="focus-status done">已投递</span> : <span className="focus-status warn">待处理</span>}
+
+    {pack.greeting || readiness.blockers?.length ? <details className="focus-application-details">
+      <summary><ChevronDown size={12}/>{readiness.blockers?.length ? "为什么还不能投" : "查看招呼语"}</summary>
+      <div>{readiness.blockers?.length ? <p>{readiness.blockers.join("；")}</p> : <p>{pack.greeting}</p>}</div>
+    </details> : null}
+  </article>;
+}
 
 export function ApplicationsWorkspace() {
   const [items, setItems] = useState<Application[]>([]);
-  const [dispatches, setDispatches] = useState<Dispatch[]>([]);
-  const [batches, setBatches] = useState<Dispatch[]>([]);
   const [message, setMessage] = useState("");
   const [busyId, setBusyId] = useState("");
-  const [gmailConnected, setGmailConnected] = useState(false);
+  const [activeHandoffId, setActiveHandoffId] = useState("");
 
   const load = useCallback(async () => {
     try {
-      const [result, queue] = await Promise.all([
-        controlFetch<{ applications: Application[] }>("/api/control/applications"),
-        controlFetch<{ dispatches: Dispatch[]; batches: Dispatch[] }>("/api/control/dispatches"),
-      ]);
+      const result = await controlFetch<{ applications: Application[] }>("/api/control/applications");
       setItems(result.applications ?? []);
-      setDispatches(queue.dispatches ?? []);
-      setBatches(queue.batches ?? []);
       setMessage("");
-    } catch (error) { setMessage(error instanceof Error ? error.message : "加载失败"); }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "加载投递记录失败");
+    }
   }, []);
 
   useEffect(() => { void load(); }, [load]);
 
-  useEffect(() => {
-    const supabase = getSupabaseBrowser();
-    if (!supabase) return;
-    const capture = (session: any) => {
-      const token = typeof session?.provider_token === "string" ? session.provider_token : "";
-      if (token) sessionStorage.setItem(GMAIL_TOKEN_KEY, token);
-      setGmailConnected(Boolean(sessionStorage.getItem(GMAIL_TOKEN_KEY)));
-    };
-    void supabase.auth.getSession().then(({ data }) => capture(data.session));
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => capture(session));
-    return () => data.subscription.unsubscribe();
-  }, []);
+  const groups = useMemo(() => ({
+    ready: items.filter((item) => item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true),
+    submitted: items.filter((item) => item.status === "submitted").slice(0, 10),
+    blocked: items.filter((item) => item.status !== "submitted" && !(item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true)),
+  }), [items]);
 
-  async function connectGmail() {
-    const supabase = getSupabaseBrowser();
-    if (!supabase) { setMessage("Supabase 尚未配置"); return; }
-    try {
-      const auth = supabase.auth as any;
-      const { error } = await auth.linkIdentity({
-        provider: "google",
-        options: {
-          scopes: "https://www.googleapis.com/auth/gmail.compose",
-          redirectTo: `${window.location.origin}/applications`,
-          queryParams: { prompt: "consent" },
-        },
-      });
-      if (error) throw error;
-    } catch (error) {
-      setMessage(error instanceof Error ? `${error.message}。请确认 Supabase 已启用 Google Provider 与 Manual Identity Linking。` : "Gmail 连接失败");
+  async function startSubmission(item: Application) {
+    const popup = window.open("about:blank", "_blank");
+    if (popup) {
+      popup.opener = null;
+      popup.document.title = "正在连接投递入口…";
+      popup.document.body.textContent = "Career Copilot 正在验证投递入口…";
     }
-  }
-
-
-  function disconnectGmail() {
-    sessionStorage.removeItem(GMAIL_TOKEN_KEY);
-    setGmailConnected(false);
-    setMessage("已清除当前标签页中的 Gmail 访问令牌。Google 身份仍保持关联，可稍后重新授权。");
+    setBusyId(`open-${item.id}`);
+    try {
+      const result = await controlFetch<HandoffResponse>(`/api/control/applications/${item.id}/open-submission`, { method: "POST" });
+      setActiveHandoffId(String(item.id));
+      setMessage("招聘页面已打开。完成平台提交后，回到这里点击“确认完成”。");
+      if (popup) popup.location.replace(result.target_url);
+      else window.location.assign(result.target_url);
+    } catch (error) {
+      popup?.close();
+      setMessage(error instanceof Error ? error.message : "投递入口连接失败");
+    } finally {
+      setBusyId("");
+    }
   }
 
   async function confirmSubmitted(item: Application) {
     const job = item.job ?? {};
-    if (!window.confirm(`只在你已经于外部招聘渠道完成最终提交后确认。\n\n${job.company_name ?? ""} · ${job.title ?? ""}\n\n确认后系统会记录为 SUBMITTED，但不会替你发送任何内容。`)) return;
-    const externalReference = window.prompt("可选：填写申请编号、站内会话或投递页面备注。", "") ?? "";
-    setBusyId(String(item.id));
+    if (!window.confirm(`确认已经完成投递？\n\n${job.company_name ?? ""} · ${job.title ?? ""}`)) return;
+    setBusyId(`confirm-${item.id}`);
     try {
       await controlFetch(`/api/control/applications/${item.id}/confirm-submission`, {
         method: "POST",
-        body: JSON.stringify({ confirmed: true, external_reference: externalReference, note: "用户确认已在外部渠道提交" }),
+        body: JSON.stringify({ confirmed: true, note: "用户确认已在招聘平台完成提交" }),
       });
-      setMessage("已记录为已投递。系统未代替你发送或点击提交。");
-      await load();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "状态更新失败"); }
-    finally { setBusyId(""); }
-  }
-
-  async function approveBatch(batch: Dispatch) {
-    setBusyId(`batch-${batch.id}`);
-    try {
-      const result = await controlFetch<{ dispatches: Dispatch[] }>("/api/control/dispatches/batch/approve", {
-        method: "POST",
-        body: JSON.stringify({ batch_id: batch.id }),
-      });
-      setMessage(`本批次的 ${result.dispatches.length} 个入口已准备好。批准不会向任何招聘平台提交申请。`);
-      await load();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "批次批准失败"); }
-    finally { setBusyId(""); }
-  }
-
-  async function exportPacket(item: Application, format: "markdown" | "json" | "html" | "eml") {
-    const job = item.job ?? {};
-    const ext = { markdown: "md", json: "json", html: "html", eml: "eml" }[format];
-    const filename = `${job.company_name ?? "company"}-${job.title ?? "application"}.${ext}`.replace(/[\\/:*?"<>|]/g, "-");
-    setBusyId(`export-${format}-${item.id}`);
-    try {
-      await controlDownload(`/api/control/applications/${item.id}/export?format=${format}`, filename, format === "html");
-      setMessage(format === "html" ? "已打开可打印材料页，可保存为 PDF。" : "材料已导出。");
-    } catch (error) { setMessage(error instanceof Error ? error.message : "导出失败"); }
-    finally { setBusyId(""); }
-  }
-
-  async function createGmailDraft(item: Application) {
-    const job = item.job ?? {};
-    const token = sessionStorage.getItem(GMAIL_TOKEN_KEY) ?? "";
-    if (!token) { setMessage("请先连接 Gmail。访问令牌仅保存在当前浏览器标签页。 "); return; }
-    const recipient = window.prompt("招聘邮箱", job.recruiter_email ?? "")?.trim() ?? "";
-    if (!recipient) return;
-    setBusyId(`gmail-${item.id}`);
-    try {
-      const result = await controlFetch<{ draft: { id: string; recipient: string }; sent: boolean }>(`/api/control/applications/${item.id}/gmail-draft`, {
-        method: "POST",
-        body: JSON.stringify({ gmail_access_token: token, to: recipient }),
-      });
-      setMessage(`Gmail 草稿已创建给 ${result.draft.recipient}。邮件未发送。`);
+      setActiveHandoffId("");
+      setMessage("已记录为已投递。");
       await load();
     } catch (error) {
-      const messageText = error instanceof Error ? error.message : "Gmail 草稿创建失败";
-      if (/重新连接 Gmail|401|token/i.test(messageText)) {
-        sessionStorage.removeItem(GMAIL_TOKEN_KEY);
-        setGmailConnected(false);
-      }
-      setMessage(messageText);
-    } finally { setBusyId(""); }
+      setMessage(error instanceof Error ? error.message : "状态更新失败");
+    } finally {
+      setBusyId("");
+    }
   }
 
-  const latestBatch = batches[0] ?? null;
-  const latestDispatches = latestBatch ? dispatches.filter((item) => String(item.batch_id) === String(latestBatch.id)) : [];
+  return <section className="focus-workspace">
+    <header className="focus-workspace-head">
+      <div><h1>待投递</h1><p>{groups.ready.length} 个岗位已经完成简历匹配和材料检查。</p></div>
+      <button className="focus-icon-button" aria-label="刷新投递记录" onClick={() => void load()}><RefreshCw size={14}/></button>
+    </header>
 
-  return <section className="control-panel applications-panel">
-    <header className="control-heading"><div><span className="eyebrow">Human approval workflow</span><h2>投递管理</h2><p>材料可以导出或创建 Gmail 草稿；系统永远不会自动发送邮件或最终提交。</p></div><div className="heading-actions"><button className={gmailConnected ? "ghost-button connected" : "ghost-button"} onClick={()=>gmailConnected ? disconnectGmail() : void connectGmail()}><PlugZap size={14}/>{gmailConnected ? "清除 Gmail 会话" : "连接 Gmail"}</button><button className="icon-button" onClick={()=>void load()}><RefreshCw size={15}/></button></div></header>
-    <p className="oauth-scope-note">Google 的 gmail.compose 授权范围技术上包含管理草稿和发送邮件；本项目仅调用 Drafts Create，仓库中没有发送接口，访问令牌只保留在当前标签页。</p>
-    {message ? <div className="control-message">{message}</div> : null}
-    <section className="application-card" aria-label="每日投递批次">
-      <div className="application-main"><div className="application-title"><span>Daily application queue</span><h3>每日待投递批次</h3><p>定时任务只会把已通过真实性检查、审批和资格校验的材料加入队列。</p></div>{latestBatch ? <span className={`application-status status-${latestBatch.status}`}>{String(latestBatch.status).replaceAll("_", " ")}</span> : null}</div>
-      {!latestBatch ? <div className="empty-state"><Layers3 size={22}/><strong>今天尚未生成批次</strong><span>定时任务运行后，这里会显示符合你投递政策的岗位。</span></div> : <>
-        <div className="application-content"><div><strong>候选岗位</strong><p>{latestDispatches.length} 个已验证入口</p></div><div><strong>提交方式</strong><p>打开已登录的招聘平台完成最终提交，再在下方回写结果。</p></div></div>
-        <div className="card-actions">
-          {latestBatch.status === "queued" ? <button className="primary-button" onClick={()=>void approveBatch(latestBatch)} disabled={busyId === `batch-${latestBatch.id}`}>批准本批次并准备入口</button> : null}
-          {latestDispatches.map((dispatch) => <a key={dispatch.id} className="ghost-button" href={dispatch.target_url} target="_blank" rel="noreferrer">{dispatch.job?.company_name ?? "招聘平台"} · {dispatch.job?.title ?? dispatch.channel}<ExternalLink size={13}/></a>)}
-        </div>
-        {latestBatch.status === "queued" ? <p className="oauth-scope-note">批准仅改变 Career Copilot 内部队列状态，不会发送申请、消息或邮件。</p> : null}
-      </>}
-    </section>
-    <div className="application-list">
-      {items.length === 0 ? <div className="empty-state"><Inbox size={25}/><strong>暂无投递记录</strong><span>岗位材料通过真实性审批后，会进入 READY_TO_SUBMIT。</span></div> : items.map((item)=>{
-        const job = item.job ?? {};
-        const pack = item.application_package ?? {};
-        const readiness = item.readiness ?? { blockers: [] };
-        return <article className="application-card" key={item.id}>
-          <div className="application-main">
-            <div className="application-title"><span>{job.company_name ?? "待核验公司"}</span><h3>{job.title ?? "岗位"}</h3><p>{job.channel ?? item.channel} · {job.city ?? "地点待核验"}</p></div>
-            <span className={`application-status status-${item.status}`}>{String(item.status).replaceAll("_"," ")}</span>
-          </div>
-          <div className="application-content">
-            <div><strong>投递话术</strong><p>{pack.greeting || "尚未生成材料"}</p></div>
-            <div><strong>简历版本</strong><p>{pack.resume_version_name || "待选择"}</p>{pack.gmail_draft_id ? <small className="draft-proof">Gmail 草稿：已创建 · 未发送</small> : null}</div>
-          </div>
-          {readiness.blockers?.length ? <div className="blocker-box warning"><ShieldCheck size={15}/><div><strong>尚不能提交</strong><p>{readiness.blockers.join("；")}</p></div></div> : <div className="ready-box"><CheckCircle2 size={16}/><span>资格、证据和审批均已通过，可以由你前往外部渠道提交。</span></div>}
-          <footer className="card-actions">
-            {pack.id ? <><button className="ghost-button" onClick={()=>void exportPacket(item,"markdown")}><Download size={13}/>Markdown</button><button className="ghost-button" onClick={()=>void exportPacket(item,"json")}><FileDown size={13}/>JSON</button><button className="ghost-button" onClick={()=>void exportPacket(item,"html")}><FileDown size={13}/>打印/PDF</button><button className="ghost-button" onClick={()=>void exportPacket(item,"eml")}><MailPlus size={13}/>EML</button></> : null}
-            {item.status === "ready_to_submit" && readiness.ready_to_submit ? <button className="ghost-button" onClick={()=>void createGmailDraft(item)} disabled={busyId === `gmail-${item.id}`}><MailPlus size={13}/>创建 Gmail 草稿</button> : null}
-            {job.source_url ? <a className="ghost-button" href={job.source_url} target="_blank" rel="noreferrer">打开投递入口<ExternalLink size={13}/></a> : null}
-            {item.status === "ready_to_submit" && readiness.ready_to_submit ? <button className="primary-button" onClick={()=>void confirmSubmitted(item)} disabled={busyId === String(item.id)}>确认我已外部提交</button> : null}
-            {item.status === "submitted" ? <span className="submitted-proof">提交时间：{item.submitted_at ? new Date(item.submitted_at).toLocaleString("zh-CN") : "已确认"}</span> : null}
-          </footer>
-        </article>;
-      })}
+    {message ? <div className="focus-message">{message}</div> : null}
+
+    <div className="focus-application-list">
+      {groups.ready.length ? groups.ready.map((item) => <ApplicationRow key={item.id} item={item} activeHandoffId={activeHandoffId} busyId={busyId} onStart={startSubmission} onConfirm={confirmSubmitted}/>) : <div className="focus-empty"><Inbox size={18}/><span>暂无可以直接投递的岗位</span><Link href="/jobs">去选岗位</Link></div>}
     </div>
+
+    {groups.blocked.length ? <details className="focus-history">
+      <summary><ShieldCheck size={12}/>需要补齐 · {groups.blocked.length}</summary>
+      <div>{groups.blocked.map((item) => <ApplicationRow key={item.id} item={item} activeHandoffId={activeHandoffId} busyId={busyId} onStart={startSubmission} onConfirm={confirmSubmitted}/>)}</div>
+    </details> : null}
+
+    {groups.submitted.length ? <details className="focus-history">
+      <summary><CheckCircle2 size={12}/>最近已投递 · {groups.submitted.length}</summary>
+      <div>{groups.submitted.map((item) => <ApplicationRow key={item.id} item={item} activeHandoffId={activeHandoffId} busyId={busyId} onStart={startSubmission} onConfirm={confirmSubmitted}/>)}</div>
+    </details> : null}
+
+    <p className="focus-safety">系统负责匹配简历和准备材料；招聘平台的登录、验证码与最终提交仍在平台页面完成。</p>
   </section>;
 }

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import gc
 import os
+import time
 from pathlib import Path
 
 TEST_DB = Path(__file__).resolve().parents[1] / "data" / "test_career_copilot.db"
@@ -14,14 +16,26 @@ from app.main import app
 from app.db import init_db
 
 
+def _force_remove_db() -> None:
+    gc.collect()
+    for _ in range(50):
+        if not TEST_DB.exists():
+            return
+        try:
+            TEST_DB.unlink()
+            return
+        except PermissionError:
+            time.sleep(0.05)
+    if TEST_DB.exists():
+        TEST_DB.unlink()
+
+
 @pytest.fixture(autouse=True)
 def clean_db():
-    if TEST_DB.exists():
-        TEST_DB.unlink()
+    _force_remove_db()
     init_db()
     yield
-    if TEST_DB.exists():
-        TEST_DB.unlink()
+    _force_remove_db()
 
 
 @pytest.fixture

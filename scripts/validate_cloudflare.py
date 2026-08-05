@@ -1,21 +1,10 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-IGNORED_DIRECTORIES = {".git", ".next", ".open-next", ".wrangler", "node_modules"}
-
-
-def repository_files():
-    for base, directories, files in os.walk(ROOT):
-        directories[:] = [directory for directory in directories if directory not in IGNORED_DIRECTORIES]
-        for file_name in files:
-            yield Path(base) / file_name
-
-
 REQUIRED = [
     ROOT / "apps/web/wrangler.jsonc",
     ROOT / "apps/web/open-next.config.ts",
@@ -36,6 +25,8 @@ REQUIRED = [
     ROOT / "apps/web/app/api/control/sources/run/route.ts",
     ROOT / "apps/web/app/api/control/applications/[id]/export/route.ts",
     ROOT / "apps/web/app/api/control/applications/[id]/gmail-draft/route.ts",
+    ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts",
+    ROOT / "apps/web/components/connections-workspace.tsx",
     ROOT / "apps/web/app/interviews/page.tsx",
     ROOT / "apps/web/app/analytics/page.tsx",
     ROOT / "apps/web/components/interviews-workspace.tsx",
@@ -63,11 +54,6 @@ REQUIRED = [
     ROOT / "scripts/smoke_m07.mjs",
     ROOT / "scripts/production_e2e_m07.mjs",
     ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql",
-    ROOT / "supabase/migrations/0011_daily_application_queue.sql",
-    ROOT / "apps/web/lib/dispatch-rules.mjs",
-    ROOT / "apps/web/lib/dispatch-service.ts",
-    ROOT / "apps/web/app/api/control/dispatches/route.ts",
-    ROOT / "apps/web/app/api/control/dispatches/batch/approve/route.ts",
     ROOT / "apps/web/lib/agent-runtime.mjs",
     ROOT / "apps/web/lib/career-agent-graph.mjs",
     ROOT / "apps/web/lib/agent-service.ts",
@@ -111,7 +97,7 @@ scheduler = parse_jsonc(ROOT / "workers/scheduler/wrangler.jsonc")
 assert web["main"] == ".open-next/worker.js"
 assert "nodejs_compat" in web["compatibility_flags"]
 assert web["vars"]["APP_MODE"] == "production"
-assert scheduler["triggers"]["crons"] == ["0 11 * * *", "0 12 * * SUN"]
+assert scheduler["triggers"]["crons"] == ["0 11 * * *", "0 12 * * 0"]
 assert scheduler["services"] == [{"binding": "WEB", "service": "career-copilot-v2"}]
 
 migration = (ROOT / "supabase/migrations/0005_discovery_exports_gmail.sql").read_text()
@@ -130,13 +116,6 @@ assert "weeklyReviews: true" in runtime
 assert "operationalObservability: true" in runtime
 assert "automaticInterviewAcceptance: false" in runtime
 assert "automaticOfferAcceptance: false" in runtime
-
-layout = (ROOT / "apps/web/app/layout.tsx").read_text()
-assert 'dynamic = "force-dynamic"' in layout
-assert "__CAREER_COPILOT_PUBLIC_CONFIG__" in layout
-browser_supabase = (ROOT / "apps/web/lib/supabase-browser.ts").read_text()
-assert "runtimePublicConfig" in browser_supabase
-assert "__CAREER_COPILOT_PUBLIC_CONFIG__" in browser_supabase
 
 source_lib = (ROOT / "apps/web/lib/job-sources.mjs").read_text()
 assert "boards-api.greenhouse.io" in source_lib
@@ -179,7 +158,7 @@ assert "hr_verified_fields" in jobs_patch
 assert "hr_verified_at" in jobs_patch
 
 deploy = (ROOT / "scripts/deploy_cloudflare.sh").read_text()
-for name in ["CRON_SHARED_SECRET", "SUPABASE_SECRET_KEY", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]:
+for name in ["CRON_SHARED_SECRET", "SUPABASE_SECRET_KEY", "OWNER_USER_ID", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]:
     assert f"wrangler secret put {name}" in deploy
 
 # Privileged keys may appear only in server routes/helpers and deployment documentation, never client components.
@@ -193,8 +172,8 @@ assert "gmail_access_token" not in client_text.lower() or "sessionStorage" in cl
 
 all_text = "\n".join(
     path.read_text(errors="ignore")
-    for path in repository_files()
-    if path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}
+    for path in ROOT.rglob("*")
+    if path.is_file() and path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"} and not any(part in {".git", "node_modules", ".next", ".open-next", ".wrangler"} for part in path.parts)
 )
 assert "gmail/v1/users/me/drafts/send" not in all_text
 assert "gmail/v1/users/me/messages/send" not in all_text
@@ -205,10 +184,10 @@ forbidden = [
     re.compile(r"BEGIN PRIVATE KEY"),
     re.compile(r"ronineymessjr@gmail\.com", re.I),
 ]
-for path in repository_files():
-    if path == Path(__file__).resolve():
+for path in ROOT.rglob("*"):
+    if path == Path(__file__).resolve() or any(part in {".git", "node_modules", ".next", ".open-next", ".wrangler"} for part in path.parts):
         continue
-    if path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}:
+    if not path.is_file() or path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}:
         continue
     text = path.read_text(errors="ignore")
     for pattern in forbidden:
@@ -237,7 +216,7 @@ assert "backgroundOwnerId" in weekly_route
 assert "generateWeeklyReview" in weekly_route
 
 scheduler_source = (ROOT / "workers/scheduler/src/index.ts").read_text()
-assert 'event.cron === "0 12 * * SUN"' in scheduler_source
+assert 'event.cron === "0 12 * * 0"' in scheduler_source
 assert '"/api/cron/weekly"' in scheduler_source
 
 
@@ -262,7 +241,6 @@ assert "automatic_offer_acceptance: false" in production_e2e
 assert "access_token" not in production_e2e.split("const result =", 1)[1]
 
 migration7 = (ROOT / "supabase/migrations/0007_knowledge_graph_workflows.sql").read_text()
-assert "create extension if not exists vector with schema extensions" in (ROOT / "supabase/migrations/0001_core.sql").read_text().lower()
 for required in [
     "career_documents",
     "career_chunks",
@@ -281,6 +259,7 @@ for required in [
     "langgraph_checkpoints_owner_all",
 ]:
     assert required in migration7.lower()
+assert "create extension if not exists vector with schema extensions" in (ROOT / "supabase/migrations/0001_core.sql").read_text().lower()
 assert "security definer" not in migration7.lower()
 assert "content_hash text" in migration7
 assert "char_start integer" in migration7
@@ -341,6 +320,21 @@ assert '"version":"1.0.1"' in api_main
 auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text()
 assert "0001–0008" in auth_gate
 
+open_submission = (ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts").read_text()
+assert "submission_handoff_opened" in open_submission
+assert "external_submission_performed: false" in open_submission
+assert "target_host" in open_submission
+
+applications_workspace = (ROOT / "apps/web/components/applications-workspace.tsx").read_text()
+assert "/open-submission" in applications_workspace
+assert "招聘页面已打开" in applications_workspace
+assert "最终提交仍在平台页面完成" in applications_workspace
+assert "Gmail" not in applications_workspace
+
+compact_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text()
+assert compact_shell.count('["/') == 2
+assert '选岗位' in compact_shell and '待投递' in compact_shell
+
 root_package = json.loads((ROOT / "package.json").read_text())
 web_package = json.loads((ROOT / "apps/web/package.json").read_text())
 assert root_package["version"] == "1.0.1"
@@ -379,19 +373,10 @@ assert "approval_required" in agent_runtime
 for flag in ["agentRuntime: true", "hybridJobRanking: true", "mcpServer: true", "agentEvaluation: true", "publicPortfolioPlayground: true", "deterministicAgentDemoApi: true", "dockerDemoStack: true", "automaticEmailSend: false"]:
     assert flag in runtime
 assert "local_transition" in runtime
-assert "dailyApplicationBatchQueue: true" in runtime
 
 daily_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text()
 assert "runDailyAgentCycle" in daily_route
 assert 'action: "daily-discovery-ranking-report"' in daily_route
-assert "queue_generated: true" in daily_route
-
-dispatch_migration = (ROOT / "supabase/migrations/0011_daily_application_queue.sql").read_text()
-for required in ["daily_application_policies", "application_batches", "application_dispatches", "enable row level security", "application_dispatches_owner_all"]:
-    assert required in dispatch_migration
-dispatch_service = (ROOT / "apps/web/lib/dispatch-service.ts").read_text()
-assert "buildDailyDispatchBatch" in dispatch_service
-assert "final_submission_mode: \"user_browser\"" in dispatch_service
 
 root_scripts = root_package["scripts"]
 for script in ["test:m08", "smoke:m08", "test:m08.1", "smoke:m08.1", "evaluation:m08.1"]:

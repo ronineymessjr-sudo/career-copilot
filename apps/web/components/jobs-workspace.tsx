@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useState } from "react";
-import { Check, ClipboardCheck, ExternalLink, FilePlus2, RefreshCw, SearchCheck, ShieldAlert, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, ChevronDown, ExternalLink, FileText, Plus, RefreshCw, SearchCheck, Send, Sparkles } from "lucide-react";
 import { controlFetch } from "@/lib/control-client";
-import { buildGreetingDraft, recommendResumePersona, RESUME_PERSONAS } from "@/lib/agent-runtime.mjs";
+import type { ApplicationPlan } from "@/lib/application-plan.mjs";
 
 type Job = Record<string, any> & {
   id: string;
@@ -14,27 +15,130 @@ type Job = Record<string, any> & {
   application?: Record<string, any> | null;
 };
 
-function answerBoolean(label: string, current: boolean | null | undefined): boolean | null | undefined {
-  const initial = current === true ? "是" : current === false ? "否" : "";
-  const value = window.prompt(`${label}\n请输入：是 / 否 / 未知。只有从可靠来源确认后才填写。`, initial);
-  if (value === null || value.trim() === "") return undefined;
-  if (["是", "yes", "y", "true"].includes(value.trim().toLowerCase())) return true;
-  if (["否", "no", "n", "false"].includes(value.trim().toLowerCase())) return false;
-  return null;
+type PlanResponse = {
+  plan: ApplicationPlan;
+  application_package: Record<string, any> | null;
+};
+
+type PlanState = PlanResponse & { error?: string };
+
+type HandoffResponse = {
+  target_url: string;
+  channel: string;
+  mode: "browser_handoff";
+  external_submission_performed: false;
+};
+
+function eligibility(job: Job) {
+  const evaluation = job.evaluation ?? {};
+  if (job.application?.status === "submitted") return { label: "已投递", tone: "done" };
+  if (evaluation.eligible === false || job.accepts_2028 === false || job.accepts_students === false) return { label: "不建议", tone: "bad" };
+  if (evaluation.needs_confirmation === true || job.accepts_2028 == null || job.days_per_week == null || job.minimum_months == null) return { label: "待核验", tone: "warn" };
+  return { label: "可投", tone: "ok" };
 }
 
-function answerNumber(label: string, current: number | null | undefined): number | null | undefined {
-  const value = window.prompt(`${label}\n请输入数字；仍未知可输入“未知”。`, current == null ? "" : String(current));
-  if (value === null || value.trim() === "") return undefined;
-  if (value.trim() === "未知") return null;
-  const number = Number.parseInt(value.trim(), 10);
-  if (!Number.isFinite(number)) throw new Error(`${label}必须是数字或“未知”`);
-  return number;
+function nextPreparationLink(items: string[]) {
+  const text = items.join(" ");
+  if (/证据|GitHub|代码|作品集|项目/.test(text)) return { href: "/career-vault", label: "补项目材料" };
+  return { href: "/resumes", label: "完善简历" };
+}
+
+function PlanPanel({
+  job,
+  state,
+  busyId,
+  onVerify,
+  onConfirm,
+}: {
+  job: Job;
+  state: PlanState;
+  busyId: string;
+  onVerify: (job: Job) => Promise<void>;
+  onConfirm: (job: Job, state: PlanState) => Promise<void>;
+}) {
+  const plan = state.plan;
+  if (state.error) return <div className="focus-plan bad"><AlertTriangle size={13}/><span>{state.error}</span></div>;
+
+  if (plan.status === "blocked") return <div className="focus-plan bad">
+    <div><AlertTriangle size={13}/><strong>不建议投递</strong></div>
+    <p>{plan.hard_blockers[0] ?? "岗位未通过硬性条件"}</p>
+  </div>;
+
+  if (plan.status === "needs_preparation") {
+    const next = nextPreparationLink(plan.preparation_items);
+    const needsVerification = plan.preparation_items.some((item) => /2028|出勤|实习|届|周期|核验/.test(item));
+    return <div className="focus-plan warn">
+      <div><FileText size={13}/><strong>先补齐再投</strong></div>
+      <p>{plan.resume ? `${plan.resume.name} · 匹配 ${plan.resume.alignment_score}%` : "还没有可用简历"}</p>
+      <ul>{plan.preparation_items.slice(0, 2).map((item) => <li key={item}>{item}</li>)}</ul>
+      <div className="focus-plan-actions">
+        {needsVerification ? <button className="ghost-button" type="button" onClick={() => void onVerify(job)}>补岗位条件</button> : null}
+        <Link className="ghost-button" href={next.href}>{next.label}</Link>
+      </div>
+    </div>;
+  }
+
+  return <div className="focus-plan ok">
+    <div><CheckCircle2 size={13}/><strong>已匹配最佳简历</strong></div>
+    <p>{plan.resume?.name ?? "推荐简历"} · {plan.resume?.alignment_score ?? 0}%</p>
+    <button className="primary-button" type="button" onClick={() => void onConfirm(job, state)} disabled={busyId === `submit-${job.id}`}>
+      <Send size={13}/>{busyId === `submit-${job.id}` ? "正在连接…" : "确认并投递"}
+    </button>
+  </div>;
+}
+
+function JobRow({
+  job,
+  planState,
+  busyId,
+  onPlan,
+  onVerify,
+  onConfirm,
+}: {
+  job: Job;
+  planState?: PlanState;
+  busyId: string;
+  onPlan: (job: Job) => Promise<void>;
+  onVerify: (job: Job) => Promise<void>;
+  onConfirm: (job: Job, state: PlanState) => Promise<void>;
+}) {
+  const evaluation = job.evaluation ?? {};
+  const state = eligibility(job);
+  const applicationStatus = String(job.application?.status ?? "");
+  const planning = busyId === `plan-${job.id}`;
+  const score = evaluation.total_score ?? "--";
+
+  return <article className="focus-job-row">
+    <div className="focus-job-score"><strong>{score}</strong><span>匹配</span></div>
+    <div className="focus-job-copy">
+      <span>{job.company_name || "待核验公司"}</span>
+      <strong>{job.title}</strong>
+      <small>{[job.city, job.workplace, job.salary].filter(Boolean).join(" · ") || "信息待核验"}</small>
+    </div>
+    <span className={`focus-status ${state.tone}`}>{state.label}</span>
+    <div className="focus-job-action">
+      {applicationStatus === "submitted" ? <span className="focus-complete">完成</span>
+        : applicationStatus === "ready_to_submit" ? <Link className="primary-button" href="/applications">继续投递</Link>
+          : <button className="primary-button" type="button" onClick={() => void onPlan(job)} disabled={planning || Boolean(busyId)}>
+            <Send size={12}/>{planning ? "匹配中…" : "投这个"}
+          </button>}
+    </div>
+
+    {planState ? <div className="focus-job-result"><PlanPanel job={job} state={planState} busyId={busyId} onVerify={onVerify} onConfirm={onConfirm}/></div> : null}
+    <details className="focus-job-details">
+      <summary><ChevronDown size={12}/>详情</summary>
+      <div>
+        <p>{job.requirements || job.description || "暂无完整岗位说明"}</p>
+        {job.source_url ? <a href={job.source_url} target="_blank" rel="noreferrer">查看原岗位<ExternalLink size={11}/></a> : null}
+      </div>
+    </details>
+  </article>;
 }
 
 export function JobsWorkspace() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [scores, setScores] = useState<Record<string, any>>({});
+  const [plans, setPlans] = useState<Record<string, PlanState>>({});
   const [busyId, setBusyId] = useState("");
   const [message, setMessage] = useState("");
   const [form, setForm] = useState({ company: "", title: "", source_url: "", source_reliability: 3, raw_text: "" });
@@ -48,10 +152,16 @@ export function JobsWorkspace() {
       setJobs(result.jobs ?? []);
       setScores(Object.fromEntries((scoreResult.scores ?? []).map((item) => [String(item.job_id), item])));
       setMessage("");
-    } catch (error) { setMessage(error instanceof Error ? error.message : "加载岗位失败"); }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "加载岗位失败");
+    }
   }, []);
 
   useEffect(() => { void load(); }, [load]);
+
+  const openJobs = useMemo(() => [...jobs]
+    .filter((job) => String(job.status ?? "open") !== "archived")
+    .sort((left, right) => Number(scores[String(right.id)]?.final_score ?? right.evaluation?.total_score ?? 0) - Number(scores[String(left.id)]?.final_score ?? left.evaluation?.total_score ?? 0)), [jobs, scores]);
 
   async function importJob(event: FormEvent) {
     event.preventDefault();
@@ -59,114 +169,103 @@ export function JobsWorkspace() {
     try {
       await controlFetch("/api/control/jobs", { method: "POST", body: JSON.stringify(form) });
       setForm({ company: "", title: "", source_url: "", source_reliability: 3, raw_text: "" });
-      setMessage("岗位已导入。下一步请评分并核验 HR 条件。");
+      setMessage("岗位已导入。请选择“投这个”，系统会自动匹配简历。 ");
       await load();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "导入失败"); }
-    finally { setBusyId(""); }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "导入失败");
+    } finally {
+      setBusyId("");
+    }
   }
 
-  async function action(job: Job, name: "evaluate" | "prepare") {
-    setBusyId(`${name}-${job.id}`);
+  async function plan(job: Job) {
+    setBusyId(`plan-${job.id}`);
     try {
-      await controlFetch(`/api/control/jobs/${job.id}/${name}`, { method: "POST" });
-      setMessage(name === "evaluate" ? "评分完成。" : "材料包已生成，等待真实性审批。");
+      const result = await controlFetch<PlanResponse>(`/api/control/jobs/${job.id}/apply-plan`, { method: "POST" });
+      setPlans((current) => ({ ...current, [job.id]: result }));
+      setMessage(result.plan.status === "ready" ? `已为 ${job.company_name} 选出最合适的简历。` : "系统发现投递前需要补齐的内容。 ");
       await load();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "操作失败"); }
-    finally { setBusyId(""); }
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "匹配失败");
+    } finally {
+      setBusyId("");
+    }
   }
 
-  async function approve(job: Job) {
-    const pack = job.application_package;
-    if (!pack) return;
-    if (!window.confirm("确认材料中的每条经历都来自 Career Vault 的真实证据，并允许进入 READY_TO_SUBMIT？\n这不会自动向招聘平台提交。")) return;
-    setBusyId(`approve-${job.id}`);
+  async function verify(job: Job) {
+    const accepts2028 = window.prompt("是否接受 2028 届？输入：是 / 否 / 未知", job.accepts_2028 === true ? "是" : job.accepts_2028 === false ? "否" : "未知");
+    if (accepts2028 === null) return;
+    const days = window.prompt("每周最低出勤天数；未知填“未知”", job.days_per_week == null ? "未知" : String(job.days_per_week));
+    if (days === null) return;
+    const months = window.prompt("最短实习月数；未知填“未知”", job.minimum_months == null ? "未知" : String(job.minimum_months));
+    if (months === null) return;
+    const normalizeBoolean = (value: string) => ["是", "yes", "y", "true"].includes(value.trim().toLowerCase()) ? true : ["否", "no", "n", "false"].includes(value.trim().toLowerCase()) ? false : null;
+    const normalizeNumber = (value: string) => value.trim() === "未知" || value.trim() === "" ? null : Number.parseInt(value.trim(), 10);
+    setBusyId(`verify-${job.id}`);
     try {
-      await controlFetch(`/api/control/approvals/${pack.id}`, {
+      await controlFetch(`/api/control/jobs/${job.id}`, { method: "PATCH", body: JSON.stringify({ accepts_2028: normalizeBoolean(accepts2028), accepts_students: true, days_per_week: normalizeNumber(days), minimum_months: normalizeNumber(months) }) });
+      setPlans((current) => { const next = { ...current }; delete next[job.id]; return next; });
+      await load();
+      await plan(job);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "岗位条件保存失败");
+    } finally {
+      setBusyId("");
+    }
+  }
+
+  async function confirmAndApply(job: Job, state: PlanState) {
+    const pack = state.application_package;
+    if (!pack?.id || state.plan.status !== "ready") return;
+    if (!window.confirm(`使用“${state.plan.resume?.name ?? "推荐简历"}”投递：\n\n${job.company_name} · ${job.title}\n\n确认继续？`)) return;
+    const popup = window.open("about:blank", "_blank");
+    if (popup) {
+      popup.opener = null;
+      popup.document.title = "正在连接投递入口…";
+      popup.document.body.textContent = "Career Copilot 正在验证材料与投递入口…";
+    }
+    setBusyId(`submit-${job.id}`);
+    try {
+      const approved = await controlFetch<{ application: Record<string, any> }>(`/api/control/approvals/${pack.id}`, {
         method: "POST",
-        body: JSON.stringify({ decision: "approve", channel: job.channel, note: "用户完成真实性审批" }),
+        body: JSON.stringify({ decision: "approve", channel: job.channel, note: `用户选择投递；系统自动匹配 ${state.plan.resume?.name ?? "推荐简历"}` }),
       });
-      setMessage("材料已批准，岗位进入待提交。系统仍不会自动提交。");
+      const handoff = await controlFetch<HandoffResponse>(`/api/control/applications/${approved.application.id}/open-submission`, { method: "POST" });
+      if (popup) popup.location.replace(handoff.target_url);
+      else window.location.assign(handoff.target_url);
+      setMessage("投递页已打开。平台要求登录或验证码时，只需在新页面完成该步骤。 ");
       await load();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "审批失败"); }
-    finally { setBusyId(""); }
+    } catch (error) {
+      popup?.close();
+      setMessage(error instanceof Error ? error.message : "投递连接失败");
+    } finally {
+      setBusyId("");
+    }
   }
 
-  async function recordHrResult(job: Job) {
-    try {
-      const patch: Record<string, unknown> = {};
-      const acceptsStudents = answerBoolean("是否确认接受在校生？", job.accepts_students);
-      const accepts2028 = answerBoolean("是否确认接受 2028 届？", job.accepts_2028);
-      const days = answerNumber("每周最低出勤天数", job.days_per_week);
-      const months = answerNumber("最短实习月数", job.minimum_months);
-      if (acceptsStudents !== undefined) patch.accepts_students = acceptsStudents;
-      if (accepts2028 !== undefined) patch.accepts_2028 = accepts2028;
-      if (days !== undefined) patch.days_per_week = days;
-      if (months !== undefined) patch.minimum_months = months;
-      if (Object.keys(patch).length === 0) return;
-      setBusyId(`verify-${job.id}`);
-      await controlFetch(`/api/control/jobs/${job.id}`, { method: "PATCH", body: JSON.stringify(patch) });
-      await controlFetch(`/api/control/jobs/${job.id}/evaluate`, { method: "POST" });
-      setMessage("HR 条件已记录并重新评分。填写内容应能追溯到聊天、官网或可靠 JD。");
-      await load();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "核验结果保存失败"); }
-    finally { setBusyId(""); }
-  }
+  return <section className="focus-workspace">
+    <header className="focus-workspace-head">
+      <div><h1>推荐岗位</h1><p>系统找到 {openJobs.length} 个岗位。选择一个，其余步骤自动完成。</p></div>
+      <button className="focus-icon-button" aria-label="刷新岗位" onClick={() => void load()}><RefreshCw size={14}/></button>
+    </header>
 
-  return <div className="control-grid jobs-layout">
-    <section className="control-panel jobs-panel">
-      <header className="control-heading"><div><span className="eyebrow">Deterministic intake</span><h2>岗位发现与资格核验</h2><p>2028 届、在校资格、出勤和周期未知时，系统不会放行。</p></div><button className="icon-button" onClick={()=>void load()}><RefreshCw size={15}/></button></header>
-      {message ? <div className="control-message">{message}</div> : null}
-      <div className="live-job-list">
-        {jobs.length === 0 ? <div className="empty-state"><SearchCheck size={25}/><strong>暂无正式岗位</strong><span>粘贴一条完整 JD，系统会先做确定性解析，再由你补充 HR 核验结果。</span></div> : jobs.map((job) => {
-          const evaluation = job.evaluation;
-          const breakdown = evaluation?.score_breakdown ?? {};
-          const questions: string[] = breakdown.confirmation_questions ?? [];
-          const hardReasons: string[] = breakdown.hard_filter_reasons ?? [];
-          const hybridScore = scores[String(job.id)] ?? null;
-          const recommendedPersona = String((recommendResumePersona as any)(job, hybridScore));
-          const personaConfig = RESUME_PERSONAS[recommendedPersona as keyof typeof RESUME_PERSONAS] ?? RESUME_PERSONAS.agent_engineer;
-          const greetingDraft = (buildGreetingDraft as any)({ job, score: hybridScore, persona: recommendedPersona });
-          return <article className="control-job-card" key={job.id}>
-            <div className="control-job-head">
-              <div className={`grade grade-${String(evaluation?.grade ?? "c").toLowerCase()}`}>{evaluation?.grade ?? "?"}</div>
-              <div><span>{job.company_name || "待核验公司"}</span><h3>{job.title}</h3><p>{[job.workplace, job.city, job.district, job.salary].filter(Boolean).join(" · ") || "地点与薪资待核验"}</p></div>
-              <div className="control-score"><strong>{evaluation?.total_score ?? "--"}</strong><span>匹配分</span></div>
-            </div>
-            <div className="job-status-strip">
-              <span className={job.accepts_2028 === true ? "ok" : job.accepts_2028 === false ? "bad" : "warn"}>2028届 {job.accepts_2028 === true ? "✓" : job.accepts_2028 === false ? "×" : "待确认"}</span>
-              <span className={job.accepts_students === true ? "ok" : job.accepts_students === false ? "bad" : "warn"}>在校生 {job.accepts_students === true ? "✓" : job.accepts_students === false ? "×" : "待确认"}</span>
-              <span className={Number(job.days_per_week) >= 3 ? "ok" : "warn"}>每周 {job.days_per_week ?? "?"} 天</span>
-              <span className={Number(job.minimum_months) >= 3 ? "ok" : "warn"}>至少 {job.minimum_months ?? "?"} 月</span>
-            </div>
-            {hardReasons.length ? <div className="blocker-box"><ShieldAlert size={15}/><div><strong>硬性阻断</strong><p>{hardReasons.join("；")}</p></div></div> : null}
-            {questions.length ? <div className="blocker-box warning"><ClipboardCheck size={15}/><div><strong>需要向 HR 核验</strong><p>{questions.join("；")}</p></div></div> : null}
-            {evaluation?.matched_skills?.length ? <div className="tag-row">{evaluation.matched_skills.map((skill: string)=><span key={skill}>{skill}</span>)}</div> : null}
-            <div className="job-prep-box">
-              <header><div><span>Agent 投递准备</span><strong>{personaConfig.label}</strong></div><span>{hybridScore ? `${hybridScore.grade} · ${hybridScore.final_score}分` : "待运行混合评分"}</span></header>
-              <p>{greetingDraft.greeting}</p>
-              <footer><small>状态：等待人工确认 · 不自动发送</small><button className="ghost-button" type="button" onClick={() => void navigator.clipboard.writeText(greetingDraft.greeting)}>复制招呼语</button></footer>
-            </div>
-            {job.application_package ? <div className="package-preview"><span>材料版本：{job.application_package.resume_version_name}</span><p>{job.application_package.greeting}</p><small>真实性：{job.application_package.truth_check?.passed ? "通过" : "阻断"} · 审批：{job.application_package.approval}</small></div> : null}
-            <footer className="card-actions">
-              <button className="ghost-button" onClick={()=>void recordHrResult(job)} disabled={Boolean(busyId)}><ClipboardCheck size={14}/>录入 HR 结果</button>
-              <button className="ghost-button" onClick={()=>void action(job,"evaluate")} disabled={Boolean(busyId)}><SearchCheck size={14}/>评分</button>
-              <button className="ghost-button" onClick={()=>void action(job,"prepare")} disabled={!evaluation?.eligible || Boolean(busyId)}><FilePlus2 size={14}/>生成材料</button>
-              {job.application_package?.approval === "pending" ? <button className="primary-button" onClick={()=>void approve(job)} disabled={Boolean(busyId)}><Check size={14}/>真实性审批</button> : null}
-              {job.source_url ? <a className="link-button" href={job.source_url} target="_blank" rel="noreferrer">原始来源<ExternalLink size={13}/></a> : null}
-            </footer>
-          </article>;
-        })}
-      </div>
-    </section>
+    {message ? <div className="focus-message">{message}</div> : null}
 
-    <form className="control-panel control-form sticky-panel" onSubmit={importJob}>
-      <div><span className="eyebrow">Import job</span><h2>粘贴一条真实 JD</h2><p>保留原文和来源，未知字段不会被模型补全。</p></div>
-      <label>公司（可选）<input value={form.company} onChange={(e)=>setForm({...form,company:e.target.value})} placeholder="原文可识别时可留空"/></label>
-      <label>岗位名称（可选）<input value={form.title} onChange={(e)=>setForm({...form,title:e.target.value})} placeholder="例如 AI Agent 后端实习生"/></label>
-      <label>可靠来源 URL<input type="url" value={form.source_url} onChange={(e)=>setForm({...form,source_url:e.target.value})} placeholder="官网、BOSS、牛客等"/></label>
-      <label>来源可靠度<select value={form.source_reliability} onChange={(e)=>setForm({...form,source_reliability:Number(e.target.value)})}>{[1,2,3,4,5].map((value)=><option value={value} key={value}>{value}/5</option>)}</select></label>
-      <label>完整 JD 原文<textarea value={form.raw_text} onChange={(e)=>setForm({...form,raw_text:e.target.value})} rows={14} required placeholder="粘贴职责、要求、地点、出勤、周期、届别和投递方式…"/></label>
-      <button className="primary-button" type="submit" disabled={busyId === "import"}><Sparkles size={15}/>{busyId === "import" ? "解析中…" : "导入并解析"}</button>
-    </form>
-  </div>;
+    <div className="focus-job-list">
+      {openJobs.length ? openJobs.map((job) => <JobRow key={job.id} job={job} planState={plans[job.id]} busyId={busyId} onPlan={plan} onVerify={verify} onConfirm={confirmAndApply}/>) : <div className="focus-empty"><SearchCheck size={18}/><span>暂无可选岗位</span></div>}
+    </div>
+
+    <details className="focus-import">
+      <summary><Plus size={12}/>粘贴其它岗位</summary>
+      <form onSubmit={importJob}>
+        <div className="focus-import-grid">
+          <label>公司<input value={form.company} onChange={(event) => setForm({ ...form, company: event.target.value })} placeholder="可留空"/></label>
+          <label>岗位<input value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="可留空"/></label>
+          <label className="wide">真实来源 URL<input type="url" value={form.source_url} onChange={(event) => setForm({ ...form, source_url: event.target.value })} placeholder="官网或招聘平台链接" required/></label>
+        </div>
+        <label>完整 JD<textarea value={form.raw_text} onChange={(event) => setForm({ ...form, raw_text: event.target.value })} rows={5} required placeholder="粘贴职责、要求、地点、届别、出勤和周期…"/></label>
+        <button className="primary-button" type="submit" disabled={busyId === "import"}><Sparkles size={13}/>{busyId === "import" ? "解析中…" : "导入"}</button>
+      </form>
+    </details>
+  </section>;
 }

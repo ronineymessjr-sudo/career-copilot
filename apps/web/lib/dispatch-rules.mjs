@@ -2,10 +2,16 @@ export const DEFAULT_DISPATCH_POLICY = {
   enabled: true,
   daily_limit: 5,
   minimum_score: 75,
-  allowed_channels: ["boss", "linkedin", "bonjour", "greenhouse", "lever", "company_form", "email"],
+  allowed_channels: ["platform", "boss", "linkedin", "bonjour", "greenhouse", "lever", "company_form", "email"],
   allowed_workplaces: ["remote", "hybrid", "onsite"],
   require_batch_approval: true,
 };
+
+export function normalizeDispatchChannel(value) {
+  const channel = String(value ?? "").trim().toLowerCase();
+  if (["zhipin", "shixiseng", "deizao", "zhaopin", "nowcoder", "lagou", "liepin"].includes(channel)) return "platform";
+  return channel;
+}
 
 export function normalizeDispatchPolicy(input = {}) {
   const channels = Array.isArray(input.allowed_channels) ? input.allowed_channels : DEFAULT_DISPATCH_POLICY.allowed_channels;
@@ -14,8 +20,8 @@ export function normalizeDispatchPolicy(input = {}) {
     enabled: input.enabled !== false,
     daily_limit: Math.max(1, Math.min(20, Number(input.daily_limit ?? DEFAULT_DISPATCH_POLICY.daily_limit))),
     minimum_score: Math.max(0, Math.min(100, Number(input.minimum_score ?? DEFAULT_DISPATCH_POLICY.minimum_score))),
-    allowed_channels: channels.map((item) => String(item).trim().toLowerCase()).filter(Boolean),
-    allowed_workplaces: workplaces.map((item) => String(item).trim().toLowerCase()).filter(Boolean),
+    allowed_channels: [...new Set(channels.map(normalizeDispatchChannel).filter(Boolean))],
+    allowed_workplaces: [...new Set(workplaces.map((item) => String(item).trim().toLowerCase()).filter(Boolean))],
     require_batch_approval: input.require_batch_approval !== false,
   };
 }
@@ -29,7 +35,7 @@ export function selectDispatchCandidates(candidates, policyInput = {}) {
       const job = candidate.job ?? {};
       const applicationPackage = candidate.applicationPackage ?? {};
       const score = candidate.score ?? {};
-      const channel = String(application.channel ?? job.channel ?? "").toLowerCase();
+      const channel = normalizeDispatchChannel(application.channel ?? job.channel);
       const workplace = String(job.workplace ?? "unknown").toLowerCase();
       return application.status === "ready_to_submit"
         && applicationPackage.approval === "approved"

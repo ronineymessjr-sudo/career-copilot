@@ -393,7 +393,7 @@ export function evaluateJob(job, evidence = [], today = new Date()) {
   };
 }
 
-export function buildApplicationPackage(job, evaluation, evidence = [], resumeVersions = []) {
+export function buildApplicationPackage(job, evaluation, evidence = [], resumeVersions = [], options = {}) {
   if (!evaluation?.eligible) throw new Error("岗位未通过硬性过滤");
   const verified = (evidence ?? []).filter((item) => item.active !== false && (item.verification_status ?? "verified") === "verified");
   const selectedEvidence = verified.filter((item) => {
@@ -404,7 +404,11 @@ export function buildApplicationPackage(job, evaluation, evidence = [], resumeVe
   const engineering = /后端|全栈|开发|python|fastapi|langchain|langgraph|rag|agent|mcp/i.test(`${job.title} ${job.description}`);
   const product = /产品经理|产品助理|prd|原型|用户研究|产品运营/i.test(`${job.title} ${job.description}`);
   const resumeName = engineering ? "AI Agent研发版" : product ? "AI产品版" : "本地过渡版";
-  const resume = resumeVersions.find((item) => item.name === resumeName) ?? null;
+  const selectedResumeId = String(options?.selected_resume_id ?? "");
+  const resume = (selectedResumeId ? resumeVersions.find((item) => String(item.id) === selectedResumeId) : null)
+    ?? resumeVersions.find((item) => item.name === resumeName)
+    ?? null;
+  const resolvedResumeName = resume?.name ?? resumeName;
   const highlighted = [...new Set([...(evaluation.matched_skills ?? []), "python", "fastapi", "langgraph", "rag"])].slice(0, 6);
   const projects = [...new Set(fallbackEvidence.map((item) => item.project).filter(Boolean))].slice(0, 2);
   const projectText = projects.join("、") || "已核验项目证据";
@@ -422,7 +426,7 @@ export function buildApplicationPackage(job, evaluation, evidence = [], resumeVe
   const truthPassed = evidenceRefs.length > 0 && Boolean(job.is_internship);
   return {
     resume_version_id: resume?.id ?? null,
-    resume_version_name: resumeName,
+    resume_version_name: resolvedResumeName,
     resume_filename: resume?.file_path?.split("/").pop() ?? "",
     greeting,
     email_subject: job.channel === "email" ? `应聘 ${job.title} 实习生｜2028届人工智能本科生` : null,

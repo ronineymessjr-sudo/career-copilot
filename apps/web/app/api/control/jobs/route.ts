@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateJob, jobIdentityParts, parseJobIntake, preserveVerifiedJobFields } from "@/lib/control-rules.mjs";
+import { firstByKey } from "@/lib/application-view.mjs";
 import { authenticate, controlError, dataRequest, stableSourceId } from "@/lib/supabase-control";
 
 export async function GET(request: NextRequest) {
@@ -16,9 +17,9 @@ export async function GET(request: NextRequest) {
     const evidence = profileId
       ? await dataRequest<Array<Record<string, any>>>(auth, `career_evidence?select=*&profile_id=eq.${encodeURIComponent(String(profileId))}&active=eq.true`)
       : [];
-    const evaluationByJob = new Map(evaluations.map((item) => [String(item.job_id), item]));
-    const packageByJob = new Map(packages.map((item) => [String(item.job_id), item]));
-    const applicationByJob = new Map(applications.map((item) => [String(item.job_id), item]));
+    const evaluationByJob = firstByKey(evaluations, "job_id");
+    const packageByJob = firstByKey(packages, "job_id");
+    const applicationByJob = firstByKey(applications, "job_id");
     return NextResponse.json({
       ok: true,
       jobs: jobs.map((job) => {
