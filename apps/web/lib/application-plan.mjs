@@ -22,6 +22,10 @@ function resumeText(resume) {
     resume?.name,
     resume?.role_family,
     resume?.persona,
+    resume?.plain_text,
+    resume?.notes,
+    resume?.original_filename,
+    resume?.storage_path,
     JSON.stringify(resume?.content ?? {}),
     JSON.stringify(resume?.alignment_summary ?? {}),
   ].join(" "));
@@ -34,6 +38,8 @@ export function scoreResumeForJob({ job, evaluation = {}, resume }) {
   const text = resumeText(resume);
   const skills = [...new Set([...(evaluation.matched_skills ?? []), ...extractJobSkills(job)])];
   const matchedSkills = skills.filter((skill) => text.includes(normalize(skill)));
+  const titleTokens = normalize(job?.title).split(" ").filter((item) => item.length >= 2);
+  const titleHits = titleTokens.filter((item) => text.includes(item));
   let score = 0;
   if (resume.persona === persona) score += 42;
   if (normalize(resume.name).includes(normalize(config.label))) score += 22;
@@ -41,7 +47,9 @@ export function scoreResumeForJob({ job, evaluation = {}, resume }) {
   if (resume.status === "approved") score += 12;
   else if (resume.status === "draft" || !resume.status) score += 5;
   if (String(resume.target_job_id ?? "") === String(job?.id ?? "")) score += 8;
-  if (resume.is_master) score += 4;
+  if (resume.is_master) score += 6;
+  if (resume.source_type === "uploaded" && resume.storage_path) score += 4;
+  score += Math.min(16, titleHits.length * 4);
   if (skills.length) score += Math.round((matchedSkills.length / skills.length) * 20);
   else score += 10;
   return clamp(score);
@@ -74,7 +82,7 @@ export function buildApplicationPlan({ job, evaluation = {}, resumes = [] }) {
 
   if (!best) preparationItems.push("先创建或上传一份可用简历");
   else {
-    const hasContent = Boolean(best.resume?.file_path) || Object.keys(best.resume?.content ?? {}).length > 0;
+    const hasContent = Boolean(best.resume?.file_path || best.resume?.storage_path || best.resume?.plain_text) || Object.keys(best.resume?.content ?? {}).length > 0;
     if (!hasContent) preparationItems.push(`“${best.resume?.name ?? "推荐简历"}”没有可投递文件或正文`);
     if (best.score < 55) preparationItems.push(`当前最佳简历与岗位匹配度仅 ${best.score}%，需要生成针对该岗位的版本`);
   }
@@ -105,7 +113,7 @@ export function buildApplicationPlan({ job, evaluation = {}, resumes = [] }) {
       persona: best.resume.persona ?? recommendResumePersona(job),
       status: best.resume.status ?? "draft",
       alignment_score: best.score,
-      filename: best.resume.file_path?.split("/").pop() ?? "",
+      filename: best.resume.original_filename ?? best.resume.storage_path?.split("/").pop() ?? best.resume.file_path?.split("/").pop() ?? "",
     } : null,
     hard_blockers: [...new Set(hardBlockers)],
     preparation_items: preparationItems,

@@ -49,3 +49,25 @@ test("blocks jobs without a verified submission URL", () => {
   assert.equal(plan.status, "blocked");
   assert.ok(plan.hard_blockers.includes("岗位缺少可验证的真实投递入口"));
 });
+
+
+test("uploaded private resume text and filename participate in automatic matching", () => {
+  const uploaded = {
+    id: "uploaded-1",
+    name: "后端开发主简历",
+    role_family: "AI Agent 后端",
+    persona: "uploaded",
+    status: "approved",
+    source_type: "uploaded",
+    is_master: true,
+    storage_path: "user/uploaded-1/AI-Agent-Backend.pdf",
+    original_filename: "AI-Agent-Backend-Python-RAG.pdf",
+    plain_text: "Python LangGraph RAG FastAPI GitHub 项目经验",
+    content: { summary: "AI Agent 后端研发", skills: ["Python", "LangGraph", "RAG"] },
+  };
+  const unrelated = { id: "other", name: "市场运营简历", persona: "uploaded", status: "approved", storage_path: "user/other/marketing.pdf", content: { skills: ["运营"] } };
+  assert.ok(scoreResumeForJob({ job, evaluation, resume: uploaded }) > scoreResumeForJob({ job, evaluation, resume: unrelated }));
+  const plan = buildApplicationPlan({ job: { ...job, requirements: "接受在校生" }, evaluation, resumes: [unrelated, uploaded] });
+  assert.equal(plan.resume.id, "uploaded-1");
+  assert.equal(plan.resume.filename, "AI-Agent-Backend-Python-RAG.pdf");
+});

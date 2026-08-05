@@ -3,7 +3,22 @@ import assert from "node:assert/strict";
 import { normalizeProfile, personalizeJob, profileCompleteness } from "../lib/recommendation-profile.mjs";
 
 test("profile normalization gives each account independent recommendation defaults", () => {
-  const profile = normalizeProfile({ graduation_year: 2027, major: "软件工程", availability_days: 5, availability_months: 6, preferences: { target_roles: ["前端开发"], locations: ["北京"], work_modes: ["hybrid"], keywords: ["React"] } });
+  const profile = normalizeProfile({
+    graduation_year: 2027,
+    major: "软件工程",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    profile_details: {
+      display_name: "测试用户",
+      headline: "前端开发工程师",
+      summary: "专注于 React 和 TypeScript 的前端开发，具备完整项目交付与协作经验。",
+      skills: ["React", "TypeScript", "Next.js"],
+      education: [{ title: "软件工程", organization: "示例大学", period: "2023-2027", description: "本科" }],
+      projects: [{ title: "数据工作台", organization: "个人项目", period: "2026", description: "使用 React 构建" }],
+    },
+    preferences: { target_roles: ["前端开发"], locations: ["北京"], work_modes: ["hybrid"], keywords: ["React"] },
+  });
   assert.equal(profile.graduation_year, 2027);
   assert.deepEqual(profile.preferences.target_roles, ["前端开发"]);
   assert.ok(profileCompleteness(profile).score >= 80);
@@ -26,4 +41,5 @@ test("new accounts start with a neutral profile instead of a fixed AI internship
   assert.equal(profile.preferences.internship_only, false);
   assert.equal(profile.major, "");
   assert.equal(profile.degree, "");
+  assert.equal(profile.graduation_year, null);
 });

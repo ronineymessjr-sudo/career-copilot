@@ -1,6 +1,6 @@
-Career Copilot V2 Complete Platform
+Career Copilot V2 Complete Platform R2
 Application version: 1.0.1
-Release label: complete-platform-carbon-2026.08.05
+Release label: complete-platform-profile-resume-daily-2026.08.05
 Base repository commit: 615265f
 Delivery: full source, not incremental
-Latest database migration: 0014_complete_platform_job_pool.sql
+Latest database migration: 0015_profile_resume_daily_recommendations.sql

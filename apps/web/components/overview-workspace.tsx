@@ -15,24 +15,26 @@ type OverviewState = {
   profile: Row | null;
   completeness: Row;
   analytics: Row | null;
+  daily: Row | null;
 };
 
 export function OverviewWorkspace() {
-  const [state, setState] = useState<OverviewState>({ jobs: [], pool: {}, sources: [], runs: [], applications: [], profile: null, completeness: {}, analytics: null });
+  const [state, setState] = useState<OverviewState>({ jobs: [], pool: {}, sources: [], runs: [], applications: [], profile: null, completeness: {}, analytics: null, daily: null });
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [jobs, sources, applications, profile, analytics] = await Promise.all([
+      const [jobs, sources, applications, profile, analytics, automation] = await Promise.all([
         controlFetch<{ jobs: Row[]; pool: Row }>("/api/control/jobs"),
         controlFetch<{ sources: Row[]; runs: Row[] }>("/api/control/sources").catch(() => ({ sources: [], runs: [] })),
         controlFetch<{ applications: Row[] }>("/api/control/applications").catch(() => ({ applications: [] })),
         controlFetch<{ profile: Row; completeness: Row }>("/api/control/profile"),
         controlFetch<Row>("/api/control/analytics?days=30").catch(() => null),
+        controlFetch<{ latest: Row | null }>("/api/control/automation").catch(() => ({ latest: null })),
       ]);
-      setState({ jobs: jobs.jobs ?? [], pool: jobs.pool ?? {}, sources: sources.sources ?? [], runs: sources.runs ?? [], applications: applications.applications ?? [], profile: profile.profile, completeness: profile.completeness ?? {}, analytics });
+      setState({ jobs: jobs.jobs ?? [], pool: jobs.pool ?? {}, sources: sources.sources ?? [], runs: sources.runs ?? [], applications: applications.applications ?? [], profile: profile.profile, completeness: profile.completeness ?? {}, analytics, daily: automation.latest ?? null });
       setMessage("");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "今日简报加载失败");
@@ -43,7 +45,15 @@ export function OverviewWorkspace() {
 
   useEffect(() => { void load(); }, [load]);
 
-  const recommended = useMemo(() => [...state.jobs].filter((job) => String(job.status ?? "open") !== "archived").sort((a, b) => Number(b.recommendation?.score ?? 0) - Number(a.recommendation?.score ?? 0)).slice(0, 6), [state.jobs]);
+  const recommended = useMemo(() => {
+    const rankedIds = (state.daily?.ranked_job_ids ?? []).map(String);
+    const rank = new Map(rankedIds.map((id: string, index: number) => [id, index]));
+    return [...state.jobs].filter((job) => String(job.status ?? "open") !== "archived").sort((a, b) => {
+      const left = rank.has(String(a.id)) ? Number(rank.get(String(a.id))) : 9999;
+      const right = rank.has(String(b.id)) ? Number(rank.get(String(b.id))) : 9999;
+      return left - right || Number(b.recommendation?.score ?? 0) - Number(a.recommendation?.score ?? 0);
+    }).slice(0, 8);
+  }, [state.daily, state.jobs]);
   const ready = state.applications.filter((item) => item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true);
   const blocked = state.applications.filter((item) => item.status !== "submitted" && !(item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true));
   const enabledSources = state.sources.filter((source) => source.enabled !== false);
@@ -64,7 +74,7 @@ export function OverviewWorkspace() {
 
     <section className="platform-metric-strip" aria-label="今日概览">
       <article><BriefcaseBusiness size={18}/><span>开放岗位</span><strong>{state.pool.open ?? state.jobs.length}</strong><small>完整岗位池</small></article>
-      <article><BarChart3 size={18}/><span>推荐岗位</span><strong>{state.pool.recommended ?? recommended.filter((job) => Number(job.recommendation?.score ?? 0) >= 70).length}</strong><small>画像匹配 ≥ 70</small></article>
+      <article><BarChart3 size={18}/><span>今日推荐</span><strong>{(state.daily?.ranked_job_ids ?? []).length || state.pool.recommended || recommended.filter((job) => Number(job.recommendation?.score ?? 0) >= 70).length}</strong><small>{state.daily?.recommendation_date ? `${state.daily.recommendation_date} 已生成` : "等待首次每日生成"}</small></article>
       <article><Radar size={18}/><span>自动来源</span><strong>{enabledSources.length}</strong><small>3 类公开 ATS 可接入</small></article>
       <article><Send size={18}/><span>待投递</span><strong>{ready.length}</strong><small>等待最终确认</small></article>
       <article><UserRound size={18}/><span>画像完整度</span><strong>{state.completeness.score ?? 0}%</strong><small>每个账号独立推荐</small></article>
@@ -72,13 +82,13 @@ export function OverviewWorkspace() {
 
     <div className="platform-overview-grid">
       <section className="platform-panel platform-priority-panel">
-        <header className="platform-panel-head"><div><h2>今日优先岗位</h2><p>从完整岗位池中，按当前账号画像排序。</p></div><Link href="/jobs">查看全部<ArrowRight size={15}/></Link></header>
+        <header className="platform-panel-head"><div><h2>今日推荐</h2><p>{state.daily?.recommendation_date ? `${state.daily.recommendation_date} 已按当前画像完成推荐与投递准备。` : "每天从完整岗位池中，为当前账号独立生成推荐。"}</p></div><Link href="/applications">推荐设置<ArrowRight size={15}/></Link></header>
         <div className="platform-priority-list">
           {recommended.length ? recommended.map((job) => <Link href={`/jobs?job=${encodeURIComponent(String(job.id))}`} key={job.id} className="platform-priority-row">
             <span className={`platform-score fit-${job.recommendation?.fit ?? "possible"}`}>{job.recommendation?.score ?? job.evaluation?.total_score ?? "--"}</span>
             <span className="platform-priority-copy"><small>{job.company_name || "待核验公司"}</small><strong>{job.title}</strong><em>{[job.city, job.workplace, job.source_name].filter(Boolean).join(" · ") || "岗位信息待完善"}</em></span>
             <span className="platform-priority-fit">{job.recommendation?.label ?? "待推荐"}</span>
-          </Link>) : <div className="platform-empty-state"><BriefcaseBusiness size={22}/><strong>还没有岗位</strong><p>连接岗位来源后，推荐会出现在这里。</p><Link href="/sources">连接来源</Link></div>}
+          </Link>) : <div className="platform-empty-state"><BriefcaseBusiness size={22}/><strong>还没有岗位</strong><p>完善画像并连接岗位来源后，每日推荐会出现在这里。</p><Link href="/sources">连接来源</Link></div>}
         </div>
       </section>
 

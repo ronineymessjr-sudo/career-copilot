@@ -77,6 +77,16 @@ REQUIRED = [
     ROOT / "scripts/production_e2e_m08_1.mjs",
     ROOT / "scripts/generate_agent_evaluation_report.mjs",
     ROOT / "docs/agent-evaluation-report.md",
+    ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql",
+    ROOT / "apps/web/app/login/page.tsx",
+    ROOT / "apps/web/app/api/control/profile/route.ts",
+    ROOT / "apps/web/app/api/control/resumes/upload/route.ts",
+    ROOT / "apps/web/app/api/control/resumes/[id]/route.ts",
+    ROOT / "apps/web/app/api/control/resumes/[id]/file/route.ts",
+    ROOT / "apps/web/app/api/control/automation/route.ts",
+    ROOT / "apps/web/lib/daily-recommendation-service.ts",
+    ROOT / "apps/web/lib/daily-recommendation-rules.mjs",
+    ROOT / "apps/web/components/profile-workspace.tsx",
     ROOT / "apps/web/Dockerfile",
 ]
 for path in REQUIRED:
@@ -97,7 +107,7 @@ scheduler = parse_jsonc(ROOT / "workers/scheduler/wrangler.jsonc")
 assert web["main"] == ".open-next/worker.js"
 assert "nodejs_compat" in web["compatibility_flags"]
 assert web["vars"]["APP_MODE"] == "production"
-assert scheduler["triggers"]["crons"] == ["0 11 * * *", "0 12 * * SUN"]
+assert scheduler["triggers"]["crons"] == ["0 0 * * *", "0 12 * * SUN"]
 assert scheduler["services"] == [{"binding": "WEB", "service": "career-copilot-v2"}]
 
 migration = (ROOT / "supabase/migrations/0005_discovery_exports_gmail.sql").read_text()
@@ -345,11 +355,55 @@ assert web_package["version"] == "1.0.1"
 assert web_package["dependencies"]["@langchain/core"] == "1.2.3"
 assert web_package["dependencies"]["@langchain/langgraph"] == "1.4.8"
 assert web_package["dependencies"]["@langchain/langgraph-checkpoint"] == "1.0.3"
+assert web_package["scripts"]["check"] == "tsc --noEmit"
 
 
 migration14 = (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").read_text()
 for required in ["job_user_overrides", "visibility", "jobs_pool_select", "job_sources_scope_check", "ashby"]:
     assert required in migration14
+
+migration15 = (ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql").read_text()
+for required in [
+    "profile_details", "source_type", "storage_path", "daily_recommendation_preferences",
+    "daily_recommendations", "resume-files", "resume_files_owner_select",
+    "resume_versions_one_master_per_profile_uidx", "ranked_masters",
+]:
+    assert required in migration15
+assert "alter column graduation_year drop not null" in migration15.lower()
+assert "alter column graduation_year drop default" in migration15.lower()
+
+profile_service = (ROOT / "apps/web/lib/profile-service.ts").read_text()
+agent_controller = (ROOT / "apps/web/lib/agent-controller.ts").read_text()
+assert "graduation_year: null" in profile_service
+assert "graduation_year: null" in agent_controller
+
+profile_route = (ROOT / "apps/web/app/api/control/profile/route.ts").read_text()
+for required in ["profile_details", "education", "experience", "projects", "certifications", "links"]:
+    assert required in profile_route
+
+resume_upload = (ROOT / "apps/web/app/api/control/resumes/upload/route.ts").read_text()
+for required in ["resume-files", "storage_path", "application/pdf", "MAX_BYTES", "is_master"]:
+    assert required in resume_upload
+
+resume_library = (ROOT / "apps/web/components/resume-agent-workspace.tsx").read_text()
+for required in ["多版本简历库", "上传文件", "主简历", "岗位定制", "下载原文件"]:
+    assert required in resume_library
+
+automation_route = (ROOT / "apps/web/app/api/control/automation/route.ts").read_text()
+assert 'body.action !== "run_now"' in automation_route
+assert "runDailyRecommendationForUser" in automation_route
+
+daily_service = (ROOT / "apps/web/lib/daily-recommendation-service.ts").read_text()
+for required in ["profileCompleteness", "buildApplicationPlan", "automatic_preparation", 'approval: \"pending\"', "recommendationDateForTimezone"]:
+    assert required in daily_service
+assert "submitted" in daily_service
+
+login_page = (ROOT / "apps/web/app/login/page.tsx").read_text()
+for required in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
+    assert required in login_page
+
+for flag in ["completeUserProfiles: true", "privateMultiResumeLibrary: true", "perUserDailyRecommendations: true", "automaticApplicationPreparation: true", "automaticExternalSubmission: false"]:
+    assert flag in runtime
 
 migration8 = (ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql").read_text()
 for required in [
@@ -383,8 +437,10 @@ for flag in ["agentRuntime: true", "hybridJobRanking: true", "mcpServer: true", 
 assert "local_transition" in runtime
 
 daily_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text()
-assert "runDailyAgentCycle" in daily_route
-assert 'action: "daily-discovery-ranking-report"' in daily_route
+assert "runDailyRecommendationForUser" in daily_route
+assert "profiles?select=user_id" in daily_route
+assert 'action: "daily-discovery-and-per-user-recommendations"' in daily_route
+assert "automatic_external_submission: false" in daily_route
 
 root_scripts = root_package["scripts"]
 for script in ["test:m08", "smoke:m08", "test:m08.1", "smoke:m08.1", "evaluation:m08.1"]:

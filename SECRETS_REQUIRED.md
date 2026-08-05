@@ -1,6 +1,6 @@
-# 部署所需变量与 Secrets
+# 部署所需变量、Secrets 与 Auth 配置
 
-不要把真实值写入仓库或日志。
+不要把真实值写入仓库、源码包或日志。
 
 ## Web Worker：career-copilot-v2
 
@@ -10,14 +10,12 @@
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SECRET_KEY`
 - `CRON_SHARED_SECRET`
+- `OWNER_USER_ID`：平台公开来源发现的运营账号；每日推荐本身会遍历全部用户，不再只服务该账号。
 
-根据环境可能需要：
+可选：
 
-- `OWNER_USER_ID`
-- `OPENAI_API_KEY`（可选；未配置时使用确定性 lexical fallback）
-- `CAREER_COPILOT_API_URL`（可选 FastAPI 备用服务）
-
-设置示例：
+- `OPENAI_API_KEY`：未配置时使用确定性 lexical fallback。
+- `CAREER_COPILOT_API_URL`：可选 FastAPI 备用服务。
 
 ```bash
 cd apps/web
@@ -25,23 +23,31 @@ npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
 npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 npx wrangler secret put SUPABASE_SECRET_KEY
 npx wrangler secret put CRON_SHARED_SECRET
+npx wrangler secret put OWNER_USER_ID
 ```
 
-## Scheduler Worker：career-copilot-scheduler
+## Scheduler Worker
 
-- `CRON_SHARED_SECRET`，必须与 Web Worker 使用同一个值。
+- `CRON_SHARED_SECRET`，必须与 Web Worker 完全一致。
 
 ```bash
 cd workers/scheduler
 npx wrangler secret put CRON_SHARED_SECRET
 ```
 
-## 重新部署同名 Worker
+## Supabase Auth 控制台
 
-在同一 Cloudflare 账户中重新部署同名 Worker，一般会保留已经配置的 secrets。部署前后都应运行：
+这部分不是 Worker secret，但登录功能必须配置：
+
+- 启用 Email provider。
+- Site URL 设置为生产 Worker 地址。
+- Redirect URLs 包含 `https://career-copilot-v2.photomagic.workers.dev/**`。
+- 按产品需要决定是否强制邮箱验证；生产环境建议开启。
+
+## 部署前后检查
 
 ```bash
 npx wrangler secret list
 ```
 
-只核对名称，不输出或记录值。
+只核对名称，不输出或记录真实值。

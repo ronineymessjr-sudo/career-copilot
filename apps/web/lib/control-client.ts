@@ -42,7 +42,7 @@ export async function accessToken(): Promise<string> {
 async function fetchWithToken(path: string, init: RequestInit, token: string): Promise<Response> {
   const headers = new Headers(init.headers);
   headers.set("Authorization", `Bearer ${token}`);
-  if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  if (typeof init.body === "string" && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
   return fetch(path, { ...init, headers, cache: "no-store" });
 }
 

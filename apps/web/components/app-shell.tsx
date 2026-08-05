@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, Home, Radar, Send, UserRound } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, Home, LogOut, Radar, Send, UserRound } from "lucide-react";
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 const primaryNav = [
   ["/", "今日简报", Home],
@@ -24,6 +26,10 @@ function isActive(pathname: string, href: string) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  useEffect(() => { const supabase = getSupabaseBrowser(); if (!supabase) return; void supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? "")); }, []);
+  async function signOut() { const supabase = getSupabaseBrowser(); await supabase?.auth.signOut(); router.replace("/login"); }
   return <div className="platform-frame">
     <aside className="platform-sidebar">
       <Link href="/" className="platform-brand" aria-label="Career Copilot 今日简报">
@@ -36,6 +42,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <span className="platform-nav-label resources">个人资料</span>
         {resourceNav.map(([href, label, Icon]) => <Link key={href} href={href} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}
       </nav>
+      <div className="platform-sidebar-account"><span><UserRound size={16}/><small>{email || "当前账号"}</small></span><button type="button" onClick={() => void signOut()}><LogOut size={15}/>退出登录</button></div>
       <div className="platform-sidebar-note"><strong>完整岗位池</strong><span>浏览全部岗位，再按当前账号画像排序和解释。</span></div>
     </aside>
     <div className="platform-content">

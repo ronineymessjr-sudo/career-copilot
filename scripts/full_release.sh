@@ -24,11 +24,17 @@ if [[ "$SKIP_PYTHON" -eq 0 ]]; then
   command -v python >/dev/null || { echo "缺少命令: python" >&2; exit 1; }
 fi
 
+NODE_MAJOR="$(node -p 'Number(process.versions.node.split(".")[0])')"
+if [[ "$NODE_MAJOR" -lt 22 ]]; then
+  echo "需要 Node.js 22+，当前版本: $(node --version)" >&2
+  exit 1
+fi
+
 echo "== Career Copilot V2 full release =="
 echo "Project: $ROOT"
 
 if [[ "$SKIP_INSTALL" -eq 0 ]]; then
-  npm install --no-audit --no-fund
+  npm install --registry="${NPM_REGISTRY:-https://registry.npmjs.org}" --no-audit --no-fund
 fi
 
 npm --workspace workers/scheduler run cf-typegen

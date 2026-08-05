@@ -1,33 +1,30 @@
-# Career Copilot V2 Complete Platform Release
+# Career Copilot V2 Complete Platform R2 Release
 
-Release label: `complete-platform-carbon-2026.08.05`
+Release label: `complete-platform-profile-resume-daily-2026.08.05`
 
 Base repository commit: `615265f`
 
-Latest migration: `0014_complete_platform_job_pool.sql`
+Latest migration: `0015_profile_resume_daily_recommendations.sql`
 
-## Corrected product architecture
+## Release scope
 
-This release replaces the over-reduced two-page version with a complete multi-user platform:
+- full login, registration, password recovery and visible logout;
+- complete persistent user profile;
+- private multi-version resume library with original file upload;
+- master, general and job-targeted resume versions;
+- per-user daily recommendations at 08:00 UTC+8;
+- automatic resume selection and application material preparation;
+- explicit user approval and browser handoff for final submission;
+- no automatic external submission, email sending, credential storage or CAPTCHA bypass.
 
-- restored daily brief and recruiting analytics dashboard;
-- restored job discovery, source management, applications, profile, resumes and evidence;
-- full job pool remains visible; profile controls ranking rather than silently deleting jobs;
-- neutral defaults for every new account;
-- shared ATS-discovered jobs plus private manual imports;
-- per-user recommendation, eligibility, resume matching and application state;
-- Greenhouse, Lever and Ashby public ATS adapters;
-- URL/JD import for platforms without an authorized integration;
-- explicit human confirmation for final submission.
+## Verification before packaging
 
-## Verification completed before packaging
-
-- 68 Node tests passed;
+- 72 Node tests passed;
 - 14 Python tests passed;
-- 82 total tests, 0 failures;
-- 90 TypeScript/TSX files parsed without syntax failures;
-- CSS parsed without errors;
+- 86 total tests, 0 failures;
+- 94 TypeScript/TSX files parsed without syntax failures;
+- CSS structural check passed;
 - Cloudflare project validation passed;
 - offline production smoke passed.
 
-The deployment environment must still run `npm install`, full TypeScript checks and the OpenNext Cloudflare build because dependencies and build output are intentionally excluded from the source archive.
+The delivery environment must run the full dependency install, TypeScript checks and OpenNext Cloudflare build. The source archive intentionally excludes `node_modules`, credentials and build output.

@@ -161,3 +161,19 @@ test("source refresh can update fields that were not manually verified", () => {
   assert.equal(merged.accepts_2028, false);
   assert.equal(merged.days_per_week, 5);
 });
+
+
+test("configured profile without graduation year asks for the missing fact instead of inventing a cohort", () => {
+  const job = parseJobIntake({ raw_text: "在校生实习，每周3天，至少3个月。Python", company: "Neutral", title: "开发实习生" });
+  const result = evaluateJob(job, [], new Date("2026-08-05T00:00:00Z"), {
+    graduation_year: null,
+    major: "软件工程",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { target_roles: ["开发"], locations: [], work_modes: [], keywords: ["Python"], internship_only: true },
+  });
+  assert.equal(result.needs_confirmation, true);
+  assert.ok(result.confirmation_questions.includes("请先在个人画像中填写毕业年份"));
+  assert.equal(result.confirmation_questions.some((item) => item.includes("0 届")), false);
+});

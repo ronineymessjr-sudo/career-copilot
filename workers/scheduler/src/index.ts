@@ -19,7 +19,7 @@ async function trigger(env: Env, path: string): Promise<Record<string, unknown>>
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === "/health") return json({ ok: true, service: "career-copilot-scheduler", environment: env.ENVIRONMENT, configured: Boolean(env.CRON_SHARED_SECRET), transport: "cloudflare-service-binding", schedules: ["daily-agent-cycle", "weekly-review"] });
+    if (url.pathname === "/health") return json({ ok: true, service: "career-copilot-scheduler", environment: env.ENVIRONMENT, configured: Boolean(env.CRON_SHARED_SECRET), transport: "cloudflare-service-binding", schedules: ["daily-recommendations-08:00-Asia", "weekly-review"] });
     return json({ ok: false, error: "Not found" }, 404);
   },
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {

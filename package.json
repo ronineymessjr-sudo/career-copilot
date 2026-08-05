@@ -34,8 +34,9 @@
     "evaluation:m08.1": "node scripts/generate_agent_evaluation_report.mjs",
     "test:integrations": "node --test apps/web/tests/dispatch-queue.test.mjs apps/web/tests/application-view.test.mjs apps/web/tests/application-plan.test.mjs",
     "test:recommendation": "node --test apps/web/tests/recommendation-profile.test.mjs",
-    "test:complete": "npm run test:m08.1 && npm run test:integrations && npm run test:recommendation && npm run test:job-pool",
-    "test:job-pool": "node --test apps/web/tests/job-user-view.test.mjs"
+    "test:complete": "node --test apps/web/tests/*.test.mjs",
+    "test:job-pool": "node --test apps/web/tests/job-user-view.test.mjs",
+    "test:daily": "node --test apps/web/tests/daily-recommendation-rules.test.mjs"
   },
   "version": "1.0.1"
 }

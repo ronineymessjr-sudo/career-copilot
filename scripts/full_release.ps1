@@ -29,11 +29,15 @@ Require-Command npm
 Require-Command npx
 if (-not $SkipPython) { Require-Command python }
 
+$NodeMajor = [int]((node -p "Number(process.versions.node.split('.')[0])").Trim())
+if ($NodeMajor -lt 22) { throw "需要 Node.js 22+，当前版本：$(node --version)" }
+
 Write-Host "== Career Copilot V2 full release ==" -ForegroundColor Cyan
 Write-Host "Project: $Root"
 
 if (-not $SkipInstall) {
-  Run-Step "安装 npm 依赖" { npm install --no-audit --no-fund }
+  if (-not $env:NPM_REGISTRY) { $env:NPM_REGISTRY = "https://registry.npmjs.org" }
+  Run-Step "安装 npm 依赖" { npm install --registry=$env:NPM_REGISTRY --no-audit --no-fund }
 }
 
 Run-Step "生成 Scheduler Cloudflare 类型" { npm --workspace workers/scheduler run cf-typegen }

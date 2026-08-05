@@ -1,6 +1,6 @@
-# 给 DeepSpeed / DeepSeek 执行端的最终部署任务
+# 给 DeepSpeed / DeepSeek 执行端的完整部署任务
 
-你正在部署 Career Copilot V2 Complete Platform 完整源码。当前目录就是项目根目录，不要寻找、叠加或恢复任何旧补丁。
+你正在部署 Career Copilot V2 Complete Platform R2。当前目录就是项目根目录，不要寻找或叠加旧补丁。
 
 ## 部署目标
 
@@ -11,41 +11,55 @@
 
 ## 必须保留的产品能力
 
-- 今日简报和数据看板
-- 完整岗位池
-- 岗位来源管理
-- Greenhouse / Lever / Ashby 公开 ATS 聚合
-- 其他招聘平台 URL/JD 导入
-- 多用户中性画像和独立推荐
-- 平台共享岗位与个人私有岗位
-- 简历匹配、材料缺口、用户确认投递
+- 登录、注册、邮箱验证、找回密码和退出登录
+- 今日简报与每用户每日推荐
+- 完整岗位池和岗位来源聚合
+- 完整用户画像
+- 私有多版本简历库和原文件上传
+- 项目证据
+- 自动选择简历、材料缺口检查和投递包准备
+- 投递管理、批准和最终浏览器接力
 
 不得重新精简成只有“选岗位 / 待投递”两个页面。
 
 ## 安全边界
 
-不得自动外部投递、自动发送邮件、绕过登录或验证码、保存平台密码/Cookie，或把打开页面伪报成已投递。
+自动化只负责推荐、简历选择、材料生成和队列准备。不得自动外部提交、自动发送邮件、绕过登录/验证码、保存招聘平台密码或 Cookie，也不得把打开页面记录成已投递。
 
-## 1. 检查环境
+## 1. 环境检查
 
 ```bash
 node --version
 npm --version
 python --version
 npx wrangler whoami
+npx supabase --version
 ```
 
-需要 Node.js 20+、Python 3.11+、npm，以及 Cloudflare 登录或有效 Token。
+需要 Node.js 22+ 和 Python 3.11+。当前 Wrangler 与 Supabase SDK 锁定版本要求 Node 22。
 
 ## 2. 安装依赖
 
+优先使用官方 npm registry：
+
 ```bash
-npm install --no-audit --no-fund
+npm install --registry=https://registry.npmjs.org --no-audit --no-fund
 ```
 
-若代理 npm 镜像缺少锁定依赖，切换到官方 npm registry 重试；不要私自更换依赖版本。
+不得私自升级、删除或替换依赖。若安装失败，先报告具体包和 registry，不得跳过 TypeScript 或构建门禁。
 
-## 3. 数据库迁移：先检查，禁止 reset
+## 3. Supabase Auth 配置
+
+在 Supabase Authentication 的 URL Configuration 中确认：
+
+- Site URL：`https://career-copilot-v2.photomagic.workers.dev`
+- Redirect URLs 至少包含：
+  - `https://career-copilot-v2.photomagic.workers.dev/**`
+  - 本地验收地址（仅开发环境）
+
+确认 Email 登录已启用。注册、验证邮件和密码恢复都依赖这些回调地址。
+
+## 4. 数据库迁移：先检查，禁止 reset
 
 ```bash
 npx supabase link --project-ref woywgfoqurumrkyoznnb
@@ -53,21 +67,21 @@ npx supabase migration list
 npx supabase db push --dry-run
 ```
 
-目标是只应用尚未部署的迁移，当前功能迁移为：
+上一版已经部署 0014 时，本次通常只应出现：
 
 ```text
-0014_complete_platform_job_pool.sql
+0015_profile_resume_daily_recommendations.sql
 ```
 
-如果 dry-run 只显示预期的待部署迁移，再执行：
+确认无误后执行：
 
 ```bash
 npx supabase db push
 ```
 
-如果 migration history 不一致，立即停止；不得运行 `db reset`，不得自动执行 `migration repair`，不得删除表或 schema。先比对生产数据库与迁移历史。
+若历史不一致，立即停止。不得运行 `db reset`、自动 `migration repair`、DROP TABLE 或 DROP SCHEMA。
 
-## 4. 运行完整门禁
+## 5. 运行完整门禁
 
 ```bash
 npm --workspace workers/scheduler run cf-typegen
@@ -80,15 +94,15 @@ npm --workspace apps/web run check
 npm --workspace workers/scheduler run check
 ```
 
-任何失败都应停止部署并修复，不能跳过。
+预期基础测试：72 项 Node + 14 项 Python，合计 86 项。
 
-## 5. 构建
+## 6. OpenNext 构建
 
 ```bash
 npm --workspace apps/web run cf:build
 ```
 
-## 6. 部署 Web 与 Scheduler
+## 7. 部署
 
 ```bash
 cd apps/web
@@ -102,33 +116,45 @@ cd ../..
 
 部署同名 Worker 时保留已有 secrets，不得清空。
 
-## 7. 线上验收
+## 8. 线上验收
+
+公开端点：
 
 ```bash
 curl -fsS https://career-copilot-v2.photomagic.workers.dev/api/runtime
-curl -s -o /dev/null -w "%{http_code}\n" https://career-copilot-v2.photomagic.workers.dev/playground
-curl -s -o /dev/null -w "%{http_code}\n" https://career-copilot-v2.photomagic.workers.dev/api/control/jobs
 curl -fsS https://career-copilot-scheduler.photomagic.workers.dev/health
 ```
 
-登录后逐页验收：
+浏览器验收：
 
-- `/` 今日简报与数据概览
-- `/jobs` 完整岗位池、搜索、来源/地点筛选、推荐排序
-- `/sources` Greenhouse/Lever/Ashby 与共享/私有来源
-- `/applications` 空状态、补齐、待投递、已投递
-- `/analytics` 招聘数据看板
-- `/profile` 中性画像与个性化偏好
-- `/resumes` 通用岗位简历版本
-- `/career-vault` 项目证据
+1. 打开 `/login`，完成注册、验证、登录和找回密码测试。
+2. `/profile` 填写完整画像并刷新，确认数据仍存在。
+3. `/resumes` 上传 PDF 或 DOCX，建立主简历，再建立第二份方向版本。
+4. 确认原始文件可下载、其他账号不可读取。
+5. `/career-vault` 新增并核验项目证据。
+6. `/applications` 点击“立即生成今日推荐”。
+7. 确认当天推荐写入首页，符合条件的岗位自动匹配简历并进入待批准区。
+8. 批准材料后打开招聘入口，最终提交仍需要用户确认。
+9. 创建第二个测试账号，确认画像、简历、证据、推荐和投递记录完全隔离。
 
-再创建第二个测试账号，确认：
+## 9. Scheduler 验收
 
-- 能看到平台共享岗位。
-- 看不到第一个账号的私有岗位和个人资料。
-- 推荐排序随第二个账号画像变化。
-- 投递记录互不共享。
+`workers/scheduler/wrangler.jsonc` 的每日任务是：
 
-## 8. 最终汇报
+```text
+0 0 * * *
+```
 
-回报数据库迁移结果、82 项基础测试结果、TypeScript/构建结果、两个 Worker 版本 ID、端点状态、多用户隔离验收和任何未完成项。
+即 UTC+8 地区每天 08:00。Scheduler `/health` 应报告 `daily-recommendations-08:00-Asia`。
+
+## 10. 最终汇报
+
+回报：
+
+- 0015 迁移结果和 `resume-files` 私有桶状态
+- Auth 回调配置结果
+- 86 项基础测试结果
+- TypeScript 与 OpenNext 构建结果
+- 两个 Worker 版本 ID
+- 注册、画像保存、两份简历、每日推荐、自动准备和多用户隔离验收结果
+- 任何未完成项

@@ -21,7 +21,7 @@ export async function loadAgentContext(data: AgentData, userId: string) {
   const profiles = await data<Row[]>(`profiles?select=*&${userQuery(userId)}&limit=1`);
   const profile = profiles[0] ?? null;
   const [jobs, applications, skillGaps, jobScores] = await Promise.all([
-    data<Row[]>(`jobs?select=*&${userQuery(userId)}&order=updated_at.desc`),
+    data<Row[]>(`jobs?select=*&or=(user_id.eq.${enc(userId)},visibility.eq.public)&status=neq.archived&order=updated_at.desc`),
     data<Row[]>(`applications?select=*&${userQuery(userId)}&order=updated_at.desc`),
     data<Row[]>(`skill_gaps?select=*&${userQuery(userId)}&order=severity.desc,updated_at.desc`),
     data<Row[]>(`job_scores?select=*&${userQuery(userId)}&order=final_score.desc`).catch(() => [] as Row[]),

@@ -16,6 +16,11 @@ function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, Math.round(Number(value) || 0)));
 }
 
+function objectList(value, limit = 30) {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item) => item && typeof item === "object" && !Array.isArray(item)).slice(0, limit);
+}
+
 export const DEFAULT_PROFILE_PREFERENCES = Object.freeze({
   target_roles: [],
   locations: [],
@@ -26,18 +31,54 @@ export const DEFAULT_PROFILE_PREFERENCES = Object.freeze({
   internship_only: false,
 });
 
+export const DEFAULT_PROFILE_DETAILS = Object.freeze({
+  display_name: "",
+  phone: "",
+  current_city: "",
+  headline: "",
+  summary: "",
+  years_experience: 0,
+  skills: [],
+  experience: [],
+  education: [],
+  projects: [],
+  languages: [],
+  certifications: [],
+  links: [],
+});
+
 export function normalizeProfile(profile = {}) {
   const source = profile && typeof profile === "object" ? profile : {};
   const preferences = source.preferences && typeof source.preferences === "object" && !Array.isArray(source.preferences)
     ? source.preferences
     : {};
+  const details = source.profile_details && typeof source.profile_details === "object" && !Array.isArray(source.profile_details)
+    ? source.profile_details
+    : source.details && typeof source.details === "object" && !Array.isArray(source.details)
+      ? source.details
+      : {};
   return {
     id: source.id ?? null,
-    graduation_year: Number(source.graduation_year ?? (new Date().getFullYear() + 1)),
+    graduation_year: source.graduation_year == null || source.graduation_year === "" ? null : Number(source.graduation_year),
     major: String(source.major ?? "").trim(),
     degree: String(source.degree ?? "").trim(),
     availability_days: Number(source.availability_days ?? 3),
     availability_months: Number(source.availability_months ?? 3),
+    details: {
+      display_name: String(details.display_name ?? "").trim(),
+      phone: String(details.phone ?? "").trim(),
+      current_city: String(details.current_city ?? "").trim(),
+      headline: String(details.headline ?? "").trim(),
+      summary: String(details.summary ?? "").trim(),
+      years_experience: Math.max(0, Number(details.years_experience ?? 0) || 0),
+      skills: list(details.skills ?? DEFAULT_PROFILE_DETAILS.skills),
+      experience: objectList(details.experience ?? DEFAULT_PROFILE_DETAILS.experience),
+      education: objectList(details.education ?? DEFAULT_PROFILE_DETAILS.education),
+      projects: objectList(details.projects ?? DEFAULT_PROFILE_DETAILS.projects),
+      languages: list(details.languages ?? DEFAULT_PROFILE_DETAILS.languages),
+      certifications: list(details.certifications ?? DEFAULT_PROFILE_DETAILS.certifications),
+      links: list(details.links ?? DEFAULT_PROFILE_DETAILS.links),
+    },
     preferences: {
       target_roles: list(preferences.target_roles ?? DEFAULT_PROFILE_PREFERENCES.target_roles),
       locations: list(preferences.locations ?? DEFAULT_PROFILE_PREFERENCES.locations),
@@ -53,23 +94,24 @@ export function normalizeProfile(profile = {}) {
 export function profileCompleteness(profile = {}) {
   const normalized = normalizeProfile(profile);
   const fields = [
-    Boolean(normalized.graduation_year),
-    Boolean(normalized.major),
-    Boolean(normalized.degree),
-    normalized.availability_days > 0,
-    normalized.availability_months > 0,
-    normalized.preferences.target_roles.length > 0,
-    normalized.preferences.locations.length > 0,
-    normalized.preferences.work_modes.length > 0,
-    normalized.preferences.keywords.length > 0,
+    [Boolean(normalized.details.display_name), "姓名或称呼"],
+    [Boolean(normalized.details.headline), "职业定位"],
+    [normalized.details.summary.length >= 40, "个人简介"],
+    [Boolean(normalized.graduation_year), "毕业年份"],
+    [Boolean(normalized.major), "专业"],
+    [Boolean(normalized.degree), "学历"],
+    [normalized.availability_days > 0, "每周可投入天数"],
+    [normalized.availability_months > 0, "可持续月数"],
+    [normalized.details.skills.length >= 3, "技能清单"],
+    [normalized.details.education.length > 0, "教育经历"],
+    [normalized.details.experience.length > 0 || normalized.details.projects.length > 0, "经历或项目"],
+    [normalized.preferences.target_roles.length > 0, "目标岗位"],
+    [normalized.preferences.locations.length > 0, "目标地点"],
+    [normalized.preferences.work_modes.length > 0, "办公方式"],
+    [normalized.preferences.keywords.length > 0, "推荐关键词"],
   ];
-  const completed = fields.filter(Boolean).length;
-  const missing = [];
-  if (!normalized.preferences.target_roles.length) missing.push("目标岗位");
-  if (!normalized.preferences.locations.length) missing.push("目标地点");
-  if (!normalized.preferences.keywords.length) missing.push("技能关键词");
-  if (!normalized.availability_days) missing.push("每周可实习天数");
-  if (!normalized.availability_months) missing.push("可持续月数");
+  const completed = fields.filter(([done]) => Boolean(done)).length;
+  const missing = fields.filter(([done]) => !done).map(([, label]) => String(label));
   return { score: Math.round(completed / fields.length * 100), completed, total: fields.length, missing };
 }
 
@@ -88,6 +130,7 @@ function freshnessScore(job, today = new Date()) {
 export function personalizeJob(job, evaluation = {}, profile = {}, today = new Date()) {
   const normalized = normalizeProfile(profile);
   const preferences = normalized.preferences;
+  const profileSkills = normalized.details.skills;
   const text = `${job.title ?? ""}\n${job.description ?? ""}\n${job.requirements ?? ""}\n${job.company_name ?? ""}\n${job.company_stage ?? ""}`;
   const locationText = `${job.city ?? ""} ${job.district ?? ""} ${job.address ?? ""} ${job.workplace ?? ""}`;
   const reasons = [];
@@ -116,9 +159,10 @@ export function personalizeJob(job, evaluation = {}, profile = {}, today = new D
     reasons.push(`办公方式匹配：${mode}`);
   }
 
-  const keywordHits = preferences.keywords.filter((item) => includesAny(text, [item]));
+  const keywordPool = [...new Set([...preferences.keywords, ...profileSkills])];
+  const keywordHits = keywordPool.filter((item) => includesAny(text, [item]));
   if (keywordHits.length) {
-    preferenceScore += Math.min(18, 6 + keywordHits.length * 3);
+    preferenceScore += Math.min(20, 6 + keywordHits.length * 2);
     reasons.push(`技能关键词命中：${keywordHits.slice(0, 4).join("、")}`);
   }
 
@@ -156,6 +200,6 @@ export function personalizeJob(job, evaluation = {}, profile = {}, today = new D
     reasons: [...new Set(reasons)].slice(0, 5),
     gaps: [...new Set(gaps)].slice(0, 5),
     profile_complete: profileCompleteness(normalized).score,
-    model_version: "profile-fit-v2",
+    model_version: "profile-fit-v3",
   };
 }

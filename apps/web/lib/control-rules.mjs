@@ -323,7 +323,7 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
     hard_filter_reasons.push("岗位当前不是开放状态");
   }
 
-  const graduationYear = Number(profile?.graduation_year ?? (today.getFullYear() + 1));
+  const graduationYear = profile?.graduation_year == null || profile?.graduation_year === "" ? 0 : Number(profile.graduation_year);
   const availabilityDays = Math.max(1, Number(profile?.availability_days ?? 3));
   const availabilityMonths = Math.max(1, Number(profile?.availability_months ?? 3));
 
@@ -341,7 +341,10 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
 
     const graduationText = String(job.graduation_requirement ?? "");
     const years = [...graduationText.matchAll(/20\d{2}/g)].map((match) => Number(match[0]));
-    if (years.length && !years.includes(graduationYear)) {
+    if (!graduationYear) {
+      needs_confirmation = true;
+      confirmation_questions.push("请先在个人画像中填写毕业年份");
+    } else if (years.length && !years.includes(graduationYear)) {
       eligible = false;
       hard_filter_reasons.push(`岗位届别要求不包含 ${graduationYear} 届`);
     } else if (graduationYear === 2028 && job.accepts_2028 === false) {
@@ -476,11 +479,12 @@ export function buildApplicationPackage(job, evaluation, evidence = [], resumeVe
   const highlighted = [...new Set([...(evaluation.matched_skills ?? []), ...profileKeywords])].filter(Boolean).slice(0, 6);
   const projects = [...new Set(fallbackEvidence.map((item) => item.project).filter(Boolean))].slice(0, 2);
   const projectText = projects.join("、") || "已核验项目证据";
-  const graduationYear = Number(candidate.graduation_year ?? (new Date().getFullYear() + 1));
+  const graduationYear = candidate.graduation_year == null || candidate.graduation_year === "" ? 0 : Number(candidate.graduation_year);
   const major = String(candidate.major ?? "").trim();
   const degree = String(candidate.degree ?? "").trim();
-  const hasConfirmedIdentity = Boolean(major || degree);
-  const identity = hasConfirmedIdentity ? `${graduationYear} 届${major}${degree}` : "一名关注该岗位的候选人";
+  const hasConfirmedIdentity = Boolean(graduationYear || major || degree);
+  const identityParts = [graduationYear ? `${graduationYear} 届` : "", major, degree].filter(Boolean);
+  const identity = hasConfirmedIdentity ? identityParts.join("") : "一名关注该岗位的候选人";
   const availabilityDays = Number(candidate.availability_days ?? 0);
   const availabilityMonths = Number(candidate.availability_months ?? 0);
   const capability = highlighted.slice(0, 4).join("、") || "与岗位相关的能力";
@@ -502,9 +506,9 @@ export function buildApplicationPackage(job, evaluation, evidence = [], resumeVe
   return {
     resume_version_id: resume?.id ?? null,
     resume_version_name: resolvedResumeName,
-    resume_filename: resume?.file_path?.split("/").pop() ?? "",
+    resume_filename: resume?.original_filename ?? resume?.storage_path?.split("/").pop() ?? resume?.file_path?.split("/").pop() ?? "",
     greeting,
-    email_subject: job.channel === "email" ? `应聘 ${job.title}｜${hasConfirmedIdentity ? `${graduationYear}届${major}${degree}` : "候选人"}` : null,
+    email_subject: job.channel === "email" ? `应聘 ${job.title}｜${hasConfirmedIdentity ? identityParts.join("") : "候选人"}` : null,
     email_body: job.channel === "email" ? `${greeting}\n\n项目证据：\n- ${evidenceRefs.map((item) => `${item.project}：${item.evidence}`).join("\n- ")}` : null,
     highlighted_keywords: highlighted,
     evidence_refs: evidenceRefs,

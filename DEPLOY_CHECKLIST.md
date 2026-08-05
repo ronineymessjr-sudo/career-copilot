@@ -1,19 +1,22 @@
-# Career Copilot Complete Platform 部署检查清单
+# Career Copilot Complete Platform R2 部署检查清单
 
-## 源码与数据库
+## 数据库与 Auth
 
-- [ ] 当前目录是完整源码，不是旧补丁目录
 - [ ] 已阅读 `DATABASE_DEPLOYMENT_NOTE.md`
 - [ ] `supabase migration list` 已核对
-- [ ] `supabase db push --dry-run` 仅显示预期迁移
-- [ ] 已应用 `0014_complete_platform_job_pool.sql`
-- [ ] 未运行 database reset、DROP TABLE 或 DROP SCHEMA
-- [ ] 生产数据和 Auth 用户仍存在
+- [ ] `supabase db push --dry-run` 只显示预期迁移
+- [ ] 已应用 `0015_profile_resume_daily_recommendations.sql`
+- [ ] `resume-files` 桶存在且为 private
+- [ ] 未运行 reset、DROP TABLE 或 DROP SCHEMA
+- [ ] 生产岗位、用户和投递数据仍存在
+- [ ] Supabase Site URL 指向生产 Worker
+- [ ] Redirect URLs 包含生产域名
+- [ ] Email 登录、注册验证和密码恢复可用
 
 ## 门禁
 
-- [ ] `npm run test:complete`
-- [ ] `python -m pytest apps/api/tests -q`
+- [ ] `npm run test:complete`：72 项通过
+- [ ] `python -m pytest apps/api/tests -q`：14 项通过
 - [ ] `python scripts/validate_cloudflare.py`
 - [ ] `python scripts/verify_complete_package.py`
 - [ ] `npm run smoke:m08.1`
@@ -21,33 +24,47 @@
 - [ ] Web 与 Scheduler TypeScript check
 - [ ] OpenNext `cf:build`
 
-## 完整产品
+## 账号与画像
 
-- [ ] 今日简报可用
-- [ ] 数据看板可用
-- [ ] 岗位池展示全部岗位，不因画像隐藏
-- [ ] 搜索、地点、来源、办公方式和排序可用
-- [ ] 岗位来源包含 Greenhouse、Lever、Ashby
-- [ ] 手动 URL/JD 导入可用
-- [ ] 新账号没有 AI、2028、地点或实习的固定偏好
-- [ ] 画像修改后推荐顺序变化
-- [ ] 待投递为空时说明原因和下一步
-- [ ] 简历版本和项目证据入口可用
+- [ ] `/login` 支持登录、注册和找回密码
+- [ ] 登录后侧栏显示当前账号和退出登录
+- [ ] 新账号不预填专业、毕业年份、岗位方向或地点
+- [ ] `/profile` 可保存个人信息、简介、技能、教育、经历、项目、语言、证书和链接
+- [ ] 刷新页面后完整画像仍存在
+
+## 多版本简历
+
+- [ ] `/resumes` 能上传 PDF/DOC/DOCX/TXT
+- [ ] 上传文件存入私有 `resume-files`
+- [ ] 能建立主简历
+- [ ] 能保留至少两份不同方向版本
+- [ ] 岗位定制版本不会覆盖主简历
+- [ ] 原文件可下载、归档和删除
+- [ ] 其他账号无法读取本账号文件
+
+## 每日推荐与投递准备
+
+- [ ] 首页显示“今日推荐”而不是静态优先岗位
+- [ ] 手动运行今日推荐后写入当天记录
+- [ ] Scheduler 每天 UTC+8 08:00 触发
+- [ ] 每个账号得到独立排序
+- [ ] 系统从已批准简历中自动选择最佳版本
+- [ ] 画像不足、简历缺失或证据不足时明确提示
+- [ ] 符合条件的岗位自动生成待批准材料包
+- [ ] 批准后进入可以投递列表
+- [ ] 最终外部提交仍由用户完成
 
 ## 多用户隔离
 
 - [ ] 账号 A 与 B 均可看到 public 岗位
-- [ ] 账号 A 看不到账号 B 的 private 岗位
-- [ ] 两个账号的评价、简历、证据和投递记录独立
-- [ ] 对共享岗位的用户核验不会修改其他账号
+- [ ] 私有岗位、画像、简历、证据、推荐和投递记录互不可见
+- [ ] 同一共享岗位可根据两个画像得到不同排序与简历匹配
 
 ## 部署与线上
 
 - [ ] Web Worker 部署成功
 - [ ] Scheduler Worker 部署成功
 - [ ] Worker secrets 保留
-- [ ] `/api/runtime` 正常且 Supabase 已配置
-- [ ] `/playground` 匿名 200
-- [ ] 匿名 `/api/control/jobs` 401
+- [ ] `/api/runtime` 返回新能力标记
 - [ ] Scheduler `/health` 正常
-- [ ] 桌面和手机均无横向溢出
+- [ ] 桌面和手机界面可操作

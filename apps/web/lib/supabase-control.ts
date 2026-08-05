@@ -81,6 +81,42 @@ export async function dataRequest<T>(
   return payload as T;
 }
 
+export async function storageRequest(
+  auth: AuthContext,
+  resource: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const { url, key } = config();
+  const headers = new Headers(init.headers);
+  headers.set("apikey", key);
+  headers.set("Authorization", `Bearer ${auth.token}`);
+  return fetch(`${url}/storage/v1/${resource.replace(/^\//, "")}`, {
+    ...init,
+    headers,
+    cache: "no-store",
+  });
+}
+
+export async function storageJsonRequest<T>(
+  auth: AuthContext,
+  resource: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const response = await storageRequest(auth, resource, init);
+  const text = await response.text();
+  let payload: unknown = null;
+  if (text) {
+    try { payload = JSON.parse(text); } catch { payload = text; }
+  }
+  if (!response.ok) {
+    const message = typeof payload === "object" && payload && "message" in payload
+      ? String((payload as { message?: unknown }).message)
+      : `Supabase Storage 请求失败（${response.status}）`;
+    throw new ControlApiError(response.status, message, payload);
+  }
+  return payload as T;
+}
+
 
 function adminConfig() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "") ?? "";

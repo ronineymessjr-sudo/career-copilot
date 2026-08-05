@@ -51,7 +51,7 @@ export async function executeAgentTask({
         const profiles = await data<Row[]>("profiles", {
           method: "POST",
           headers: { Prefer: "return=representation" },
-          body: JSON.stringify([{ user_id: userId, graduation_year: new Date().getFullYear() + 1, major: "", degree: "", preferences: { target_roles: [], locations: [], work_modes: [], industries: [], keywords: [], excluded_keywords: [], internship_only: false } }]),
+          body: JSON.stringify([{ user_id: userId, graduation_year: null, major: "", degree: "", preferences: { target_roles: [], locations: [], work_modes: [], industries: [], keywords: [], excluded_keywords: [], internship_only: false }, profile_details: { display_name: "", phone: "", current_city: "", headline: "", summary: "", years_experience: 0, skills: [], experience: [], education: [], projects: [], languages: [], certifications: [], links: [] } }]),
         });
         profile = profiles[0];
       }
@@ -68,6 +68,7 @@ export async function executeAgentTask({
           persona: result.persona,
           version_no: versionNo,
           status: "draft",
+          source_type: "generated",
           target_job_id: result.target_job_id,
           source_agent_run_id: run.id,
           content: safeJson(result),
