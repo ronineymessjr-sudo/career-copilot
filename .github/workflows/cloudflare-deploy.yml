@@ -17,6 +17,8 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-audit --no-fund
+      - name: Restore Linux native OpenNext dependency
+        run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
       - run: npm --workspace apps/web run cf-typegen
       - run: npm --workspace workers/scheduler run cf-typegen
       - run: npm run test:m08.1
@@ -55,6 +57,9 @@ jobs:
           fi
       - if: steps.auth.outputs.ready == 'true'
         run: npm install --no-audit --no-fund
+      - if: steps.auth.outputs.ready == 'true'
+        name: Restore Linux native OpenNext dependency
+        run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
       - if: steps.auth.outputs.ready == 'true'
         name: Deploy web Worker
         working-directory: apps/web
