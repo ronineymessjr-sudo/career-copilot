@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { NextRequest, NextResponse } from "next/server";
-import { rfc2822Message } from "@/lib/application-export";
+import { rfc2822Message } from "@/lib/application-export.mjs";
 import { currentApplicationSafety } from "@/lib/application-safety";
 import { gmailAccessToken } from "@/lib/integration-credentials";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";

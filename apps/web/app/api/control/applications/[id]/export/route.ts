@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message } from "@/lib/application-export";
+import { fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message } from "@/lib/application-export.mjs";
 import { currentApplicationSafety } from "@/lib/application-safety";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 

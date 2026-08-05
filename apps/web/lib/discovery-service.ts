@@ -1,5 +1,5 @@
 import { evaluateJob, parseJobIntake, preserveVerifiedJobFields } from "@/lib/control-rules.mjs";
-import { discoverFromSource, type JobSourceRecord } from "@/lib/job-sources";
+import { discoverFromSource, type JobSourceRecord } from "@/lib/job-sources.mjs";
 import { stableSourceId } from "@/lib/supabase-control";
 
 type Gateway = <T>(resource: string, init?: RequestInit) => Promise<T>;
