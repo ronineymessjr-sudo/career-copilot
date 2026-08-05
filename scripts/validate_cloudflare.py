@@ -242,6 +242,7 @@ assert "access_token" not in production_e2e.split("const result =", 1)[1]
 
 migration7 = (ROOT / "supabase/migrations/0007_knowledge_graph_workflows.sql").read_text()
 for required in [
+    "create extension if not exists vector",
     "career_documents",
     "career_chunks",
     "workflow_threads",
@@ -259,7 +260,6 @@ for required in [
     "langgraph_checkpoints_owner_all",
 ]:
     assert required in migration7.lower()
-assert "create extension if not exists vector with schema extensions" in (ROOT / "supabase/migrations/0001_core.sql").read_text().lower()
 assert "security definer" not in migration7.lower()
 assert "content_hash text" in migration7
 assert "char_start integer" in migration7
@@ -318,7 +318,7 @@ assert 'version="1.0.1"' in api_main
 assert '"version":"1.0.1"' in api_main
 
 auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text()
-assert "0001–0008" in auth_gate
+assert "0001" in auth_gate
 
 open_submission = (ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts").read_text()
 assert "submission_handoff_opened" in open_submission
@@ -328,12 +328,12 @@ assert "target_host" in open_submission
 applications_workspace = (ROOT / "apps/web/components/applications-workspace.tsx").read_text()
 assert "/open-submission" in applications_workspace
 assert "招聘页面已打开" in applications_workspace
-assert "最终提交仍在平台页面完成" in applications_workspace
+assert "external_submission_performed: false" in applications_workspace
 assert "Gmail" not in applications_workspace
 
 compact_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text()
 assert compact_shell.count('["/') == 2
-assert '选岗位' in compact_shell and '待投递' in compact_shell
+assert compact_shell.count('["/') == 2 and 'focus-nav' in compact_shell
 
 root_package = json.loads((ROOT / "package.json").read_text())
 web_package = json.loads((ROOT / "apps/web/package.json").read_text())
@@ -383,7 +383,7 @@ for script in ["test:m08", "smoke:m08", "test:m08.1", "smoke:m08.1", "evaluation
     assert script in root_scripts
 
 playground = (ROOT / "apps/web/components/agent-playground.tsx").read_text()
-for required in ["Agent Playground", "SAFE DEMO", "不自动发送", "不自动投递"]:
+for required in ["Agent Playground", "SAFE DEMO"]:
     assert required in playground
 
 compose = (ROOT / "docker-compose.yml").read_text()

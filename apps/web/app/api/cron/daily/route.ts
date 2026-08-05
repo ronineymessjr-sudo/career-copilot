@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
     if (!safeEqual(provided, expected)) {
       return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
     }
+    const ownerId = backgroundOwnerId();
     const data = <T>(resource: string, init?: RequestInit) => adminDataRequest<T>(resource, init);
-    const ownerId = await backgroundOwnerId(data);
     const discovery = await runDiscovery({
       userId: ownerId,
       triggerType: "cron",
@@ -34,11 +34,9 @@ export async function POST(request: NextRequest) {
       accepted: true,
       mode: process.env.APP_MODE ?? "production",
       action: "daily-discovery-ranking-report",
-      queue_generated: true,
       discovery,
       agent_cycle: agentCycle,
       automatic_submission: false,
-      platform_submission_mode: "user_browser_after_batch_handoff",
       timestamp: new Date().toISOString(),
     }, { status: failed ? 502 : 200 });
   } catch (error) {

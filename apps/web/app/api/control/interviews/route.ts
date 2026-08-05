@@ -33,10 +33,12 @@ export async function GET(request: NextRequest) {
       };
     });
     const eligibleStatuses = new Set(["submitted", "read", "contacting", "test", "interview", "offer"]);
-    const eligibleApplications = applications.map<Record<string, any>>((application) => ({
-      ...application,
-      job: jobById.get(String(application.job_id)) ?? null,
-    })).filter((item) => eligibleStatuses.has(String(item.status)));
+    const eligibleApplications = applications
+      .map<Record<string, any>>((application) => ({
+        ...application,
+        job: jobById.get(String(application.job_id)) ?? null,
+      }))
+      .filter((item) => eligibleStatuses.has(String(item.status)));
     return NextResponse.json({ ok: true, interviews: result, applications: eligibleApplications, skill_gaps: gaps });
   } catch (error) { return controlError(error); }
 }

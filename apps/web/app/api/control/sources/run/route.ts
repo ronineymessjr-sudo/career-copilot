@@ -5,9 +5,9 @@ import { authenticate, controlError, dataRequest } from "@/lib/supabase-control"
 export async function POST(request: NextRequest) {
   try {
     const auth = await authenticate(request);
-    const body = await request.json().catch(() => ({}));
+    const body: Record<string, any> = await request.json().catch(() => ({}));
     const sourceIds = Array.isArray(body.source_ids) ? body.source_ids.map(String).slice(0, 50) : undefined;
-    if (sourceIds?.some((id: unknown) => !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(id)))) {
+    if (sourceIds?.some((id) => !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))) {
       return NextResponse.json({ ok: false, error: "岗位来源 ID 格式不正确" }, { status: 422 });
     }
     const result = await runDiscovery({

@@ -1,5 +1,5 @@
 export function RuntimeBanner() {
-  const mode: string = process.env.APP_MODE ?? "demo";
+  const mode = process.env.APP_MODE ?? "demo";
   return (
     <div style={{
       border: "1px solid rgba(124,92,255,.28)",

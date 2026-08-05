@@ -1,10 +1,7 @@
-create schema if not exists career_copilot;
-grant usage on schema career_copilot to authenticated, service_role;
-create extension if not exists vector with schema extensions;
-create extension if not exists pgcrypto with schema extensions;
-set search_path = career_copilot, public, extensions;
-
 -- Career Copilot V2 core schema
+create extension if not exists vector;
+create extension if not exists pgcrypto;
+
 create type job_workplace as enum ('remote','hybrid','onsite','unknown');
 create type company_tier as enum ('small','medium','large','unknown');
 create type application_status as enum ('discovered','verified','prepared','submitted','read','contacting','test','interview','offer','rejected','paused');

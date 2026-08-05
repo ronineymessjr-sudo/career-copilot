@@ -91,7 +91,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return <section className="auth-state-card">
       <ShieldCheck size={24}/>
       <div>
-        <span className="eyebrow">Configuration required</span>
+        <strong className="auth-state-label">需要配置</strong>
         <h2>Supabase 尚未连接</h2>
         <p>配置公开 URL、Publishable Key，并执行 0001–0008 及后续迁移后，岗位与投递控制台才会开放。</p>
         <Link className="ghost-button" href="/settings">查看部署设置</Link>
@@ -102,7 +102,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return <section className="auth-state-card">
       <ShieldAlert size={24}/>
       <div>
-        <span className="eyebrow">Session validation failed</span>
+        <strong className="auth-state-label">连接异常</strong>
         <h2>控制台连接失败</h2>
         <p>{error || "登录有效，但控制接口暂时不可用。"}</p>
         <div className="card-actions">

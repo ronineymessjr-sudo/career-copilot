@@ -234,63 +234,492 @@
 .apply-plan-actions .text-button{margin-left:auto}
 @media(max-width:720px){.apply-plan-actions .text-button{margin-left:0}.apply-plan-ready .primary-button{min-height:34px}}
 
-/* Focused application flow: daily UI exposes only job choice and submission. */
-.focus-frame{min-height:100vh;background:radial-gradient(circle at 72% -10%,rgba(124,92,255,.1),transparent 30%),var(--bg)}
-.focus-header{height:52px;padding:0 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:20px;position:sticky;top:0;z-index:20;background:rgba(7,9,13,.9);backdrop-filter:blur(20px)}
-.focus-brand{display:flex;align-items:center;gap:8px;color:var(--text);text-decoration:none;white-space:nowrap}
-.focus-brand-mark{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--accent),#4c8dff)}
-.focus-brand strong{font-size:12px;letter-spacing:-.01em}
-.focus-nav{display:flex;align-items:center;gap:4px}
-.focus-nav-item{display:flex;align-items:center;gap:6px;padding:6px 9px;border-radius:7px;color:var(--muted);font-size:10px;text-decoration:none}
-.focus-nav-item:hover,.focus-nav-item.active{color:#fff;background:rgba(255,255,255,.055)}
-.focus-flow{margin-left:auto;font-size:8px;color:#667382}
-.focus-main{width:min(860px,calc(100% - 24px));margin:0 auto;padding:18px 0 40px}
-.focus-workspace{display:flex;flex-direction:column;gap:10px}
-.focus-workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:2px 2px 4px}
-.focus-workspace-head h1{margin:0;font-size:16px;letter-spacing:-.025em}
-.focus-workspace-head p{margin:4px 0 0;color:var(--muted);font-size:9px}
-.focus-icon-button{width:29px;height:29px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);background:rgba(255,255,255,.025)}
-.focus-icon-button:hover{color:#fff;background:rgba(255,255,255,.05)}
-.focus-message{padding:8px 10px;border:1px solid rgba(124,92,255,.16);border-radius:8px;background:rgba(124,92,255,.055);font-size:9px;color:#cfc7ff}
-.focus-job-list,.focus-application-list{display:flex;flex-direction:column;gap:6px}
-.focus-job-row{display:grid;grid-template-columns:42px minmax(0,1fr) 54px 92px;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.016);content-visibility:auto;contain-intrinsic-size:70px}
-.focus-job-row:hover{border-color:rgba(124,92,255,.22);background:rgba(255,255,255,.027)}
-.focus-job-score{text-align:center}
-.focus-job-score strong,.focus-job-score span{display:block}
-.focus-job-score strong{font-size:15px;line-height:1}
-.focus-job-score span{font-size:7px;color:var(--muted);margin-top:3px}
-.focus-job-copy{min-width:0}
-.focus-job-copy span,.focus-job-copy strong,.focus-job-copy small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.focus-job-copy span{font-size:7px;color:#929dac}
-.focus-job-copy strong{font-size:10px;margin:2px 0}
-.focus-job-copy small{font-size:7px;color:var(--muted)}
-.focus-status{justify-self:start;padding:4px 6px;border-radius:999px;font-size:7px;white-space:nowrap;background:rgba(255,255,255,.035);color:var(--muted)}
-.focus-status.ok{color:#72dda0;background:rgba(65,209,125,.06)}
-.focus-status.warn{color:#e3bb67;background:rgba(255,189,89,.055)}
-.focus-status.bad{color:#ef8d99;background:rgba(255,107,122,.055)}
-.focus-status.done{color:#72dda0;background:rgba(65,209,125,.06)}
-.focus-job-action{justify-self:end}
-.focus-job-action .primary-button,.focus-application-actions .primary-button{padding:6px 8px;border-radius:7px;font-size:8px;box-shadow:none}
-.focus-complete{font-size:8px;color:#72dda0}
-.focus-job-result{grid-column:2 / 5}
-.focus-plan{margin-top:2px;padding:8px;border-radius:8px;border:1px solid var(--line);background:rgba(255,255,255,.015)}
-.focus-plan>div:first-child{display:flex;align-items:center;gap:5px}
-.focus-plan strong{font-size:9px}.focus-plan p{font-size:8px;color:#c8d1db;margin:4px 0}.focus-plan ul{margin:5px 0 0;padding-left:15px}.focus-plan li{font-size:8px;line-height:1.45;color:#c8d1db}
-.focus-plan.ok{border-color:rgba(65,209,125,.16);background:rgba(65,209,125,.025)}.focus-plan.warn{border-color:rgba(255,189,89,.16);background:rgba(255,189,89,.02)}.focus-plan.bad{border-color:rgba(255,107,122,.16);background:rgba(255,107,122,.02)}
-.focus-plan.ok>div:first-child{color:#72dda0}.focus-plan.warn>div:first-child{color:#e3bb67}.focus-plan.bad>div:first-child{color:#ef8d99}
-.focus-plan.ok .primary-button{margin-top:6px;padding:6px 8px;font-size:8px;box-shadow:none}
-.focus-plan-actions{display:flex;gap:5px;margin-top:6px}.focus-plan-actions .ghost-button{padding:5px 7px;font-size:7px}
-.focus-job-details{grid-column:2 / 5;margin-top:-2px}.focus-job-details summary,.focus-import summary,.focus-application-details summary,.focus-history summary{display:inline-flex;align-items:center;gap:4px;color:#758291;font-size:7px;cursor:pointer;list-style:none}.focus-job-details summary::-webkit-details-marker,.focus-import summary::-webkit-details-marker,.focus-application-details summary::-webkit-details-marker,.focus-history summary::-webkit-details-marker{display:none}
-.focus-job-details>div{margin-top:6px;padding:7px 8px;border-radius:7px;background:rgba(255,255,255,.02)}.focus-job-details p{font-size:8px;line-height:1.55;color:#bdc7d2;margin:0}.focus-job-details a{display:inline-flex;align-items:center;gap:4px;margin-top:5px;color:#9e91e7;font-size:7px;text-decoration:none}
-.focus-import{margin-top:4px;padding:8px 10px;border:1px dashed rgba(255,255,255,.08);border-radius:9px}.focus-import form{margin-top:8px}.focus-import-grid{display:grid;grid-template-columns:1fr 1fr 1.5fr;gap:6px}.focus-import-grid .wide{grid-column:auto}.focus-import label{display:flex;flex-direction:column;gap:4px;margin-top:6px;font-size:7px;color:#8f9baa}.focus-import input,.focus-import textarea{width:100%;border:1px solid var(--line);border-radius:7px;background:#090d13;color:var(--text);padding:7px 8px;font-size:8px;outline:none;resize:vertical}.focus-import .primary-button{margin-top:7px;padding:6px 8px;font-size:8px;box-shadow:none}
-.focus-empty{display:flex;align-items:center;gap:8px;padding:18px;border:1px dashed rgba(255,255,255,.1);border-radius:9px;color:var(--muted);font-size:9px}.focus-empty a{margin-left:auto;color:#a99aff;text-decoration:none;font-size:8px}
-.focus-application-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.016)}
-.focus-application-copy{min-width:0}.focus-application-copy span,.focus-application-copy strong,.focus-application-copy small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.focus-application-copy span{font-size:7px;color:#929dac}.focus-application-copy strong{font-size:10px;margin:2px 0}.focus-application-copy small{font-size:7px;color:var(--muted)}
-.focus-application-actions{display:flex;align-items:center;gap:5px}.focus-application-actions .ghost-button{padding:6px 8px;font-size:8px}
-.focus-application-details{grid-column:1 / 3}.focus-application-details>div{margin-top:6px;padding:7px 8px;border-radius:7px;background:rgba(255,255,255,.02)}.focus-application-details p{margin:0;font-size:8px;line-height:1.55;color:#bdc7d2}
-.focus-history{margin-top:2px;padding:8px 10px;border:1px solid rgba(255,255,255,.055);border-radius:9px}.focus-history>div{display:flex;flex-direction:column;gap:6px;margin-top:8px}
-.focus-safety{margin:3px 2px 0;color:#5f6b78;font-size:7px;line-height:1.5}
-@media(max-width:700px){
-  .focus-header{height:48px;padding:0 12px;gap:8px}.focus-brand strong{display:none}.focus-flow{display:none}.focus-nav{margin-left:auto}.focus-nav-item{padding:6px 8px}.focus-main{width:calc(100% - 20px);padding-top:12px}.focus-workspace-head h1{font-size:15px}
-  .focus-job-row{grid-template-columns:36px minmax(0,1fr) auto;padding:9px 8px;gap:8px}.focus-job-score strong{font-size:13px}.focus-status{display:none}.focus-job-action{grid-column:3;grid-row:1}.focus-job-result,.focus-job-details{grid-column:2 / 4}.focus-job-action .primary-button{padding:6px 7px}.focus-import-grid{grid-template-columns:1fr}.focus-application-row{grid-template-columns:minmax(0,1fr) auto}.focus-application-actions{flex-direction:column;align-items:stretch}
+
+/* Career Copilot focused enterprise workbench
+   One coherent light data-workbench theme. */
+.focus-frame{
+  --focus-bg:#f4f4f4;
+  --focus-panel:#ffffff;
+  --focus-panel-soft:#f8f8f8;
+  --focus-line:#e0e0e0;
+  --focus-line-strong:#c6c6c6;
+  --focus-text:#161616;
+  --focus-muted:#525252;
+  --focus-subtle:#6f6f6f;
+  --focus-accent:#0f62fe;
+  --focus-accent-strong:#0353e9;
+  --focus-success:#198038;
+  --focus-warning:#8e6a00;
+  --focus-danger:#da1e28;
+  min-height:100vh;
+  color:var(--focus-text);
+  background:var(--focus-bg);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
 }
+.focus-frame *{box-sizing:border-box}
+.focus-frame :where(button,a,input,textarea,select,summary):focus-visible,
+.login-screen-focus :where(button,a,input):focus-visible{
+  outline:2px solid var(--focus-accent);
+  outline-offset:2px;
+}
+.focus-frame button:disabled,.login-screen-focus button:disabled{cursor:not-allowed;opacity:.55}
+
+.focus-header{
+  position:sticky;
+  top:0;
+  z-index:30;
+  height:56px;
+  padding:0 24px;
+  border-bottom:1px solid var(--focus-line-strong);
+  background:#fff;
+}
+.focus-header-inner{
+  width:min(1240px,100%);
+  height:100%;
+  margin:0 auto;
+  display:flex;
+  align-items:stretch;
+}
+.focus-brand{
+  min-width:246px;
+  padding-right:24px;
+  border-right:1px solid var(--focus-line);
+  display:flex;
+  align-items:center;
+  gap:11px;
+  color:var(--focus-text);
+  text-decoration:none;
+}
+.focus-brand-mark{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  color:#fff;
+  background:var(--focus-accent);
+  font-size:15px;
+  font-weight:700;
+  line-height:1;
+}
+.focus-brand-copy strong,.focus-brand-copy small{display:block}
+.focus-brand-copy strong{font-size:14px;font-weight:650;letter-spacing:-.01em}
+.focus-brand-copy small{margin-top:2px;color:var(--focus-subtle);font-size:11px}
+.focus-nav{height:100%;display:flex;align-items:stretch}
+.focus-nav-item{
+  position:relative;
+  min-height:55px;
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:var(--focus-muted);
+  text-decoration:none;
+  font-size:14px;
+  font-weight:550;
+}
+.focus-nav-item:hover{color:var(--focus-text);background:#f4f4f4}
+.focus-nav-item.active{color:var(--focus-text);background:#fff}
+.focus-nav-item.active:after{
+  content:"";
+  position:absolute;
+  right:16px;
+  bottom:-1px;
+  left:16px;
+  height:3px;
+  background:var(--focus-accent);
+}
+
+.focus-main{width:min(1200px,calc(100% - 48px));margin:0 auto;padding:40px 0 80px}
+.focus-workspace{display:flex;flex-direction:column;gap:24px}
+.focus-workspace-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
+.focus-workspace-head h1{margin:0;font-size:32px;line-height:1.2;font-weight:500;letter-spacing:-.025em}
+.focus-workspace-head p{max-width:720px;margin:10px 0 0;color:var(--focus-muted);font-size:14px;line-height:1.6}
+.focus-refresh-button{
+  min-height:40px;
+  padding:0 16px;
+  border:1px solid var(--focus-line-strong);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:var(--focus-text);
+  background:#fff;
+  font-size:13px;
+  font-weight:550;
+}
+.focus-refresh-button:hover{background:#e8e8e8}
+
+.focus-toolbar{
+  min-height:48px;
+  border:1px solid var(--focus-line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  background:#fff;
+}
+.focus-filter{align-self:stretch;display:flex;align-items:stretch;overflow:auto}
+.focus-filter button{
+  min-height:46px;
+  padding:0 16px;
+  border:0;
+  border-right:1px solid var(--focus-line);
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:var(--focus-muted);
+  background:#fff;
+  white-space:nowrap;
+  font-size:13px;
+  font-weight:550;
+}
+.focus-filter button:hover{color:var(--focus-text);background:#f4f4f4}
+.focus-filter button.active{color:var(--focus-text);box-shadow:inset 0 -3px 0 var(--focus-accent)}
+.focus-filter strong{
+  min-width:24px;
+  height:22px;
+  padding:0 7px;
+  display:inline-grid;
+  place-items:center;
+  color:#393939;
+  background:#e0e0e0;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:600;
+}
+.focus-filter button.active strong{color:#fff;background:var(--focus-accent)}
+.focus-sort-note{padding-right:16px;color:var(--focus-subtle);font-size:12px;white-space:nowrap}
+.focus-message{
+  padding:12px 16px;
+  border:1px solid #a6c8ff;
+  border-left:4px solid var(--focus-accent);
+  color:#001d6c;
+  background:#edf5ff;
+  font-size:13px;
+  line-height:1.5;
+}
+
+.focus-data-panel{overflow:hidden;border:1px solid var(--focus-line);background:#fff}
+.focus-table-head{
+  min-height:42px;
+  padding:0 20px;
+  border-bottom:1px solid var(--focus-line-strong);
+  display:grid;
+  align-items:center;
+  gap:16px;
+  color:var(--focus-muted);
+  background:#e8e8e8;
+  font-size:12px;
+  font-weight:600;
+}
+.focus-job-table-head{grid-template-columns:78px minmax(0,1fr) 100px 128px}
+.focus-application-table-head{grid-template-columns:minmax(0,1fr) 280px 220px}
+.focus-job-list,.focus-application-list{display:flex;flex-direction:column}
+
+.focus-job-row{
+  display:grid;
+  grid-template-columns:78px minmax(0,1fr) 100px 128px;
+  align-items:center;
+  gap:16px;
+  min-height:84px;
+  padding:16px 20px;
+  border-bottom:1px solid var(--focus-line);
+  background:#fff;
+  content-visibility:auto;
+  contain-intrinsic-size:84px;
+}
+.focus-job-row:last-child{border-bottom:0}
+.focus-job-row:hover{background:#f8f8f8}
+.focus-job-score{display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.focus-job-score strong{color:#0043ce;font-size:22px;font-weight:500;line-height:1}
+.focus-job-score span{margin-top:6px;color:var(--focus-subtle);font-size:11px}
+.focus-job-copy{min-width:0}
+.focus-job-copy span,.focus-job-copy strong,.focus-job-copy small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.focus-job-copy span{color:var(--focus-muted);font-size:12px;font-weight:500}
+.focus-job-copy strong{margin:4px 0 7px;color:var(--focus-text);font-size:16px;font-weight:600;line-height:1.3}
+.focus-job-copy small{color:var(--focus-subtle);font-size:12px}
+.focus-status{
+  justify-self:start;
+  min-height:28px;
+  padding:0 10px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+  font-size:12px;
+  font-weight:550;
+  white-space:nowrap;
+}
+.focus-status.ok{color:#0e6027;background:#defbe6}
+.focus-status.warn{color:#684e00;background:#fcf4d6}
+.focus-status.bad{color:#a2191f;background:#fff1f1}
+.focus-status.done{color:#0e6027;background:#defbe6}
+.focus-job-action{justify-self:end}
+.focus-complete{display:inline-flex;align-items:center;gap:6px;color:var(--focus-success);font-size:13px;font-weight:550}
+
+.focus-frame .primary-button,.login-screen-focus .primary-button{
+  min-height:40px;
+  padding:0 16px;
+  border:1px solid var(--focus-accent);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  color:#fff;
+  background:var(--focus-accent);
+  text-decoration:none;
+  font-size:14px;
+  font-weight:550;
+}
+.focus-frame .primary-button:hover,.login-screen-focus .primary-button:hover{border-color:var(--focus-accent-strong);background:var(--focus-accent-strong);filter:none}
+.focus-frame .ghost-button{
+  min-height:40px;
+  padding:0 16px;
+  border:1px solid var(--focus-line-strong);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  color:var(--focus-text);
+  background:#fff;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:550;
+}
+.focus-frame .ghost-button:hover{background:#e8e8e8}
+.focus-job-action .primary-button{min-width:104px}
+
+.focus-job-result{grid-column:2 / 5;width:100%}
+.focus-plan{margin-top:4px;padding:16px 18px;border-left:4px solid var(--focus-line-strong);background:#f4f4f4}
+.focus-plan.ok{border-left-color:var(--focus-success);background:#f0fff4}
+.focus-plan.warn{border-left-color:#f1c21b;background:#fffdf2}
+.focus-plan.bad{border-left-color:var(--focus-danger);background:#fff5f5}
+.focus-plan>div:first-child{display:flex;align-items:center;gap:8px}
+.focus-plan>div:first-child strong{font-size:14px;font-weight:600}
+.focus-plan p,.focus-plan li{color:var(--focus-muted);font-size:13px;line-height:1.55}
+.focus-plan p{margin:8px 0 0}
+.focus-plan ul{margin:12px 0 0;padding-left:20px}
+.focus-plan-inline{margin-top:14px;border:1px solid var(--focus-line);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));background:#fff}
+.focus-plan-inline.single{grid-template-columns:repeat(2,minmax(0,1fr))}
+.focus-plan-inline>span{min-width:0;padding:12px 14px;border-right:1px solid var(--focus-line)}
+.focus-plan-inline>span:last-child{border-right:0}
+.focus-plan-inline small,.focus-plan-inline strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.focus-plan-inline small{color:var(--focus-subtle);font-size:11px}
+.focus-plan-inline strong{margin-top:5px;color:var(--focus-text);font-size:14px;font-weight:550}
+.focus-plan>.primary-button{margin-top:14px}
+.focus-plan-actions{margin-top:14px;display:flex;align-items:flex-start;flex-wrap:wrap;gap:10px}
+.focus-plan-actions .ghost-button{min-height:36px;padding:0 12px}
+
+.focus-verify-form{flex:1 1 100%;border:1px solid var(--focus-line);background:#fff}
+.focus-verify-form>summary{
+  min-height:38px;
+  padding:0 12px;
+  display:flex;
+  align-items:center;
+  color:var(--focus-text);
+  cursor:pointer;
+  list-style:none;
+  font-size:13px;
+  font-weight:550;
+}
+.focus-verify-form>summary::-webkit-details-marker{display:none}
+.focus-verify-form>summary:after{content:"+";margin-left:auto;color:var(--focus-subtle);font-size:16px;font-weight:400}
+.focus-verify-form[open]>summary:after{content:"−"}
+.focus-verify-form form{padding:14px;border-top:1px solid var(--focus-line)}
+.focus-verify-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.focus-verify-grid label,.focus-import label{display:flex;flex-direction:column;gap:7px;color:var(--focus-muted);font-size:12px;font-weight:550}
+.focus-verify-grid input,.focus-verify-grid select,.focus-import input,.focus-import textarea{
+  width:100%;
+  min-height:40px;
+  padding:8px 10px;
+  border:1px solid #8d8d8d;
+  border-radius:0;
+  color:var(--focus-text);
+  background:#f4f4f4;
+  font:inherit;
+  outline:none;
+}
+.focus-verify-grid input:focus,.focus-verify-grid select:focus,.focus-import input:focus,.focus-import textarea:focus{border-color:var(--focus-accent);box-shadow:inset 0 0 0 1px var(--focus-accent)}
+
+.focus-job-details{grid-column:2 / 5}
+.focus-job-details summary,.focus-import summary,.focus-application-details summary,.focus-history summary{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:var(--focus-muted);
+  cursor:pointer;
+  list-style:none;
+  font-size:13px;
+  font-weight:500;
+}
+.focus-job-details summary::-webkit-details-marker,.focus-import summary::-webkit-details-marker,.focus-application-details summary::-webkit-details-marker,.focus-history summary::-webkit-details-marker{display:none}
+.focus-job-details[open] summary svg,.focus-application-details[open] summary svg{transform:rotate(180deg)}
+.focus-job-details>div,.focus-application-details>div{margin-top:10px;padding:14px 16px;border:1px solid var(--focus-line);background:#f4f4f4}
+.focus-job-details p,.focus-application-details p{margin:0;color:var(--focus-muted);font-size:13px;line-height:1.65;white-space:pre-wrap}
+.focus-job-details a{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:#0043ce;text-decoration:none;font-size:13px}
+
+.focus-import{padding:14px 16px;border:1px solid var(--focus-line);background:#fff}
+.focus-import form{margin-top:14px}
+.focus-import-grid{display:grid;grid-template-columns:1fr 1fr 1.6fr;gap:12px}
+.focus-import>form>label{margin-top:12px}
+.focus-import textarea{min-height:130px;resize:vertical}
+.focus-import .primary-button{margin-top:12px}
+.focus-empty{min-height:110px;padding:32px;display:flex;align-items:center;gap:10px;color:var(--focus-muted);background:#fff;font-size:14px}
+.focus-empty a{margin-left:auto;color:#0043ce;text-decoration:none}
+
+.focus-queue-summary{display:grid;grid-template-columns:repeat(3,1fr);overflow:hidden;border:1px solid var(--focus-line);background:#fff}
+.focus-queue-summary>div{padding:18px 20px;border-right:1px solid var(--focus-line)}
+.focus-queue-summary>div:last-child{border-right:0}
+.focus-queue-summary strong,.focus-queue-summary span{display:block}
+.focus-queue-summary strong{font-size:28px;font-weight:400}
+.focus-queue-summary span{margin-top:8px;color:var(--focus-muted);font-size:13px}
+.focus-section{display:flex;flex-direction:column;gap:12px}
+.focus-section-title{display:flex;align-items:center;justify-content:space-between}
+.focus-section-title h2{margin:0;font-size:18px;font-weight:550}
+.focus-section-title span{color:var(--focus-subtle);font-size:13px}
+.focus-application-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 280px 220px;
+  align-items:center;
+  gap:20px;
+  min-height:84px;
+  padding:16px 20px;
+  border-bottom:1px solid var(--focus-line);
+  background:#fff;
+}
+.focus-application-row:last-child{border-bottom:0}
+.focus-application-row:hover{background:#f8f8f8}
+.focus-application-copy,.focus-application-resume{min-width:0}
+.focus-application-copy span,.focus-application-copy strong,.focus-application-copy small,.focus-application-resume span,.focus-application-resume strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.focus-application-copy span{color:var(--focus-muted);font-size:12px}
+.focus-application-copy strong{margin:4px 0 7px;font-size:16px;font-weight:600}
+.focus-application-copy small{color:var(--focus-subtle);font-size:12px}
+.focus-application-resume span{color:var(--focus-subtle);font-size:11px}
+.focus-application-resume strong{margin-top:5px;font-size:14px;font-weight:550}
+.focus-application-actions{grid-column:3;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.focus-application-details{grid-column:1 / 4}
+.focus-history{padding:14px 16px;border:1px solid var(--focus-line);background:#fff}
+.focus-history summary{width:100%}
+.focus-history summary span{margin-left:auto;min-width:24px;padding:3px 8px;display:inline-grid;place-items:center;border-radius:12px;color:var(--focus-muted);background:#e8e8e8;font-size:12px}
+.focus-history>div{margin:14px -16px -14px;border-top:1px solid var(--focus-line)}
+.focus-safety{margin:0;color:var(--focus-subtle);font-size:12px;line-height:1.6}
+
+.auth-state-card{
+  max-width:760px;
+  margin:64px auto;
+  padding:24px;
+  border:1px solid var(--focus-line,#e0e0e0);
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  color:#161616;
+  background:#fff;
+}
+.auth-state-card h2{margin:5px 0 8px;font-size:22px;font-weight:500}
+.auth-state-card p{margin:0 0 16px;color:#525252;font-size:14px;line-height:1.6}
+.auth-state-label{display:block;color:#6f6f6f;font-size:12px;font-weight:600}
+.auth-state-card .card-actions{display:flex;flex-wrap:wrap;gap:8px}
+.loading-dot{width:12px;height:12px;margin-top:7px;border-radius:50%;background:#0f62fe;box-shadow:0 0 0 6px #edf5ff;animation:focus-pulse 1.3s ease-in-out infinite}
+@keyframes focus-pulse{50%{opacity:.35;transform:scale(.82)}}
+
+.login-screen-focus{
+  min-height:100vh;
+  color:#161616;
+  background:#f4f4f4;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+}
+.login-screen-focus .login-brand-panel{max-width:640px}
+.login-brand-lockup strong{color:#161616}
+.login-screen-focus .brand-mark{border-radius:0;background:#0f62fe;box-shadow:none}
+.login-screen-focus .login-brand-panel h1{max-width:620px;color:#161616;font-size:44px;font-weight:400;letter-spacing:-.035em}
+.login-screen-focus .login-brand-panel>p{color:#525252;font-size:16px;line-height:1.65}
+.login-benefits span{color:#393939;font-size:14px}
+.login-benefits svg{color:#198038}
+.login-screen-focus .login-card{max-width:430px;padding:32px;border:1px solid #d8d8d8;border-radius:0;background:#fff;box-shadow:none}
+.login-screen-focus .login-card h2{color:#161616;font-size:28px;font-weight:400}
+.login-screen-focus .login-card p,.login-screen-focus .login-card label{color:#525252}
+.login-screen-focus .login-card input{min-height:48px;border:0;border-bottom:1px solid #8d8d8d;border-radius:0;color:#161616;background:#f4f4f4}
+.login-screen-focus .login-card input:focus{border-bottom:2px solid #0f62fe;box-shadow:none}
+.login-screen-focus .login-card .primary-button{width:100%;min-height:48px}
+.login-screen-focus .login-proof{border-left:3px solid #0f62fe;border-radius:0;background:#edf5ff;color:#001d6c}
+.login-screen-focus .form-error{border-left:3px solid #da1e28;border-radius:0;background:#fff1f1;color:#a2191f}
+
+@media(max-width:900px){
+  .focus-brand{min-width:auto;padding-right:18px}
+  .focus-brand-copy small{display:none}
+  .focus-job-table-head{grid-template-columns:68px minmax(0,1fr) 120px}
+  .focus-job-table-head span:nth-child(3){display:none}
+  .focus-job-row{grid-template-columns:68px minmax(0,1fr) 120px}
+  .focus-status{grid-column:2;justify-self:start}
+  .focus-job-action{grid-column:3;grid-row:1 / 3}
+  .focus-job-result,.focus-job-details{grid-column:2 / 4}
+  .focus-verify-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .focus-application-table-head{grid-template-columns:minmax(0,1fr) 220px}
+  .focus-application-table-head span:nth-child(2){display:none}
+  .focus-application-row{grid-template-columns:minmax(0,1fr) 220px}
+  .focus-application-resume{grid-column:1;grid-row:2}
+  .focus-application-actions{grid-column:2;grid-row:1 / 3}
+  .focus-application-details{grid-column:1 / 3}
+}
+@media(max-width:640px){
+  .focus-header{height:52px;padding:0 12px}
+  .focus-brand{padding-right:12px;border-right:0}
+  .focus-brand-mark{width:30px;height:30px}
+  .focus-brand-copy{display:none}
+  .focus-nav{margin-left:auto}
+  .focus-nav-item{min-height:51px;padding:0 13px;font-size:13px}
+  .focus-nav-item svg{display:none}
+  .focus-nav-item.active:after{right:10px;left:10px}
+  .focus-main{width:calc(100% - 24px);padding:28px 0 52px}
+  .focus-workspace{gap:18px}
+  .focus-workspace-head h1{font-size:27px}
+  .focus-workspace-head p{font-size:13px}
+  .focus-refresh-button{min-width:40px;padding:0 11px}
+  .focus-refresh-button span{display:none}
+  .focus-toolbar{align-items:stretch;flex-direction:column}
+  .focus-filter{width:100%}
+  .focus-filter button{flex:0 0 auto;min-height:44px;padding:0 14px;font-size:13px}
+  .focus-sort-note{display:none}
+  .focus-table-head{display:none}
+  .focus-job-row{grid-template-columns:52px minmax(0,1fr);gap:12px;padding:16px}
+  .focus-job-score strong{font-size:20px}
+  .focus-job-copy strong{font-size:15px}
+  .focus-status{grid-column:2;grid-row:2}
+  .focus-job-action{grid-column:1 / 3;grid-row:auto;justify-self:stretch}
+  .focus-job-action .primary-button{width:100%}
+  .focus-job-result,.focus-job-details{grid-column:1 / 3}
+  .focus-plan-inline,.focus-plan-inline.single{grid-template-columns:1fr 1fr}
+  .focus-plan-inline>span{border-right:0;border-bottom:1px solid var(--focus-line)}
+  .focus-plan-inline>span:nth-child(odd){border-right:1px solid var(--focus-line)}
+  .focus-plan-inline>span:last-child{border-bottom:0}
+  .focus-plan-inline>span:last-child:nth-child(3){grid-column:1 / 3;border-right:0}
+  .focus-verify-grid{grid-template-columns:1fr}
+  .focus-import-grid{grid-template-columns:1fr}
+  .focus-queue-summary{grid-template-columns:repeat(3,1fr)}
+  .focus-queue-summary>div{padding:14px 10px}
+  .focus-queue-summary strong{font-size:22px}
+  .focus-queue-summary span{font-size:10px;line-height:1.35}
+  .focus-application-row{grid-template-columns:1fr;padding:16px}
+  .focus-application-resume{grid-column:1;grid-row:auto;padding-top:12px;border-top:1px solid var(--focus-line)}
+  .focus-application-actions{grid-column:1;grid-row:auto;align-items:stretch;flex-direction:column}
+  .focus-application-details{grid-column:1}
+  .focus-application-actions .primary-button,.focus-application-actions .ghost-button{width:100%}
+  .login-screen-focus{padding:24px 16px}
+  .login-screen-focus .login-brand-panel h1{font-size:35px}
+  .login-screen-focus .login-card{padding:24px}
+}
+
+/* Final density corrections after visual QA. */
+.focus-frame .primary-button,.login-screen-focus .primary-button{box-shadow:none}
+.focus-job-details{margin-top:8px}
+.focus-job-details>div{position:relative;z-index:2;max-width:760px}
+@media(max-width:900px){
+  .focus-job-result{grid-column:2 / 4}
+}
+@media(max-width:640px){
+  .focus-filter{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));overflow:visible}
+  .focus-filter button{min-width:0;padding:0 6px;justify-content:center;gap:5px}
+  .focus-filter strong{min-width:20px;height:20px;padding:0 5px;font-size:11px}
+  .focus-job-details{margin-top:9px}
+}
+@media(max-width:640px){.focus-job-result{grid-column:1 / 3}}

@@ -1,5 +1,3 @@
-set search_path = career_copilot, public, extensions;
-
 -- Career Copilot V2 Milestone 03
 -- User-scoped Supabase runtime, synchronization identities, CI evidence, and model benchmarks.
 
@@ -8,54 +6,54 @@ do $$
 begin
   if not exists (
     select 1 from pg_constraint
-    where conname = 'profiles_user_id_fkey' and conrelid = 'career_copilot.profiles'::regclass
+    where conname = 'profiles_user_id_fkey' and conrelid = 'public.profiles'::regclass
   ) then
-    alter table career_copilot.profiles
+    alter table public.profiles
       add constraint profiles_user_id_fkey foreign key (user_id) references auth.users(id) on delete cascade;
   end if;
 end $$;
-create unique index if not exists profiles_user_id_uidx on career_copilot.profiles(user_id);
+create unique index if not exists profiles_user_id_uidx on public.profiles(user_id);
 
-alter table career_copilot.companies add column if not exists user_id uuid references auth.users(id) on delete cascade;
-alter table career_copilot.jobs add column if not exists user_id uuid references auth.users(id) on delete cascade;
-alter table career_copilot.job_evaluations add column if not exists user_id uuid references auth.users(id) on delete cascade;
-alter table career_copilot.application_packages add column if not exists user_id uuid references auth.users(id) on delete cascade;
-alter table career_copilot.applications add column if not exists user_id uuid references auth.users(id) on delete cascade;
-alter table career_copilot.interviews add column if not exists user_id uuid references auth.users(id) on delete cascade;
-alter table career_copilot.offers add column if not exists user_id uuid references auth.users(id) on delete cascade;
-alter table career_copilot.source_snapshots add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.companies add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.jobs add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.job_evaluations add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.application_packages add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.applications add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.interviews add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.offers add column if not exists user_id uuid references auth.users(id) on delete cascade;
+alter table public.source_snapshots add column if not exists user_id uuid references auth.users(id) on delete cascade;
 
 -- Local-first synchronization fields. Company is denormalized during initial sync so
 -- deployment is not blocked by a separate company identity migration.
-alter table career_copilot.jobs add column if not exists company_name text not null default '';
-alter table career_copilot.jobs add column if not exists company_tier_text text not null default 'unknown';
-alter table career_copilot.jobs add column if not exists company_stage text not null default '';
-alter table career_copilot.jobs add column if not exists company_size text not null default '';
-alter table career_copilot.application_packages add column if not exists resume_version_name text not null default '';
-alter table career_copilot.application_packages add column if not exists resume_filename text not null default '';
-alter table career_copilot.model_runs add column if not exists local_id bigint;
-alter table career_copilot.delivery_runs add column if not exists local_id bigint;
+alter table public.jobs add column if not exists company_name text not null default '';
+alter table public.jobs add column if not exists company_tier_text text not null default 'unknown';
+alter table public.jobs add column if not exists company_stage text not null default '';
+alter table public.jobs add column if not exists company_size text not null default '';
+alter table public.application_packages add column if not exists resume_version_name text not null default '';
+alter table public.application_packages add column if not exists resume_filename text not null default '';
+alter table public.model_runs add column if not exists local_id bigint;
+alter table public.delivery_runs add column if not exists local_id bigint;
 
 -- Make source IDs unique per account rather than globally.
-alter table career_copilot.jobs drop constraint if exists jobs_source_id_key;
-create unique index if not exists jobs_user_source_uidx on career_copilot.jobs(user_id, source_id);
-create unique index if not exists evaluations_user_job_uidx on career_copilot.job_evaluations(user_id, job_id);
-create unique index if not exists packages_user_job_uidx on career_copilot.application_packages(user_id, job_id);
-create unique index if not exists applications_user_job_uidx on career_copilot.applications(user_id, job_id);
-create unique index if not exists model_runs_user_local_uidx on career_copilot.model_runs(user_id, local_id);
-create unique index if not exists delivery_runs_user_local_uidx on career_copilot.delivery_runs(user_id, local_id);
+alter table public.jobs drop constraint if exists jobs_source_id_key;
+create unique index if not exists jobs_user_source_uidx on public.jobs(user_id, source_id);
+create unique index if not exists evaluations_user_job_uidx on public.job_evaluations(user_id, job_id);
+create unique index if not exists packages_user_job_uidx on public.application_packages(user_id, job_id);
+create unique index if not exists applications_user_job_uidx on public.applications(user_id, job_id);
+create unique index if not exists model_runs_user_local_uidx on public.model_runs(user_id, local_id);
+create unique index if not exists delivery_runs_user_local_uidx on public.delivery_runs(user_id, local_id);
 
 -- CI evidence fields. Attribution is explicit: git metrics cannot infer which lines
 -- were written by AI, so automated collectors store that distinction separately.
-alter table career_copilot.delivery_runs add column if not exists evidence_type text not null default 'manual';
-alter table career_copilot.delivery_runs add column if not exists data_quality text not null default 'self_reported';
-alter table career_copilot.delivery_runs add column if not exists branch text;
-alter table career_copilot.delivery_runs add column if not exists commit_sha text;
-alter table career_copilot.delivery_runs add column if not exists ci_run_url text;
-alter table career_copilot.delivery_runs add column if not exists insertions integer not null default 0 check (insertions >= 0);
-alter table career_copilot.delivery_runs add column if not exists deletions integer not null default 0 check (deletions >= 0);
+alter table public.delivery_runs add column if not exists evidence_type text not null default 'manual';
+alter table public.delivery_runs add column if not exists data_quality text not null default 'self_reported';
+alter table public.delivery_runs add column if not exists branch text;
+alter table public.delivery_runs add column if not exists commit_sha text;
+alter table public.delivery_runs add column if not exists ci_run_url text;
+alter table public.delivery_runs add column if not exists insertions integer not null default 0 check (insertions >= 0);
+alter table public.delivery_runs add column if not exists deletions integer not null default 0 check (deletions >= 0);
 
-create table if not exists career_copilot.model_benchmark_runs (
+create table if not exists public.model_benchmark_runs (
   id bigint generated by default as identity primary key,
   user_id uuid not null references auth.users(id) on delete cascade,
   provider text not null,
@@ -72,21 +70,21 @@ create table if not exists career_copilot.model_benchmark_runs (
   created_at timestamptz not null default now()
 );
 create index if not exists model_benchmark_user_created_idx
-  on career_copilot.model_benchmark_runs(user_id, created_at desc);
+  on public.model_benchmark_runs(user_id, created_at desc);
 
 -- RLS for every exposed table touched by the application.
-alter table career_copilot.profiles enable row level security;
-alter table career_copilot.companies enable row level security;
-alter table career_copilot.jobs enable row level security;
-alter table career_copilot.job_evaluations enable row level security;
-alter table career_copilot.career_evidence enable row level security;
-alter table career_copilot.resume_versions enable row level security;
-alter table career_copilot.application_packages enable row level security;
-alter table career_copilot.applications enable row level security;
-alter table career_copilot.interviews enable row level security;
-alter table career_copilot.offers enable row level security;
-alter table career_copilot.source_snapshots enable row level security;
-alter table career_copilot.model_benchmark_runs enable row level security;
+alter table public.profiles enable row level security;
+alter table public.companies enable row level security;
+alter table public.jobs enable row level security;
+alter table public.job_evaluations enable row level security;
+alter table public.career_evidence enable row level security;
+alter table public.resume_versions enable row level security;
+alter table public.application_packages enable row level security;
+alter table public.applications enable row level security;
+alter table public.interviews enable row level security;
+alter table public.offers enable row level security;
+alter table public.source_snapshots enable row level security;
+alter table public.model_benchmark_runs enable row level security;
 
 -- Drop earlier permissive/legacy policies when reapplying this migration in preview.
 do $$
@@ -104,75 +102,75 @@ begin
       from pg_policy pol
       join pg_class cls on cls.oid = pol.polrelid
       join pg_namespace ns on ns.oid = cls.relnamespace
-      where ns.nspname = 'career_copilot' and cls.relname = table_name
+      where ns.nspname = 'public' and cls.relname = table_name
     loop
-      execute format('drop policy if exists %I on career_copilot.%I', policy_name, table_name);
+      execute format('drop policy if exists %I on public.%I', policy_name, table_name);
     end loop;
   end loop;
 end $$;
 
-create policy profiles_owner_all on career_copilot.profiles for all to authenticated
+create policy profiles_owner_all on public.profiles for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy companies_owner_all on career_copilot.companies for all to authenticated
+create policy companies_owner_all on public.companies for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy jobs_owner_all on career_copilot.jobs for all to authenticated
+create policy jobs_owner_all on public.jobs for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy evaluations_owner_all on career_copilot.job_evaluations for all to authenticated
+create policy evaluations_owner_all on public.job_evaluations for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy packages_owner_all on career_copilot.application_packages for all to authenticated
+create policy packages_owner_all on public.application_packages for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy applications_owner_all on career_copilot.applications for all to authenticated
+create policy applications_owner_all on public.applications for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy interviews_owner_all on career_copilot.interviews for all to authenticated
+create policy interviews_owner_all on public.interviews for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy offers_owner_all on career_copilot.offers for all to authenticated
+create policy offers_owner_all on public.offers for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy snapshots_owner_all on career_copilot.source_snapshots for all to authenticated
+create policy snapshots_owner_all on public.source_snapshots for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy model_runs_owner_all on career_copilot.model_runs for all to authenticated
+create policy model_runs_owner_all on public.model_runs for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy delivery_runs_owner_all on career_copilot.delivery_runs for all to authenticated
+create policy delivery_runs_owner_all on public.delivery_runs for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
-create policy benchmark_runs_owner_all on career_copilot.model_benchmark_runs for all to authenticated
+create policy benchmark_runs_owner_all on public.model_benchmark_runs for all to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
 -- Evidence and resumes inherit ownership through the profile. Policies use EXISTS
 -- rather than user-editable JWT metadata.
-create policy evidence_owner_all on career_copilot.career_evidence for all to authenticated
+create policy evidence_owner_all on public.career_evidence for all to authenticated
   using (exists (
-    select 1 from career_copilot.profiles p
+    select 1 from public.profiles p
     where p.id = career_evidence.profile_id and p.user_id = (select auth.uid())
   ))
   with check (exists (
-    select 1 from career_copilot.profiles p
+    select 1 from public.profiles p
     where p.id = career_evidence.profile_id and p.user_id = (select auth.uid())
   ));
-create policy resumes_owner_all on career_copilot.resume_versions for all to authenticated
+create policy resumes_owner_all on public.resume_versions for all to authenticated
   using (exists (
-    select 1 from career_copilot.profiles p
+    select 1 from public.profiles p
     where p.id = resume_versions.profile_id and p.user_id = (select auth.uid())
   ))
   with check (exists (
-    select 1 from career_copilot.profiles p
+    select 1 from public.profiles p
     where p.id = resume_versions.profile_id and p.user_id = (select auth.uid())
   ));
 
 -- Explicit grants for the Data API; RLS still controls row visibility.
-grant select, insert, update, delete on career_copilot.profiles, career_copilot.companies, career_copilot.jobs,
-  career_copilot.job_evaluations, career_copilot.career_evidence, career_copilot.resume_versions,
-  career_copilot.application_packages, career_copilot.applications, career_copilot.interviews, career_copilot.offers,
-  career_copilot.source_snapshots, career_copilot.model_runs, career_copilot.delivery_runs,
-  career_copilot.model_benchmark_runs to authenticated;
-grant usage, select on all sequences in schema career_copilot to authenticated;
+grant select, insert, update, delete on public.profiles, public.companies, public.jobs,
+  public.job_evaluations, public.career_evidence, public.resume_versions,
+  public.application_packages, public.applications, public.interviews, public.offers,
+  public.source_snapshots, public.model_runs, public.delivery_runs,
+  public.model_benchmark_runs to authenticated;
+grant usage, select on all sequences in schema public to authenticated;

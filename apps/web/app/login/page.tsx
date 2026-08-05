@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 function safeNext(value: string | null) {
@@ -25,8 +25,8 @@ export default function LoginPage() {
     const next = safeNext(params.get("next"));
     setNextPath(next);
     const reason = params.get("reason");
-    if (reason === "session_expired") setNotice("登录已过期，请重新登录后继续刚才的操作。");
-    if (reason === "login_required") setNotice("请先登录个人投递控制台。");
+    if (reason === "session_expired") setNotice("登录已过期，请重新登录后继续。 ");
+    if (reason === "login_required") setNotice("请先登录投递工作台。");
     if (!supabase) return;
     void supabase.auth.getSession().then(({ data }) => {
       if (data.session) router.replace(next);
@@ -50,21 +50,24 @@ export default function LoginPage() {
     router.replace(nextPath);
   }
 
-  return <main className="login-screen">
+  return <main className="login-screen login-screen-focus">
     <section className="login-brand-panel">
-      <div className="brand-mark"><Sparkles size={18}/></div>
-      <span className="eyebrow">Career Copilot V2 · 1.0.1</span>
-      <h1>证据驱动的 AI 实习投递控制台</h1>
-      <p>系统负责核验、材料和记录；招聘平台的最终提交仍由你本人确认。</p>
-      <div className="login-proof"><ShieldCheck size={18}/><span>Supabase Auth + RLS · 失效会话不会进入控制台</span></div>
+      <div className="login-brand-lockup"><div className="brand-mark"><Sparkles size={20}/></div><strong>Career Copilot</strong></div>
+      <h1>把岗位、简历和投递放在一个工作台</h1>
+      <p>按匹配度整理岗位，自动选择简历，并集中管理待投递与已投递记录。</p>
+      <div className="login-benefits">
+        <span><CheckCircle2 size={17}/>岗位按匹配度统一排序</span>
+        <span><CheckCircle2 size={17}/>材料缺口清晰提示</span>
+        <span><CheckCircle2 size={17}/>投递状态集中记录</span>
+      </div>
     </section>
     <form className="login-card" onSubmit={submit}>
-      <div><span className="eyebrow">Private workspace</span><h2>登录个人控制台</h2><p>登录后会返回刚才的岗位或投递页面。</p></div>
+      <div><h2>登录</h2><p>进入你的个人投递工作台。</p></div>
       <label>邮箱<input type="email" autoComplete="email" value={email} onChange={(event)=>setEmail(event.target.value)} required/></label>
       <label>密码<input type="password" autoComplete="current-password" value={password} onChange={(event)=>setPassword(event.target.value)} required/></label>
       {notice ? <div className="login-proof">{notice}</div> : null}
       {error ? <div className="form-error">{error}</div> : null}
-      <button className="primary-button" type="submit" disabled={busy}>{busy ? "验证中…" : "进入控制台"}<ArrowRight size={15}/></button>
+      <button className="primary-button" type="submit" disabled={busy}>{busy ? "验证中…" : "进入工作台"}<ArrowRight size={17}/></button>
     </form>
   </main>;
 }

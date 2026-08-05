@@ -38,7 +38,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       new Command({ resume: decision }),
       { configurable: { thread_id: id, checkpoint_ns: "evidence_promotion" } },
     );
-    const resolution = (result?.resolution ?? { status: "rejected", decision, evidence: null, automatic_promotion: false }) as Record<string, any>;
+    const resolution: Record<string, any> = result?.resolution ?? { status: "rejected", decision, evidence: null, automatic_promotion: false };
     let createdEvidence: Record<string, any> | null = null;
     if (resolution.status === "completed" && resolution.evidence) {
       const profile = await ensureProfile(auth);

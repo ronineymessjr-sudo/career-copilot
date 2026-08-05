@@ -1,0 +1,1492 @@
+{
+  "package": "Career_Copilot_V2_Carbon_Pro_FULL_SOURCE_2026-08-05",
+  "type": "complete-source",
+  "version": "1.0.1-carbon-pro-full-source",
+  "created_at": "2026-08-05T14:15:00+08:00",
+  "deployment_target": "existing production Cloudflare Workers and Supabase project",
+  "test_status": {
+    "node_core": 50,
+    "node_integrations": 11,
+    "python": 14,
+    "total": 75,
+    "failed": 0,
+    "cloudflare_validation": "passed"
+  },
+  "files": [
+    {
+      "path": ".dockerignore",
+      "size": 111,
+      "sha256": "901289d95483825d0c9b53aabd964c6d70abaf050d22b0d525c9fa14e94124d2"
+    },
+    {
+      "path": ".github/workflows/cloudflare-deploy.yml",
+      "size": 8974,
+      "sha256": "dfba0b18f7783b9e91c615a11d1430bf16c01e039fa18c61ed24b55f099a57e0"
+    },
+    {
+      "path": ".github/workflows/engineering-evidence.yml",
+      "size": 3035,
+      "sha256": "9e60fbb19f6b14a5a3fe163dc84d0ba9b870268238ede38bc942a0eec9565cd2"
+    },
+    {
+      "path": ".gitignore",
+      "size": 247,
+      "sha256": "355ff662874c012d2f640aafbadc99bc4078af1258e3c674823977ceabc3df06"
+    },
+    {
+      "path": "AGENT_EVALUATION_RESULT_M08_1.json",
+      "size": 534,
+      "sha256": "57672205c61174ecd4e75fa9d1db146b0294420e3ae6dfdd1c4a21e2568516ec"
+    },
+    {
+      "path": "CLOUDFLARE_DEPLOY.md",
+      "size": 883,
+      "sha256": "cc331db38f6c0c546b90abe3b8c4501f8306e58981744da4790df59586f99618"
+    },
+    {
+      "path": "CODEX_DEPLOY_NOW.md",
+      "size": 431,
+      "sha256": "8cadd46396cd562e892420bb0c48ccd1a6190fa989a12a193289f72b18592d65"
+    },
+    {
+      "path": "DATABASE_DEPLOYMENT_NOTE.md",
+      "size": 1033,
+      "sha256": "c4f2a57df6e0689696716972e2eaeed4e5938b3f6a71d80b7e04798607c501a1"
+    },
+    {
+      "path": "DEPLOYMENT_HANDOFF.md",
+      "size": 1928,
+      "sha256": "72cbc1b6f49f370d0576610947ab1a23ed0d5221e7edf16b4431a131a079c493"
+    },
+    {
+      "path": "DEPLOYMENT_HANDOFF_M05.md",
+      "size": 2893,
+      "sha256": "fa68851bce192ccd34efe8fb8a7982fc1a7f1145888d62846280db49f3466ff7"
+    },
+    {
+      "path": "DEPLOYMENT_HANDOFF_M06.md",
+      "size": 1908,
+      "sha256": "752e0e931934bfc50b540907853b83d54df3cd15bda7acba4de7bb724c9f5eec"
+    },
+    {
+      "path": "DEPLOYMENT_HANDOFF_M07.md",
+      "size": 2741,
+      "sha256": "d00816724a351272e7a49c07a6fea9d8902781427ba858c8a8794131455d9169"
+    },
+    {
+      "path": "DEPLOYMENT_HANDOFF_M08.md",
+      "size": 3277,
+      "sha256": "468396a73274112c6de66837b2b13afe9a2b3a92fa3a4561b3f13dd3ea03e1eb"
+    },
+    {
+      "path": "DEPLOYMENT_HANDOFF_M08_1.md",
+      "size": 1928,
+      "sha256": "72cbc1b6f49f370d0576610947ab1a23ed0d5221e7edf16b4431a131a079c493"
+    },
+    {
+      "path": "DEPLOY_CHECKLIST.md",
+      "size": 1282,
+      "sha256": "fc3833b80495051abf4aebb0da81fc1a65ad4bd942aa74a351f403ce938c299b"
+    },
+    {
+      "path": "DEPLOY_WITH_DEEPSPEED.md",
+      "size": 3004,
+      "sha256": "c474c7ba17bc446ebf9157bde80f0dbe05923306a4d736de5d8605fc4afeb04a"
+    },
+    {
+      "path": "FULL_PACKAGE_VERSION.txt",
+      "size": 211,
+      "sha256": "b5b3d5bdec8fa935c426e3c4797437864c465516cfd4037f033b4a7cc8a73078"
+    },
+    {
+      "path": "LICENSE",
+      "size": 1087,
+      "sha256": "6c14b93b0a45f7ebab974822d4c03e0fcce212794fc6f175e612783b03538f89"
+    },
+    {
+      "path": "MANIFEST_M03.md",
+      "size": 785,
+      "sha256": "683e8837a708dc97835108ca1dd9ba2a466639ecf5354cd0c284311d6280f9de"
+    },
+    {
+      "path": "MANIFEST_M04.md",
+      "size": 523,
+      "sha256": "1a4aeb981a9954ebd7b4c79f4f0b1da13d39ab4759c8ffa69c3f22a55fd5650e"
+    },
+    {
+      "path": "MANIFEST_M04_1.md",
+      "size": 433,
+      "sha256": "146da093adcdb73461030f7cc83d23845f185c3f89dc6a12a182c1f1f18a4daa"
+    },
+    {
+      "path": "MANIFEST_M05.md",
+      "size": 1441,
+      "sha256": "fb38127d03476d7176abbd51b2f3885abc202108a7811869b64e224e222ee34d"
+    },
+    {
+      "path": "MANIFEST_M06.md",
+      "size": 1408,
+      "sha256": "c419a174fa00cbcd316e6477cd8fd6bf8eb7bae252e3d1e35f0f8f87f77f6262"
+    },
+    {
+      "path": "MANIFEST_M07.md",
+      "size": 1758,
+      "sha256": "aa850be043468db97a3ebc8215dda8bcccf05cc94f715b9443f80ce799d24ec4"
+    },
+    {
+      "path": "MANIFEST_M08.md",
+      "size": 1622,
+      "sha256": "daec39256170654262514aa91df034949202f4228a022f2cceb3e5097a7f15dc"
+    },
+    {
+      "path": "MANIFEST_M08_1.md",
+      "size": 977,
+      "sha256": "8a77bb0c15b05c365f119eaa122b36934e64feffaae10356efca77dd3c25b26f"
+    },
+    {
+      "path": "Makefile",
+      "size": 697,
+      "sha256": "eb4a6c63eaf45a66ab2e4e3c888c32b4ee3f8f8c8790f8e297e7fed0228e9852"
+    },
+    {
+      "path": "ONLINE_STATUS.md",
+      "size": 720,
+      "sha256": "b0a1e4c4951fcc9a17d675104deb469a9f21d7637038c59b46ef36ba8d66d64f"
+    },
+    {
+      "path": "ONLINE_STATUS_M05.md",
+      "size": 1407,
+      "sha256": "d01785b56384edb157fe5e5f9d0283a0795f220a25ea0387270593bdd7b3f5be"
+    },
+    {
+      "path": "ONLINE_STATUS_M06.md",
+      "size": 1087,
+      "sha256": "26b6ba5d0e672296e8bf0cb016c754eca043bfc7e69e5f5086809ec4c9073b0c"
+    },
+    {
+      "path": "ONLINE_STATUS_M07.md",
+      "size": 1788,
+      "sha256": "52adfa10247c3e76bfb3b0bfa4336f734ad24312c384e3576cbd9bff54014463"
+    },
+    {
+      "path": "ONLINE_STATUS_M08.md",
+      "size": 1635,
+      "sha256": "6b54c262edabc59f5ead579baac73803f91b819676ef0d0f9eb85e6be338d1cd"
+    },
+    {
+      "path": "ONLINE_STATUS_M08_1.md",
+      "size": 720,
+      "sha256": "b0a1e4c4951fcc9a17d675104deb469a9f21d7637038c59b46ef36ba8d66d64f"
+    },
+    {
+      "path": "QA_REPORT.md",
+      "size": 2891,
+      "sha256": "c4eca1d301089576167c7a20d3d2fcc3c8ce85114198fdaf69301a7db8af9ede"
+    },
+    {
+      "path": "QA_REPORT_M05.md",
+      "size": 2551,
+      "sha256": "f289a814b4c9349fd69c57f65ef3ed6e96991dee42d30d181516efe735bd2ad0"
+    },
+    {
+      "path": "QA_REPORT_M06.md",
+      "size": 2176,
+      "sha256": "7b9ffbee929345ee24742dd697017d7d062b75a33fecbc79e7df4020d6142635"
+    },
+    {
+      "path": "QA_REPORT_M07.md",
+      "size": 2661,
+      "sha256": "2c23ee256e2ed21c4ecc090e6cdb4c3d27ed6f71f1c5a962d156b21ba9333172"
+    },
+    {
+      "path": "QA_REPORT_M08.md",
+      "size": 2962,
+      "sha256": "71d7c8320df6ddce37a8bd1ac97f74667e923fa12851044b1ebf3c85513c498e"
+    },
+    {
+      "path": "QA_REPORT_M08_1.md",
+      "size": 2891,
+      "sha256": "c4eca1d301089576167c7a20d3d2fcc3c8ce85114198fdaf69301a7db8af9ede"
+    },
+    {
+      "path": "README.md",
+      "size": 5951,
+      "sha256": "d19c55c088cf1fb9fd74e74f1b0a9d1f429eb0ee2dd3716183a537b996de960a"
+    },
+    {
+      "path": "RELEASE_EVIDENCE_M06.json",
+      "size": 1141,
+      "sha256": "9539289847dd205d488a39ee2bf60e8d345fbfac1bd2a98b5764401d7a33beae"
+    },
+    {
+      "path": "RELEASE_EVIDENCE_M07.json",
+      "size": 1505,
+      "sha256": "57cb5411e80cd37a7b2ea48a48d17fbc935624ba4ad2e3a7b4cbccb5ba488d84"
+    },
+    {
+      "path": "RELEASE_EVIDENCE_M08_1.json",
+      "size": 1295,
+      "sha256": "5d0cc0348cd828b3f1625c7e5f54c353aa8c31161924c9e8463e5908c8b6f618"
+    },
+    {
+      "path": "RELEASE_MANIFEST.json",
+      "size": 20130,
+      "sha256": "2fee143927e1908f5a716bb75e876951d778bc01ab39895d9333297c6194e272"
+    },
+    {
+      "path": "RELEASE_STATUS.md",
+      "size": 771,
+      "sha256": "3397e37b71acbd31ef0e1b949e953e48bb7e93ae0c8c01a2fea018fe1ca6e666"
+    },
+    {
+      "path": "SECRETS_REQUIRED.md",
+      "size": 1105,
+      "sha256": "28e9ed99247d074e5b0065e1700b60627983364e2e4b4b58610ef7bddae7a1ee"
+    },
+    {
+      "path": "SMOKE_RESULT_M04.json",
+      "size": 556,
+      "sha256": "be80066f756a1a04b13efb4b048c387f552feca58fd3b022414cc321ae2f4128"
+    },
+    {
+      "path": "SMOKE_RESULT_M04_1.json",
+      "size": 704,
+      "sha256": "5c66f819294d109693002e8eb9e43212ac07135db47965b8a48f5fb493070181"
+    },
+    {
+      "path": "SMOKE_RESULT_M05.json",
+      "size": 613,
+      "sha256": "b6316db6d238b7a66720d85529d9932ffdae7a7ccc84aa0a2b5851710818f7b4"
+    },
+    {
+      "path": "SMOKE_RESULT_M06.json",
+      "size": 560,
+      "sha256": "44e41766adacef9e1c8a24fd3e4479f3d7c9e6623e7b237a59601561d641e588"
+    },
+    {
+      "path": "SMOKE_RESULT_M07.json",
+      "size": 551,
+      "sha256": "242cc4991b11673645e9e05bf1a21674d45b054edc6dc64ca37fb8aa26e409dd"
+    },
+    {
+      "path": "SMOKE_RESULT_M08.json",
+      "size": 737,
+      "sha256": "bf986a6e20b731b9dc22bcf353bc3f03ecaca7194b56dfc4adbb3a32c50712a2"
+    },
+    {
+      "path": "SMOKE_RESULT_M08_1.json",
+      "size": 612,
+      "sha256": "9aff3759903236b55c17e6478569eaa180ab5ca6193422ae4f4b4aaa6f4d50fb"
+    },
+    {
+      "path": "START_HERE.md",
+      "size": 1970,
+      "sha256": "87d71479bb551c9c6d2571738f19d9bcbfb49be5dde796fb5621b41554c031ce"
+    },
+    {
+      "path": "apps/api/.env.example",
+      "size": 979,
+      "sha256": "d2bd2e02c38da16db931f92ca8df91b9f96f0492297169267b42ebe1f11f6749"
+    },
+    {
+      "path": "apps/api/.pytest_cache/.gitignore",
+      "size": 37,
+      "sha256": "3ed731b65d06150c138e2dadb0be0697550888a6b47eb8c45ecc9adba8b8e9bd"
+    },
+    {
+      "path": "apps/api/.pytest_cache/CACHEDIR.TAG",
+      "size": 191,
+      "sha256": "37dc88ef9a0abeddbe81053a6dd8fdfb13afb613045ea1eb4a5c815a74a3bde4"
+    },
+    {
+      "path": "apps/api/.pytest_cache/README.md",
+      "size": 302,
+      "sha256": "73fd6fccdd802c419a6b2d983d6c3173b7da97558ac4b589edec2dfe443db9ad"
+    },
+    {
+      "path": "apps/api/.pytest_cache/v/cache/nodeids",
+      "size": 1086,
+      "sha256": "a512b5cc29e82dc497df9e10c8db8c7da77ea2f3819abf82c29fa30e9624e19c"
+    },
+    {
+      "path": "apps/api/Dockerfile",
+      "size": 231,
+      "sha256": "47eac8e6ffd3e009563b8fdc8baafadfa8794404d297c1538da99e72fc0f1f6a"
+    },
+    {
+      "path": "apps/api/app/__init__.py",
+      "size": 29,
+      "sha256": "5dddc026d546d0a7bbb95908ff81f83a85525cc5fedffa48b91a1eede092b617"
+    },
+    {
+      "path": "apps/api/app/__pycache__/__init__.cpython-313.pyc",
+      "size": 220,
+      "sha256": "5675a85cab5a81814fc8933887e7149e9b2160b72cc0159aed5fc419a93d891d"
+    },
+    {
+      "path": "apps/api/app/__pycache__/agent_demo.cpython-313.pyc",
+      "size": 8720,
+      "sha256": "55c53b1efcc330321f3f58cb20e872332536f9af9fa15a3b81d539a00da21e88"
+    },
+    {
+      "path": "apps/api/app/__pycache__/benchmark.cpython-313.pyc",
+      "size": 4549,
+      "sha256": "81ac6afae29531b3046d0012cc9ec473d218b3656ff112974b7610bdf230fc7a"
+    },
+    {
+      "path": "apps/api/app/__pycache__/config.cpython-313.pyc",
+      "size": 3316,
+      "sha256": "1bebfd736508e1103ca7d152a79cd66f0037175e2da5682d34e5ec962235d568"
+    },
+    {
+      "path": "apps/api/app/__pycache__/db.cpython-313.pyc",
+      "size": 7206,
+      "sha256": "b840bf95bbc605c9594d538be5fbf418c219b8e470f3ccaa79fe24c1423bc6da"
+    },
+    {
+      "path": "apps/api/app/__pycache__/git_evidence.cpython-313.pyc",
+      "size": 9008,
+      "sha256": "3c58fd7469082dc842a2c225bf59bb392567d7d5b0ac7dd9c3179b6d8c6d76d0"
+    },
+    {
+      "path": "apps/api/app/__pycache__/main.cpython-313.pyc",
+      "size": 18056,
+      "sha256": "3612f2b3381ea26a9622ce501fa9d420675c0902c0a208776ce5c9a566aa2bb2"
+    },
+    {
+      "path": "apps/api/app/__pycache__/model_runtime.cpython-313.pyc",
+      "size": 6990,
+      "sha256": "23fa2edfa79aa923e0aebbb7126cc6b355e80273ebe73c9820c3d86cdf3368fe"
+    },
+    {
+      "path": "apps/api/app/__pycache__/profile.cpython-313.pyc",
+      "size": 2457,
+      "sha256": "fa83192c6d162df65d58f4dd1dd23b7af81a2235c30ef688447c236e3e47568e"
+    },
+    {
+      "path": "apps/api/app/__pycache__/repository.cpython-313.pyc",
+      "size": 24078,
+      "sha256": "4e2ae5dbd36b4f73ea4e5eb6d18e0c5003bfbe35e2b85b41f988fe38300f1bce"
+    },
+    {
+      "path": "apps/api/app/__pycache__/schemas.cpython-313.pyc",
+      "size": 11694,
+      "sha256": "0bea70696a99f536d504964ea6acb989519e8bbf61de12b141a014ed293804b2"
+    },
+    {
+      "path": "apps/api/app/__pycache__/scoring.cpython-313.pyc",
+      "size": 13840,
+      "sha256": "301b0efcf85ade97402391aedda1c00a11918096bb4db7f313d66ad2c0bbd6e7"
+    },
+    {
+      "path": "apps/api/app/__pycache__/supabase_sync.cpython-313.pyc",
+      "size": 9205,
+      "sha256": "5ba08a8dfc27da88d5a9dac4a51f207282991fbc786fd7552b11f6c9d18d27b2"
+    },
+    {
+      "path": "apps/api/app/__pycache__/tailoring.cpython-313.pyc",
+      "size": 4542,
+      "sha256": "6fb6221002e686dce410d5531bf664b6db3c29e7a484dec13af9c5126392da62"
+    },
+    {
+      "path": "apps/api/app/__pycache__/workflow.cpython-313.pyc",
+      "size": 2941,
+      "sha256": "dc982e53fc124f8e61dbbc147450439d775ac88534d25618cbb52f7d2a6e0428"
+    },
+    {
+      "path": "apps/api/app/agent_demo.py",
+      "size": 6077,
+      "sha256": "0ffb97f55826151597dcb8ad7f49f437844b5f9b1e6a69c3de1f9e8cf0f1bf61"
+    },
+    {
+      "path": "apps/api/app/benchmark.py",
+      "size": 3826,
+      "sha256": "fe583754e52cf189fc8864f2e94eb86acaa970ac52c373eed257c4242f9101b5"
+    },
+    {
+      "path": "apps/api/app/config.py",
+      "size": 1830,
+      "sha256": "0be5265a5f81f3e99c4c6959ede65ad2a4a70cb4da36837d4793fae37c326ca2"
+    },
+    {
+      "path": "apps/api/app/db.py",
+      "size": 6046,
+      "sha256": "e6a012e2503ca5c42db9adcb2bc6cecc44dd08128fc826b33f06293755f0bc7e"
+    },
+    {
+      "path": "apps/api/app/git_evidence.py",
+      "size": 5539,
+      "sha256": "32330ab847553ae4281da142715d09b8b3ba220ce00674835016c9b48898cda7"
+    },
+    {
+      "path": "apps/api/app/integrations/__init__.py",
+      "size": 56,
+      "sha256": "75c0f7efb6cfe25f86630d92fc0a625cf8dfe1b28ba0bca9e0a4cf7a28eca2cb"
+    },
+    {
+      "path": "apps/api/app/integrations/__pycache__/__init__.cpython-313.pyc",
+      "size": 260,
+      "sha256": "d9f7c3c677a50d5b6d1681e9a136282d4cbabafbc846aed15a3776dfc9b8eb92"
+    },
+    {
+      "path": "apps/api/app/integrations/__pycache__/supabase_rest.cpython-313.pyc",
+      "size": 7356,
+      "sha256": "6b35e046d1b2347afdef4c9efeee3b32a3a5881b4b78bb1f87650b5be95b7da4"
+    },
+    {
+      "path": "apps/api/app/integrations/supabase_rest.py",
+      "size": 4923,
+      "sha256": "14c8c7aba766c1cb95c43f74c385d5339b433d7cb24ca8e561b722d76f931651"
+    },
+    {
+      "path": "apps/api/app/main.py",
+      "size": 10129,
+      "sha256": "c58aa21abb366eb58066371b14098f7445d39bcdcee67921404656312d11dd25"
+    },
+    {
+      "path": "apps/api/app/model_runtime.py",
+      "size": 5117,
+      "sha256": "c2ad725ae52c8eaf350a7326819b245eea70ebbcdc5e4879feed23d824c4bda7"
+    },
+    {
+      "path": "apps/api/app/profile.py",
+      "size": 2829,
+      "sha256": "ff7376d8014bfe677ab36090f8864dab0b2eb904e7541a97b07c4121f45673f3"
+    },
+    {
+      "path": "apps/api/app/repository.py",
+      "size": 16515,
+      "sha256": "6fd3babdd70d3d2b27926cd91866673de79b79d7843de9d834c1629166986b27"
+    },
+    {
+      "path": "apps/api/app/schemas.py",
+      "size": 6528,
+      "sha256": "5a90f927df9441068977d828bd9c7d1315bd555e8dfd8e9ce113c27fb423425d"
+    },
+    {
+      "path": "apps/api/app/scoring.py",
+      "size": 8979,
+      "sha256": "60f273ce5feb75582199bd588c2a9026e81f4123cc822b5ff7a74ebdc7c14bba"
+    },
+    {
+      "path": "apps/api/app/supabase_sync.py",
+      "size": 7556,
+      "sha256": "c781d3b516c208787ffa7fd0b45d1f3f0c51b337b6a4fe31f0428bd856e4d63a"
+    },
+    {
+      "path": "apps/api/app/tailoring.py",
+      "size": 2855,
+      "sha256": "f111db66dd02a1e2782529f01c7965eecafaa7b3e91da89d9e85e1aace46be63"
+    },
+    {
+      "path": "apps/api/app/workflow.py",
+      "size": 1936,
+      "sha256": "c63cb76f8ea14440d65ea87c9ce554ffb28feafbdcca1b350ff62b8b89df7c2e"
+    },
+    {
+      "path": "apps/api/data/seed_jobs.json",
+      "size": 6249,
+      "sha256": "8729257272678e65c0b2670270f11a7740c904f0474d90a55304fa52ceeafd16"
+    },
+    {
+      "path": "apps/api/pyproject.toml",
+      "size": 151,
+      "sha256": "6316d58369cc46293ca73e577901616feceff15f9b32a7b7e9741b150dafe5f3"
+    },
+    {
+      "path": "apps/api/requirements.txt",
+      "size": 93,
+      "sha256": "2caa0f31a37283fc628fc7a5ca536f55c55a6f87aa3a257f210094b7ec236eb0"
+    },
+    {
+      "path": "apps/api/scripts/collect_git_evidence.py",
+      "size": 1378,
+      "sha256": "1dc1c215b5f2286e9927d071e0a8f09b7aa917ce3ce3140682b7bea71651cc76"
+    },
+    {
+      "path": "apps/api/scripts/prepare_top.py",
+      "size": 461,
+      "sha256": "d341f62db4bee61d16287c0c934fec2f592d7227d5dbde0178e172fbfd398902"
+    },
+    {
+      "path": "apps/api/scripts/run_model_benchmark.py",
+      "size": 815,
+      "sha256": "51dc2442457a6c0a4863853fded9d10f0e1722337a17499ff8c6c3c38c39dbe0"
+    },
+    {
+      "path": "apps/api/scripts/seed.py",
+      "size": 680,
+      "sha256": "384c538cb1ef2923bb0205bbe4a2f392a1e0a0208cd2c7464c300d44c98d6167"
+    },
+    {
+      "path": "apps/api/scripts/seed_engineering.py",
+      "size": 1190,
+      "sha256": "888c8f157eed10b826a2a95c15cacf4ba931bf480b9653c6558970168ad35cbc"
+    },
+    {
+      "path": "apps/api/tests/__pycache__/conftest.cpython-313-pytest-9.0.2.pyc",
+      "size": 1725,
+      "sha256": "158475f87855b2f96a4a517fbc5dfe49278c4e5bf8b856ae7b68957153ce3d3c"
+    },
+    {
+      "path": "apps/api/tests/__pycache__/test_agent_demo.cpython-313-pytest-9.0.2.pyc",
+      "size": 9596,
+      "sha256": "8082f390524b4ecea74c42679490da1de4d5b96bc43b70d8df07d8356a013c25"
+    },
+    {
+      "path": "apps/api/tests/__pycache__/test_engineering.cpython-313-pytest-9.0.2.pyc",
+      "size": 9868,
+      "sha256": "3fbd4981f96a31aba2341b0015de31e91333794cb85f6b3b46bb69d9d141bbd4"
+    },
+    {
+      "path": "apps/api/tests/__pycache__/test_milestone03.cpython-313-pytest-9.0.2.pyc",
+      "size": 17268,
+      "sha256": "42308aee57bc08de4fb37bba37d60391c22ffd41440ee4c51c8f9efb77ef1839"
+    },
+    {
+      "path": "apps/api/tests/__pycache__/test_scoring.cpython-313-pytest-9.0.2.pyc",
+      "size": 5999,
+      "sha256": "6cf0a461740656de1dcc9f1f055b5ba08738a34e247426327fd0eef0cd9c9dea"
+    },
+    {
+      "path": "apps/api/tests/__pycache__/test_workflow.cpython-313-pytest-9.0.2.pyc",
+      "size": 9372,
+      "sha256": "ffd416d44b3f32896dfec7c7a65096bd66c7ffcfeb8a42d37174d15a5ed8f994"
+    },
+    {
+      "path": "apps/api/tests/conftest.py",
+      "size": 638,
+      "sha256": "9e91e124dd43cdc5b367a37baf9db682543c1586c4b1ee597985b3306c8e0a43"
+    },
+    {
+      "path": "apps/api/tests/test_agent_demo.py",
+      "size": 2024,
+      "sha256": "eb3277d2d520b6a3183b52a36d1b9b179df1a993fc67b6f0c1a00ade2517e565"
+    },
+    {
+      "path": "apps/api/tests/test_engineering.py",
+      "size": 2224,
+      "sha256": "800ec4a4b2aedfc9c585940503ee20daf2a61e9efbf8517479fbfe547a5f95c6"
+    },
+    {
+      "path": "apps/api/tests/test_milestone03.py",
+      "size": 5581,
+      "sha256": "28b0fe346c7efba6bc727101d51e56a346b88b0102ad778e9fa8c52ea75da742"
+    },
+    {
+      "path": "apps/api/tests/test_scoring.py",
+      "size": 1346,
+      "sha256": "e7f2891af8cdb58d5a95c998c70238fb3f5ad46720c1ddf03da534095b8a9754"
+    },
+    {
+      "path": "apps/api/tests/test_workflow.py",
+      "size": 1458,
+      "sha256": "ed97d1d4fd41c509904310eccf364f290120a5ce5f9cbca35254d3a736b9ced8"
+    },
+    {
+      "path": "apps/web/.env.example",
+      "size": 626,
+      "sha256": "3f970735df8efa3ffc14bf1c8705c4dc85767d3bc2ab0c262163968502986c0a"
+    },
+    {
+      "path": "apps/web/Dockerfile",
+      "size": 790,
+      "sha256": "c2cc405499c7beddc2c1cc0a3cd970bfa825ad70ce2ea6eba82ef967591d32a6"
+    },
+    {
+      "path": "apps/web/app/agents/page.tsx",
+      "size": 123,
+      "sha256": "e43e002ccaf767e0bb15e4dc951a45ae965fa1b7404d547c9107967f09df7031"
+    },
+    {
+      "path": "apps/web/app/analytics/page.tsx",
+      "size": 279,
+      "sha256": "52d3ae1a08f5ab43059656ed8db6bfaba20dbaa499fe46ea821990936b11557b"
+    },
+    {
+      "path": "apps/web/app/api/control/agents/run/route.ts",
+      "size": 1956,
+      "sha256": "4ccc862e1bc8888442176d2ac8a135b145160ecd6dda70894274303da92c4dab"
+    },
+    {
+      "path": "apps/web/app/api/control/analytics/route.ts",
+      "size": 1419,
+      "sha256": "9dc6b586ccc1c93bd2e9396a5bda9cbf92bde126e4c980aecf57dabe83c050f6"
+    },
+    {
+      "path": "apps/web/app/api/control/applications/[id]/confirm-submission/route.ts",
+      "size": 4510,
+      "sha256": "3da577c283d316f184f5a1eb86b9935a0b8b2d90d62d0bf8b704e42b7232bfa8"
+    },
+    {
+      "path": "apps/web/app/api/control/applications/[id]/export/route.ts",
+      "size": 4006,
+      "sha256": "b3bc56b7fae903a122f0972293fec12444f21bf2838c0886539b23f44e0ca4eb"
+    },
+    {
+      "path": "apps/web/app/api/control/applications/[id]/gmail-draft/route.ts",
+      "size": 4983,
+      "sha256": "5fd2f4814bae4bf06ace8ad2830feda519f31da5d63fd8a18575269e5100d902"
+    },
+    {
+      "path": "apps/web/app/api/control/applications/[id]/open-submission/route.ts",
+      "size": 3270,
+      "sha256": "0ef6710c452503fc5775e3ec0bd834c2a69c1459d86f6a392792077c9b042193"
+    },
+    {
+      "path": "apps/web/app/api/control/applications/route.ts",
+      "size": 3645,
+      "sha256": "0b2b4b195774272e6804ecc06c7c6d781cd4bcc5be73f4bb0f5cd769d3adc8a2"
+    },
+    {
+      "path": "apps/web/app/api/control/approvals/[id]/route.ts",
+      "size": 5999,
+      "sha256": "d97ad3ddb9acbb22fdf6f69bffffa20ffdebbcb9871273c9a653b266b9a686af"
+    },
+    {
+      "path": "apps/web/app/api/control/career-vault/route.ts",
+      "size": 2531,
+      "sha256": "037443b973049c1dc211e5c6f9f735426a5f7b42e3d64fbb2fefd874dd2c3319"
+    },
+    {
+      "path": "apps/web/app/api/control/evaluations/route.ts",
+      "size": 1941,
+      "sha256": "97aa2cb36621682d9a6a4f406f66ca509a27cf03514a234f59371f9d0e5faea9"
+    },
+    {
+      "path": "apps/web/app/api/control/interviews/[id]/complete/route.ts",
+      "size": 5299,
+      "sha256": "b24d0645b912a3b0a6b83f18c270a70b425b693d43aee3f13651907f8c6a4594"
+    },
+    {
+      "path": "apps/web/app/api/control/interviews/[id]/prepare/route.ts",
+      "size": 3205,
+      "sha256": "de33ac6cdedaef376c00e3f747da22577cba649e70a6ced9b8d89d4702596b7b"
+    },
+    {
+      "path": "apps/web/app/api/control/interviews/route.ts",
+      "size": 4436,
+      "sha256": "a50dd60f4af2a6d237cb33cc65a1b525caacacf8e6dda1c7e6fd32e0fae510e0"
+    },
+    {
+      "path": "apps/web/app/api/control/jobs/[id]/apply-plan/route.ts",
+      "size": 5424,
+      "sha256": "f1ff02d8db380d7bf318806ec41ef07bf8659793dd2f5f27450a5e783d1e3350"
+    },
+    {
+      "path": "apps/web/app/api/control/jobs/[id]/evaluate/route.ts",
+      "size": 2742,
+      "sha256": "2201013b8a270b9922d8f27bf37c0aa65d40ca369668a85bc2310b76fd2f9e41"
+    },
+    {
+      "path": "apps/web/app/api/control/jobs/[id]/prepare/route.ts",
+      "size": 4003,
+      "sha256": "2ac831a3d3110c49883599569195b0d34560356efed62e72532ba9538aa70324"
+    },
+    {
+      "path": "apps/web/app/api/control/jobs/[id]/route.ts",
+      "size": 2532,
+      "sha256": "8bced9f56b11a10607c5302a44ba841b4c7dcb783faf29f7d319b04961e613af"
+    },
+    {
+      "path": "apps/web/app/api/control/jobs/route.ts",
+      "size": 4247,
+      "sha256": "f240f81176c043a58af9578eb714dd70de576d258a3129ff5bf092bddf702c73"
+    },
+    {
+      "path": "apps/web/app/api/control/knowledge/documents/[id]/route.ts",
+      "size": 1343,
+      "sha256": "1d49dd423a8f4f3238d50678bf34036e272003ef88ae96608ab08c502cb0fe59"
+    },
+    {
+      "path": "apps/web/app/api/control/knowledge/documents/route.ts",
+      "size": 5978,
+      "sha256": "6f1fcf397e118d5005f93bf3865d16d8ec0550fdc3da365e6e89d6426bd4366c"
+    },
+    {
+      "path": "apps/web/app/api/control/knowledge/search/route.ts",
+      "size": 2353,
+      "sha256": "0e82cd1a121ff7d1825cf0137f611dfcd21a544fbd423b4ae60c529612b3d72c"
+    },
+    {
+      "path": "apps/web/app/api/control/ranking/jobs/route.ts",
+      "size": 1414,
+      "sha256": "b8eb6e9d04f17391d6f313e857f193d921dfc20947e61bd8a71dd2712ba83581"
+    },
+    {
+      "path": "apps/web/app/api/control/resumes/route.ts",
+      "size": 2114,
+      "sha256": "44d6c79226cd21413eb922553ea8f03f877fac9d86a35052fbcf95abad5f4af0"
+    },
+    {
+      "path": "apps/web/app/api/control/session/route.ts",
+      "size": 379,
+      "sha256": "d3e177186765bad8b890088bf4240c4e313614599f449c1484d30c8917a34cd0"
+    },
+    {
+      "path": "apps/web/app/api/control/skill-gaps/[id]/route.ts",
+      "size": 1421,
+      "sha256": "88e7ab259ca2c6090467543ee9ad05680246e653916db71d9492285a6938fde4"
+    },
+    {
+      "path": "apps/web/app/api/control/skill-gaps/route.ts",
+      "size": 1502,
+      "sha256": "25fffd8c8de51ec872d9a712e95ebd7c68cf6e77158aa288b701d5a934361f97"
+    },
+    {
+      "path": "apps/web/app/api/control/sources/[id]/route.ts",
+      "size": 2353,
+      "sha256": "e2d27f5092828dfb22fa36a0fe75ec6f25421ff1aa49c3da5c4e4c9bcc0f3b7c"
+    },
+    {
+      "path": "apps/web/app/api/control/sources/route.ts",
+      "size": 2757,
+      "sha256": "0417c934ff48f64cbb306abb207a15e69ff40a36059e660884b9b6d908a52d12"
+    },
+    {
+      "path": "apps/web/app/api/control/sources/run/route.ts",
+      "size": 1113,
+      "sha256": "f9fff365c4735fa7b85f9439284d3580516da424cf2bb15d950538a2dfad503e"
+    },
+    {
+      "path": "apps/web/app/api/control/weekly-review/route.ts",
+      "size": 1200,
+      "sha256": "4eeef391c5ce002e42fe7075a6789c763064b0883c6d6131284c6555b0677d99"
+    },
+    {
+      "path": "apps/web/app/api/control/workflows/[id]/resume/route.ts",
+      "size": 5541,
+      "sha256": "aac4cad82f6c0fc77f5eea4136284d6e96d486178b4186df6d89ce9d428b042d"
+    },
+    {
+      "path": "apps/web/app/api/control/workflows/evidence-promotion/route.ts",
+      "size": 4277,
+      "sha256": "da29363fdaefb1a6aaeb823421d10ba13f18f6cfa43816e94e63c6664427bd00"
+    },
+    {
+      "path": "apps/web/app/api/control/workflows/route.ts",
+      "size": 887,
+      "sha256": "07cb01936ac2932f21288e01259c8478ca0179880e872a99f41eaf13e24267c1"
+    },
+    {
+      "path": "apps/web/app/api/cron/daily/route.ts",
+      "size": 1778,
+      "sha256": "91adee35d07d084167489c01d9e332b0007157693cd922d1f4e902d84a597542"
+    },
+    {
+      "path": "apps/web/app/api/cron/weekly/route.ts",
+      "size": 1512,
+      "sha256": "1092952eee18a4910087793b8c5d87152c60442f85efeb9bcdaefedaf0793a49"
+    },
+    {
+      "path": "apps/web/app/api/mcp/route.ts",
+      "size": 2988,
+      "sha256": "eb37bc1eb31cc762569afa2d733b0027617c75dc85cba3c4a0c7b1090416446a"
+    },
+    {
+      "path": "apps/web/app/api/runtime/route.ts",
+      "size": 1356,
+      "sha256": "3e9407c48ea5adbacc0adb4676fb4eac5af61944e3e68ed9f7162b3b132fdc33"
+    },
+    {
+      "path": "apps/web/app/applications/page.tsx",
+      "size": 292,
+      "sha256": "85469e357bbb8f23ab8141d5a542efc047e40a7d040a50c137a1e0e77de49de3"
+    },
+    {
+      "path": "apps/web/app/career-vault/page.tsx",
+      "size": 290,
+      "sha256": "db98a87993eae4aa2c74e744e6cfb2caa035e674c62a7a4bd5757a02297abd49"
+    },
+    {
+      "path": "apps/web/app/engineering/page.tsx",
+      "size": 264,
+      "sha256": "f47fb7f7ff1691b60cddbd106d2377f66d41a5bb13da6a3af65b516817e6b52e"
+    },
+    {
+      "path": "apps/web/app/globals.css",
+      "size": 86136,
+      "sha256": "8577d49e37ff803a3586b77edb85140933bbbffe2113c5841546f2c4ad23a28c"
+    },
+    {
+      "path": "apps/web/app/interviews/page.tsx",
+      "size": 282,
+      "sha256": "02bd29d75e0e79d5a95fc1d2683e7dcefb240bd9ee8a42b8f1dc1691946f3cc1"
+    },
+    {
+      "path": "apps/web/app/jobs/page.tsx",
+      "size": 268,
+      "sha256": "5f238b325dce0cf16344903858b8fcb9447b373e693c66e4374b9e1cac403ab6"
+    },
+    {
+      "path": "apps/web/app/knowledge/page.tsx",
+      "size": 283,
+      "sha256": "8364bc9fa5020083a9271a71d42be70beafa2bfae62de88a51bfb35c204879d9"
+    },
+    {
+      "path": "apps/web/app/layout.tsx",
+      "size": 377,
+      "sha256": "ace6538b811be9f612e2d18483b8e1927444073e725a63376b5fa069b8831ebb"
+    },
+    {
+      "path": "apps/web/app/login/page.tsx",
+      "size": 3240,
+      "sha256": "df87a2ff36ac8897d0c7c1a745ffdb02333f4496ad9368014344dbcd39c4e494"
+    },
+    {
+      "path": "apps/web/app/page.tsx",
+      "size": 101,
+      "sha256": "468ca237be494ece46ec349e2ccea72279f02fb3f4041992e0033e1a201af2e9"
+    },
+    {
+      "path": "apps/web/app/playground/page.tsx",
+      "size": 376,
+      "sha256": "32aa32581ada3bdcbe23e5728d900d834e4efe1229a492a5578f225068b20fe1"
+    },
+    {
+      "path": "apps/web/app/resumes/page.tsx",
+      "size": 142,
+      "sha256": "5d448efe20c8af668fd52e4129c89110d3af524dc1c895f8537244006437fd94"
+    },
+    {
+      "path": "apps/web/app/settings/page.tsx",
+      "size": 289,
+      "sha256": "da4f1e9465fdc554d434fec7c0106f62b5023f0eaecef6a4a702eb069787f821"
+    },
+    {
+      "path": "apps/web/app/sources/page.tsx",
+      "size": 277,
+      "sha256": "06357e487d7c0d6ff3b0562688bfcb18593c33ebc28df411dce0187a6a403440"
+    },
+    {
+      "path": "apps/web/components/agent-dashboard.tsx",
+      "size": 9878,
+      "sha256": "143d92a9368639402dc9ee5aac3b496099fdd8f00c48e0a53bd64e03d704e493"
+    },
+    {
+      "path": "apps/web/components/agent-playground.tsx",
+      "size": 7372,
+      "sha256": "bff533e8b568e019eed57877f15941cf0f3d84df498d472fe6558c6111af83ea"
+    },
+    {
+      "path": "apps/web/components/analytics-workspace.tsx",
+      "size": 6689,
+      "sha256": "e3fd8283ebbd3d1968074094cfbf82bce196512578bab67bebc84e95e3495087"
+    },
+    {
+      "path": "apps/web/components/app-shell.tsx",
+      "size": 1173,
+      "sha256": "c531eccab73a42e67241a705cefbb345e87524df98d48abfa470c3cfb8b46480"
+    },
+    {
+      "path": "apps/web/components/applications-workspace.tsx",
+      "size": 7766,
+      "sha256": "1262a6e66ee3a1c5a7ad06296313c403ee95087769efc287572170cce07a73a3"
+    },
+    {
+      "path": "apps/web/components/auth-gate.tsx",
+      "size": 4396,
+      "sha256": "9c853dcea758ab1136e98588ac2cb3565134049223abc291b500cea458649408"
+    },
+    {
+      "path": "apps/web/components/career-vault-workspace.tsx",
+      "size": 4438,
+      "sha256": "75cc93ef2e61bafb5719ae8565fd3a874ecc76107fae1942c79acb51565e48e7"
+    },
+    {
+      "path": "apps/web/components/connections-workspace.tsx",
+      "size": 3630,
+      "sha256": "c1c225ad4b5487b1c1c9b1ee5ae097a7af7a394d7c0cd1c10dc62eb6f56c2a34"
+    },
+    {
+      "path": "apps/web/components/dashboard.tsx",
+      "size": 3841,
+      "sha256": "f9953344089fa0b0bc3018a13d5a294a10b0536518228db7ab1e1bf813c55b7e"
+    },
+    {
+      "path": "apps/web/components/data-page.tsx",
+      "size": 858,
+      "sha256": "e5216168399382ea86e168972bff81bf8cdfa77b48ca356d0f459b43cba84ee3"
+    },
+    {
+      "path": "apps/web/components/engineering-dashboard.tsx",
+      "size": 8986,
+      "sha256": "9fc53166838f02830d2614fe2901585cb7e4f87e78c66c38eb3de484ccffe9e0"
+    },
+    {
+      "path": "apps/web/components/interviews-workspace.tsx",
+      "size": 10623,
+      "sha256": "f322a1ace7835926b92e30460061c17393c62f34e36f6a7540db6b6f6825f63a"
+    },
+    {
+      "path": "apps/web/components/jobs-workspace.tsx",
+      "size": 17432,
+      "sha256": "49d82db98065454c46c08afc2dec897e0c6160e32db07e2a0f9e2af629e21e41"
+    },
+    {
+      "path": "apps/web/components/knowledge-workspace.tsx",
+      "size": 15535,
+      "sha256": "e58e406892ed2f34f2adb13ada44b32f16d2bf79270dc0ba1d49fc22f622b999"
+    },
+    {
+      "path": "apps/web/components/operations-dashboard.tsx",
+      "size": 881,
+      "sha256": "c4cf598385dd55b02b077951384b42d2394f3fe95440e786262f7892e6523500"
+    },
+    {
+      "path": "apps/web/components/resume-agent-workspace.tsx",
+      "size": 4211,
+      "sha256": "a19d8b798c7a34d941f094304674f222028ec3c44e1a221239049f8f09cbef50"
+    },
+    {
+      "path": "apps/web/components/runtime-banner.tsx",
+      "size": 541,
+      "sha256": "d30f4a855f6de77ee1a7ea4f03d3ecbe1f6b39b1c11ef097b623ed372943c19a"
+    },
+    {
+      "path": "apps/web/components/sources-workspace.tsx",
+      "size": 6893,
+      "sha256": "763fed4b6e2d410be19ad88779d13225b25bd97aff8cff316f8ef06a312b2e97"
+    },
+    {
+      "path": "apps/web/lib/agent-controller.ts",
+      "size": 6628,
+      "sha256": "4e7b362d73012f732926a6e529df12401027928c399306a0cb184ae157deb6cb"
+    },
+    {
+      "path": "apps/web/lib/agent-runtime.d.ts",
+      "size": 2364,
+      "sha256": "90942669dcf467511a6cf16fc2fe51c10d9796366b770dffc42352088f902920"
+    },
+    {
+      "path": "apps/web/lib/agent-runtime.mjs",
+      "size": 28379,
+      "sha256": "e85c7e566bac2f85415da95cf6494c4a600813fe23b7c10674eaece1daf4cf40"
+    },
+    {
+      "path": "apps/web/lib/agent-service.ts",
+      "size": 12926,
+      "sha256": "7e56e0df21247eb1600f804381c6072df80c1f4942b60c49e8e85622babf22bd"
+    },
+    {
+      "path": "apps/web/lib/analytics-service.ts",
+      "size": 4611,
+      "sha256": "4374ed0eef37780be9cf07ae2de1f6c8c340716b45a9b2aa0d503b7de96187f5"
+    },
+    {
+      "path": "apps/web/lib/api.ts",
+      "size": 1615,
+      "sha256": "455c3c7ab6beb1b8d66737fa4825519a9b68cb8e4add9b9130b9aef80cc89742"
+    },
+    {
+      "path": "apps/web/lib/application-export.d.ts",
+      "size": 611,
+      "sha256": "deed2d9066f191a2162b703cd7a9cf774e0df7904929a7aca303c5f39b1cb8c6"
+    },
+    {
+      "path": "apps/web/lib/application-export.mjs",
+      "size": 5918,
+      "sha256": "9d9c2ffaee67bbb7460132c2a5568db617168cf155384629a102f6a9a100f00f"
+    },
+    {
+      "path": "apps/web/lib/application-plan.d.ts",
+      "size": 882,
+      "sha256": "aeff1de9e1c4e9cba4d2311f967ce418d831d7151e69eef18bd6c331bbf158af"
+    },
+    {
+      "path": "apps/web/lib/application-plan.mjs",
+      "size": 5150,
+      "sha256": "60fd17e809a7e56f9a9243e58a7545a083d7d4c8d11cebffab89c6b0fafaf47d"
+    },
+    {
+      "path": "apps/web/lib/application-safety.ts",
+      "size": 1228,
+      "sha256": "6b4c19a459079d970edf9ea371acf9d4b63a1219fb796b7c3176155d321a7faa"
+    },
+    {
+      "path": "apps/web/lib/application-view.mjs",
+      "size": 1476,
+      "sha256": "21201d1785828305b0f1609c7681f1debd909764f8e438494a407d908ee5995b"
+    },
+    {
+      "path": "apps/web/lib/career-agent-graph.d.ts",
+      "size": 95,
+      "sha256": "f8296ceb7840ca3bab0c216d3039afa34ad5f95a9f42c1be2e5cb52e1bc72346"
+    },
+    {
+      "path": "apps/web/lib/career-agent-graph.mjs",
+      "size": 4602,
+      "sha256": "66a12d65c8a60c42e0d3af01cdd6244b795fe3eb41019fa7714c2bf5b505da0a"
+    },
+    {
+      "path": "apps/web/lib/control-client.ts",
+      "size": 3504,
+      "sha256": "ceea8a8f3c0ef93f2034a4a46712c10bc267a3f1e4b87b4669bc7202672a35da"
+    },
+    {
+      "path": "apps/web/lib/control-rules.d.ts",
+      "size": 1656,
+      "sha256": "bebcec44bf43f06c857c881e032711299dafa68e16f3503baf9a9ee92cd8d968"
+    },
+    {
+      "path": "apps/web/lib/control-rules.mjs",
+      "size": 21143,
+      "sha256": "7b26d4c0b3f3cfa7061290229800852fbbc47e1fb516d67b0a0b889052b864c0"
+    },
+    {
+      "path": "apps/web/lib/discovery-service.ts",
+      "size": 9874,
+      "sha256": "ebcb183beb6be4359df99687c5a021a1e721a3c578e521e61d6f0db36014b205"
+    },
+    {
+      "path": "apps/web/lib/dispatch-rules.mjs",
+      "size": 2562,
+      "sha256": "b88a89fac1a2facba69f7769a66b64ab32ff41eebd5f9acee59315ed763cd781"
+    },
+    {
+      "path": "apps/web/lib/embedding-service.ts",
+      "size": 2371,
+      "sha256": "53ac7abdbecfc9d20a77eef2e47ba476301727054dac2dd809ce4df53e23f098"
+    },
+    {
+      "path": "apps/web/lib/evidence-promotion-graph.mjs",
+      "size": 2152,
+      "sha256": "58b7a56efaa883d2fc3ecce0a9573605eb354e8dc4fee4392f13a9bb712496b3"
+    },
+    {
+      "path": "apps/web/lib/interview-learning.d.ts",
+      "size": 662,
+      "sha256": "36f0067a7bf157b3554f6896673099473a8690129f013b344f18784edfe73a22"
+    },
+    {
+      "path": "apps/web/lib/interview-learning.mjs",
+      "size": 14363,
+      "sha256": "787fe7b1c0d89744cc6e8fee892f6bfe5fbf049be11a2bfa6c99bc27ddfff3a3"
+    },
+    {
+      "path": "apps/web/lib/job-sources.d.ts",
+      "size": 941,
+      "sha256": "e50f887cd6ed56b5b7e91439e15434003f9045f89ea7f4cafc0e572fb8365cec"
+    },
+    {
+      "path": "apps/web/lib/job-sources.mjs",
+      "size": 7601,
+      "sha256": "b65acb7f2d3aa283c94bb1d74a01cbd331fc98f939abf54ddfeeda99ae1dabfa"
+    },
+    {
+      "path": "apps/web/lib/knowledge-rules.d.ts",
+      "size": 1018,
+      "sha256": "93e8f3268296b920ccbe990ed6bbacefc34266fa3bfbeaef974550c787ad6a97"
+    },
+    {
+      "path": "apps/web/lib/knowledge-rules.mjs",
+      "size": 6952,
+      "sha256": "ce958380f8acb1055aa10fc609a41119d8162310c755de6785ae592e43222da5"
+    },
+    {
+      "path": "apps/web/lib/mock-data.ts",
+      "size": 4305,
+      "sha256": "b275ca1cc4027f0eb466108e118a6316eb5d5bf8e79c54bd9e60807dfe63d5bf"
+    },
+    {
+      "path": "apps/web/lib/portfolio-demo.d.ts",
+      "size": 250,
+      "sha256": "ea8a6599e8efd341a1954e5a12d10c7f3586942b35288d0f0a34c220894a7f47"
+    },
+    {
+      "path": "apps/web/lib/portfolio-demo.mjs",
+      "size": 3677,
+      "sha256": "40f528a6da6ec139f2547ef699a003364e342216788564fd688ab47c90ca504b"
+    },
+    {
+      "path": "apps/web/lib/profile-service.ts",
+      "size": 655,
+      "sha256": "320d622c379967673ec041840a1e61adff1bc434c53ca8b43f29121151500aa6"
+    },
+    {
+      "path": "apps/web/lib/supabase-browser.ts",
+      "size": 519,
+      "sha256": "d384dd596a95a3f633788e245e1f75663953925b506bbac37316cfcf38e036e9"
+    },
+    {
+      "path": "apps/web/lib/supabase-control.ts",
+      "size": 5568,
+      "sha256": "5707bac3b9c543c8b21ea8f1e142688f937349027ff6fcf0b90c5f6bed26f682"
+    },
+    {
+      "path": "apps/web/lib/supabase-langgraph-checkpointer.mjs",
+      "size": 7084,
+      "sha256": "0b9f6f47f3c6f3c5b227d4569f3f9cb9f9054f8b239bf97e7403cbd6b63d5cd9"
+    },
+    {
+      "path": "apps/web/lib/types.ts",
+      "size": 907,
+      "sha256": "43910fcfdac82ef68cd2aec39a8dca7394272ad634cb7e7f97cc5a5e21b12010"
+    },
+    {
+      "path": "apps/web/next-env.d.ts",
+      "size": 81,
+      "sha256": "879741880b6ab48da99dcc06dcc674d381c9826137b0496bf7bb368f302de9fc"
+    },
+    {
+      "path": "apps/web/next.config.ts",
+      "size": 259,
+      "sha256": "4cb02fb60b2c0d2c0b48d16352e8f4692cb74e6061eba68736b6d976fa75bef2"
+    },
+    {
+      "path": "apps/web/open-next.config.ts",
+      "size": 109,
+      "sha256": "55e057e2d32667bb36a088d306191b6df66c85d6d5d51e69b5a2b015079575a8"
+    },
+    {
+      "path": "apps/web/package.json",
+      "size": 1735,
+      "sha256": "8eeee73edd72a1184a494f2163070b3f605dab255a222e449647b0f997d91808"
+    },
+    {
+      "path": "apps/web/public/_headers",
+      "size": 67,
+      "sha256": "90137f0fac2f988faf25c5910b0cfa1b6df9d31596a6b21f4ce4bba6ede5b569"
+    },
+    {
+      "path": "apps/web/tests/agent-runtime.test.mjs",
+      "size": 6379,
+      "sha256": "c242dfbae823c4846d523d5f74effea263d423d9748882c45d735f21fab16045"
+    },
+    {
+      "path": "apps/web/tests/application-export.test.mjs",
+      "size": 1215,
+      "sha256": "023f5bcde4edde63bf2fdb8efbdd176c32124acf5170fa5fc4920540881ca03e"
+    },
+    {
+      "path": "apps/web/tests/application-plan.test.mjs",
+      "size": 2213,
+      "sha256": "f02b6ca6047f02f93b197d79b9d07a72153ee794dc6abdbc841901aaacb64329"
+    },
+    {
+      "path": "apps/web/tests/application-view.test.mjs",
+      "size": 1315,
+      "sha256": "8db8f0b4bd0f6041cf9f0e673c9af63fdff791f676b4216623a56bf8aea9639b"
+    },
+    {
+      "path": "apps/web/tests/control-rules.test.mjs",
+      "size": 7875,
+      "sha256": "28e3009660ebb0ddd9490480e0f84c447bef2376d219c77e353c683f45184200"
+    },
+    {
+      "path": "apps/web/tests/dispatch-queue.test.mjs",
+      "size": 2619,
+      "sha256": "249d240f031a804a60212a551cc336210c437e03f7faf6c0c9172341cac77998"
+    },
+    {
+      "path": "apps/web/tests/interview-learning.test.mjs",
+      "size": 5033,
+      "sha256": "a3cb1e09e613d199484faa340d8766410d0445d32343c2fe9c4bdbe88c6815cf"
+    },
+    {
+      "path": "apps/web/tests/job-sources.test.mjs",
+      "size": 3257,
+      "sha256": "7f23b289c396fff3e67b4e3d1bbd40ba67b40492622357e2d90f30c221f451e4"
+    },
+    {
+      "path": "apps/web/tests/knowledge-rules.test.mjs",
+      "size": 3168,
+      "sha256": "cbc6b6953ee2b055020cf3f2567bc379a80013855a957f2ee97e57800284ece2"
+    },
+    {
+      "path": "apps/web/tests/portfolio-demo.test.mjs",
+      "size": 978,
+      "sha256": "5be02c78dad3e5f3e80625d715338727858a1b0cb20efb9f935d19c757ef9ba1"
+    },
+    {
+      "path": "apps/web/tsconfig.json",
+      "size": 559,
+      "sha256": "e1aec308290de2674dc460b26c3fce754ce6c04ff45c65ccdce866667f8ad3d5"
+    },
+    {
+      "path": "apps/web/wrangler.jsonc",
+      "size": 655,
+      "sha256": "018c128a32a1e8a599f02a3bdb94cd9c9b3d927d5c7a3c9eabb3bab95daac9f1"
+    },
+    {
+      "path": "docker-compose.yml",
+      "size": 1890,
+      "sha256": "af5fb6b9b2c61a2ddb11c81fcaf1e0c74336c9e2fa56ae5cb1d86f58f7ed5f5d"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "size": 915,
+      "sha256": "ee17bf1989a25df022f8370102a0dbb09342da250c1354d376a8a7615227ab15"
+    },
+    {
+      "path": "docs/DESIGN_SYSTEM.md",
+      "size": 770,
+      "sha256": "623ca03ce56a8eb973602aa5375ada6056537c2a90ebe48ef3dbf9f5c10bc6c2"
+    },
+    {
+      "path": "docs/MILESTONE_01.md",
+      "size": 578,
+      "sha256": "197184e3c964f11bc06ef8c759e2e7f7305737973bb24893b524a91e99824ce6"
+    },
+    {
+      "path": "docs/MILESTONE_02.md",
+      "size": 2151,
+      "sha256": "451c0b4e7f2d06de3a7ffab578d985f6b946084a6059b0dcff9659d48c381dd2"
+    },
+    {
+      "path": "docs/MILESTONE_03.md",
+      "size": 2883,
+      "sha256": "256ad168d7c93c6290da3f4a0aced9827b4e6cfe723038efb0db098303865508"
+    },
+    {
+      "path": "docs/MILESTONE_04.md",
+      "size": 1658,
+      "sha256": "faad61bc2307f9ececa73d7da240758f52c335de2a3de4a9c0950e05ecade245"
+    },
+    {
+      "path": "docs/MILESTONE_04_1.md",
+      "size": 761,
+      "sha256": "51684e41ad5a7818f9f52597d2fda2d7601b630871dbb0b16ee0bcfa99675170"
+    },
+    {
+      "path": "docs/MILESTONE_05.md",
+      "size": 5350,
+      "sha256": "7487c204b0645c6711782ea4831206c97898be0d57bd6d0a36546d6bd1243b80"
+    },
+    {
+      "path": "docs/MILESTONE_06.md",
+      "size": 4606,
+      "sha256": "e32ea1b70078c1f82656d563913588858127ec0b7f4f74c38e1022f22f5e36bf"
+    },
+    {
+      "path": "docs/MILESTONE_07.md",
+      "size": 5256,
+      "sha256": "5c0a68698ed1e6a1fd0e0648c67540d88fe3e7f348110f922b7ae087485004d8"
+    },
+    {
+      "path": "docs/MILESTONE_08.md",
+      "size": 6630,
+      "sha256": "697eb56db4083b6d993ffbf65684b3c7e930fcf8398115441df8b6e0ac0ef400"
+    },
+    {
+      "path": "docs/MILESTONE_08_1.md",
+      "size": 1776,
+      "sha256": "a09c9d0ff526af1c499f3b1a61b24f9d8175a0a2530e22f70a504094284ce0cf"
+    },
+    {
+      "path": "docs/OPEN_SOURCE_RESEARCH.md",
+      "size": 697,
+      "sha256": "a1e8054cd64d8fe6ad4a2d10c2e0c9e4e88f09c9237e617e122aaec93db3d989"
+    },
+    {
+      "path": "docs/PRD.md",
+      "size": 1905,
+      "sha256": "2e5d13294db6634a4ce8bf1428019b847eb040a7447c45389b35fe0739a193a4"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "size": 3684,
+      "sha256": "21ae80afd81a35df4365dfe5f733969af849cb84a51e93f0f3f91b120de3ec39"
+    },
+    {
+      "path": "docs/agent-evaluation-report.md",
+      "size": 1723,
+      "sha256": "be10eea44ebd0cdcddcec52aaa48369e135f2c62d033eb147b96169a0cd5bda7"
+    },
+    {
+      "path": "docs/previews/applications-desktop.png",
+      "size": 74285,
+      "sha256": "015d02e3d0fd1cde71a8e5bc463a00268340ac37726f02f17efeaa905a4713c0"
+    },
+    {
+      "path": "docs/previews/applications-mobile.png",
+      "size": 56028,
+      "sha256": "cb62b767e2769c73485a3bd15a35e0e883793ba8314c706963ee3765e7928080"
+    },
+    {
+      "path": "docs/previews/jobs-desktop.png",
+      "size": 93462,
+      "sha256": "579444f8c51432c1b7e40562822f9b81095d4d2ed6a85a1977687bf6d352dc77"
+    },
+    {
+      "path": "docs/previews/jobs-mobile.png",
+      "size": 72057,
+      "sha256": "6eb5eb4e9bfa075b5fe2f17ba581da0ec6e53ab3984cbd9aa782481af01810f0"
+    },
+    {
+      "path": "package.json",
+      "size": 2161,
+      "sha256": "4774accd0169e970e9e1a0d35fa1a3c702aab59117384ddef23caca53f1d5ae3"
+    },
+    {
+      "path": "prototype/app.js",
+      "size": 12912,
+      "sha256": "83acfec6df37e0c5aed6470636f465a39d704427b1d1261be90c58dc15955ea3"
+    },
+    {
+      "path": "prototype/index.html",
+      "size": 1827,
+      "sha256": "a0c2a20aedc96b72f431b28499fe9cc727b67d906512b44d2a60dac470e8d3ce"
+    },
+    {
+      "path": "prototype/styles.css",
+      "size": 14812,
+      "sha256": "7d41285c75a03bbb40a1e855a97e7bec7cde85444e6ecd738642a63bb0b06ade"
+    },
+    {
+      "path": "scripts/deploy_cloudflare.sh",
+      "size": 6443,
+      "sha256": "9347f37493c384a61a95551d0b6b0a9c820c2e67204e32f316032f1f180bcc2e"
+    },
+    {
+      "path": "scripts/full_release.ps1",
+      "size": 2028,
+      "sha256": "e4197f58cecddcc0bcfdee6ff688edc259a29e0da1a24d473ea8212dcc524bb0"
+    },
+    {
+      "path": "scripts/full_release.sh",
+      "size": 1338,
+      "sha256": "7b20d889168f41adfc098af727556d7efd0d49201ba8eec568e32c66a2c4df4a"
+    },
+    {
+      "path": "scripts/generate_agent_evaluation_report.mjs",
+      "size": 3805,
+      "sha256": "e186a644fd15481e40fc1923850ac01d732f88dee19c748ddf6dad4df0ecd37e"
+    },
+    {
+      "path": "scripts/production_e2e_m06.mjs",
+      "size": 3364,
+      "sha256": "473bae5d5b55d94dca8a963ab7503bc0c82e7115f0e9bb1735023ac603e142cf"
+    },
+    {
+      "path": "scripts/production_e2e_m07.mjs",
+      "size": 3417,
+      "sha256": "a1c384d9095d4b8b8aac052e04284e335cb694d333871b616bbee76f451a33a2"
+    },
+    {
+      "path": "scripts/production_e2e_m08.mjs",
+      "size": 3481,
+      "sha256": "508f8b13ccd32b3c5866f81eaf7b2c2b27cb631767a1dda022dde5509608d902"
+    },
+    {
+      "path": "scripts/production_e2e_m08_1.mjs",
+      "size": 844,
+      "sha256": "acf4d2902d2ccf27aff590be11c891696a4bcb32b63cd16e8b03eaded7d1fddf"
+    },
+    {
+      "path": "scripts/smoke_api.py",
+      "size": 1524,
+      "sha256": "fb3eb63e3375fd28422dc0f874353493a4e84ff4aaeafc8ee7b916fd2852082f"
+    },
+    {
+      "path": "scripts/smoke_control_plane.mjs",
+      "size": 3622,
+      "sha256": "99c9018ce468ea9f6f9b9ef2526ac7f2082f898ba6ae3df7ec41e7105fac0dee"
+    },
+    {
+      "path": "scripts/smoke_m03.py",
+      "size": 4292,
+      "sha256": "d0ffa763ab5b1ee52173150f5de0bf0cb668c6912aeca0a2194dff3065ebd438"
+    },
+    {
+      "path": "scripts/smoke_m05.mjs",
+      "size": 3672,
+      "sha256": "aba48129de96fd2845c91fb635cbebefc736c0a1497cfe93086f3b0d6bdf0f51"
+    },
+    {
+      "path": "scripts/smoke_m06.mjs",
+      "size": 4096,
+      "sha256": "b329a8f62c6a00660ab5bcd9ace9164ef489c3747e3b16ef686649c900dde4c9"
+    },
+    {
+      "path": "scripts/smoke_m07.mjs",
+      "size": 2742,
+      "sha256": "a63d66b26589a95e04b21facf9ae76b555132448900c8733f2aea0387d78160b"
+    },
+    {
+      "path": "scripts/smoke_m08.mjs",
+      "size": 3892,
+      "sha256": "e3476939f55de3a6fca56923665fa648d2ba994b8399e5a686738191c69bc567"
+    },
+    {
+      "path": "scripts/smoke_m08_1.mjs",
+      "size": 2086,
+      "sha256": "74593f6adb80e8797cc256ef74807857970c5f8c157aac3193f224242569d2a7"
+    },
+    {
+      "path": "scripts/validate_cloudflare.py",
+      "size": 19390,
+      "sha256": "bca9594b78d1f27cbd42323443dd395656c5930481d1eb9732498765e286d9ba"
+    },
+    {
+      "path": "scripts/validate_frontend.mjs",
+      "size": 1015,
+      "sha256": "9afa27c0ee0945477e240733e1ac436e25da57d49bb1ba28d2fc6736341cedb0"
+    },
+    {
+      "path": "supabase/migrations/0001_core.sql",
+      "size": 6199,
+      "sha256": "a3a7952f0891870a3a9f35b64059b73729bb0e4e632e23a5f93412ed2dcc17cb"
+    },
+    {
+      "path": "supabase/migrations/0002_engineering_evidence.sql",
+      "size": 3036,
+      "sha256": "7836fa98340d47ca7836216a5e7f55f0b14f2df13bc7241208857068f02d3557"
+    },
+    {
+      "path": "supabase/migrations/0003_supabase_runtime_ci_benchmarks.sql",
+      "size": 9863,
+      "sha256": "127ebdea08efb2d2d45a2d4a87f4bfb9d8669f2de191c7f033043b600094ef1c"
+    },
+    {
+      "path": "supabase/migrations/0004_cloudflare_control_plane.sql",
+      "size": 2536,
+      "sha256": "868026ea9d81b2e092bb27a03ec3939e8f64874434f8ee8ac123385af8d0a284"
+    },
+    {
+      "path": "supabase/migrations/0005_discovery_exports_gmail.sql",
+      "size": 3736,
+      "sha256": "95ca0b262d8257d8092f9e2dc614f8986ed9883823ff520f385b1f333a690444"
+    },
+    {
+      "path": "supabase/migrations/0006_interview_learning_analytics.sql",
+      "size": 7179,
+      "sha256": "319849a9474047d116584fadfec98650a149c805184fa90031f00e8bf6a8694a"
+    },
+    {
+      "path": "supabase/migrations/0007_knowledge_graph_workflows.sql",
+      "size": 10675,
+      "sha256": "91786e367ad50496f527ee56f5b4217cee92a77053556a16e7b0256d6a443351"
+    },
+    {
+      "path": "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql",
+      "size": 12524,
+      "sha256": "31f328d2957f75c2f0a4a8e6e3e14a19504288a0a9bb7b2b2d65871eb8987db3"
+    },
+    {
+      "path": "supabase/migrations/0013_dispatch_policy_channel_alignment.sql",
+      "size": 814,
+      "sha256": "453e14efc492c43170640e7dcdf94fbb099e324c32eba616b8c04cf0dc42112b"
+    },
+    {
+      "path": "workers/scheduler/package.json",
+      "size": 393,
+      "sha256": "c390d98ea3fd4fd3835fc7e67ed2e923f4fd0161510107a3c78a12a8a6e50aa1"
+    },
+    {
+      "path": "workers/scheduler/src/index.ts",
+      "size": 1657,
+      "sha256": "c7aa4a751d9fce7ecc8b850eb8faa4c23f741b525e5eb13e6b2c1231af4c16f3"
+    },
+    {
+      "path": "workers/scheduler/tsconfig.json",
+      "size": 256,
+      "sha256": "f8ad8dfe38a5836a65912a1f6a0e55778b8c621dbd747e172305e80760c6c671"
+    },
+    {
+      "path": "workers/scheduler/wrangler.jsonc",
+      "size": 515,
+      "sha256": "7e2bfa05d657b003cc78783178d9c7b473422a7aa0fcc029d77505e040755480"
+    }
+  ]
+}
