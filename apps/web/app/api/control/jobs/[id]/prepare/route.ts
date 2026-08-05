@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }]),
     });
 
-    const applicationPackage = buildApplicationPackage(normalizedJob, evaluation, evidence, resumes, { profile }) as Record<string, any>;
+    const applicationPackage = buildApplicationPackage(normalizedJob, evaluation, evidence, resumes, { profile, account_email: auth.email }) as Record<string, any>;
     const rows = await dataRequest<Array<Record<string, unknown>>>(
       auth,
       "application_packages?on_conflict=user_id,job_id",
@@ -71,6 +71,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           email_body: applicationPackage.email_body,
           highlighted_keywords: applicationPackage.highlighted_keywords,
           evidence_refs: applicationPackage.evidence_refs,
+          content_bundle: applicationPackage.content_bundle,
+          tailored_resume: applicationPackage.tailored_resume,
+          submission_capability: applicationPackage.submission_capability,
+          prepared_at: applicationPackage.prepared_at,
           truth_check: applicationPackage.truth_check,
           approval: "pending",
           approval_note: "",

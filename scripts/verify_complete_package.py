@@ -25,6 +25,10 @@ required = [
     "supabase/migrations/0011_daily_application_queue.sql",
     "supabase/migrations/0014_complete_platform_job_pool.sql",
     "supabase/migrations/0015_profile_resume_daily_recommendations.sql",
+    "supabase/migrations/0016_rls_grants_shared_pool.sql",
+    "supabase/migrations/0017_application_kits_one_click_handoff.sql",
+    "apps/web/lib/application-kit.mjs",
+    "apps/web/lib/application-export.mjs",
     "docs/COMPLETE_PLATFORM_ARCHITECTURE.md",
     "docs/SOURCE_COVERAGE.md",
 ]
@@ -58,6 +62,20 @@ assert "alter column graduation_year drop not null" in migration15.lower()
 assert "alter column graduation_year drop default" in migration15.lower()
 assert "DROP TABLE" not in migration15.upper()
 assert "DROP SCHEMA" not in migration15.upper()
+
+migration16 = (ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql").read_text(encoding="utf-8")
+for token in ["content_bundle", "tailored_resume", "submission_capability", "submission_mode", "handoff_opened_at"]:
+    assert token in migration16
+assert "DROP TABLE" not in migration16.upper()
+assert "DROP SCHEMA" not in migration16.upper()
+
+application_kit = (ROOT / "apps/web/lib/application-kit.mjs").read_text(encoding="utf-8")
+for token in ["buildApplicationContentBundle", "buildTailoredResume", "detectSubmissionCapability", "no_invented_metrics"]:
+    assert token in application_kit
+
+applications_ui = (ROOT / "apps/web/components/applications-workspace.tsx").read_text(encoding="utf-8")
+for token in ["打开完整材料包", "定制简历 / 保存 PDF", "真实申请页已经打开", "一键投递在这里表示"]:
+    assert token in applications_ui
 
 login = (ROOT / "apps/web/app/login/page.tsx").read_text(encoding="utf-8")
 for token in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
@@ -102,6 +120,8 @@ print(json.dumps({
     "complete_profile": True,
     "private_multi_resume_library": True,
     "per_user_daily_recommendations": True,
+    "complete_application_kits": True,
+    "one_click_application_handoff": True,
     "automatic_external_submission": False,
     "destructive_migration": False,
     "source_archive_mode": os.environ.get("VERIFY_SOURCE_ARCHIVE") == "1",

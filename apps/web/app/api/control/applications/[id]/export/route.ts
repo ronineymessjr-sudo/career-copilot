@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message } from "@/lib/application-export.mjs";
+import { answersMarkdown, fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message, tailoredResumeHtml } from "@/lib/application-export.mjs";
 import { currentApplicationSafety } from "@/lib/application-safety";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
@@ -36,10 +36,18 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       body = `${JSON.stringify(packetData(application, job, applicationPackage), null, 2)}\n`;
       contentType = "application/json; charset=utf-8";
       extension = "json";
-    } else if (format === "html") {
+    } else if (format === "html" || format === "kit") {
       body = packetHtml(application, job, applicationPackage);
       contentType = "text/html; charset=utf-8";
       extension = "html";
+    } else if (format === "resume") {
+      body = tailoredResumeHtml(application, job, applicationPackage);
+      contentType = "text/html; charset=utf-8";
+      extension = "html";
+    } else if (format === "answers") {
+      body = answersMarkdown(application, job, applicationPackage);
+      contentType = "text/markdown; charset=utf-8";
+      extension = "md";
     } else if (format === "eml") {
       body = rfc2822Message(job.recruiter_email ?? "", applicationPackage.email_subject ?? `应聘 ${job.title}`, applicationPackage.email_body ?? applicationPackage.greeting ?? "");
       contentType = "message/rfc822; charset=utf-8";
@@ -58,7 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       status: 200,
       headers: {
         "content-type": contentType,
-        "content-disposition": `${format === "html" ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(`${slug}.${extension}`)}`,
+        "content-disposition": `${["html", "kit", "resume"].includes(format) ? "inline" : "attachment"}; filename*=UTF-8''${encodeURIComponent(`${slug}.${extension}`)}`,
         "cache-control": "private, no-store",
       },
     });

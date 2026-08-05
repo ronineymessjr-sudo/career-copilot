@@ -24,7 +24,7 @@ assert.equal(typeof token, "string");
 const headers = { authorization: `Bearer ${token}`, "content-type": "application/json" };
 const runtime = await jsonFetch(`${webUrl}/api/runtime`);
 assert.equal(runtime.response.ok, true, runtime.payload);
-assert.equal(runtime.payload.version, "1.0.1");
+assert.equal(runtime.payload.version, "1.1.0");
 assert.equal(runtime.payload.agentRuntime, true);
 assert.equal(runtime.payload.hybridJobRanking, true);
 assert.equal(runtime.payload.mcpServer, true);
@@ -46,7 +46,7 @@ const mcpInit = await jsonFetch(`${webUrl}/api/mcp`, { method: "POST", headers, 
 assert.equal(mcpInit.response.ok, true, mcpInit.payload);
 assert.equal(mcpInit.payload.result.serverInfo.name, "career-copilot-mcp");
 const result = {
-  version: "1.0.1",
+  version: "1.1.0",
   verified_at: new Date().toISOString(),
   web_url: webUrl,
   runtime_ok: true,

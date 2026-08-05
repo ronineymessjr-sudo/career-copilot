@@ -13,4 +13,4 @@ export type ApplicationPlan = {
   requires_final_confirmation: true;
 };
 export function scoreResumeForJob(input: { job: Record<string, unknown>; evaluation?: Record<string, unknown>; resume: Record<string, unknown> }): number;
-export function buildApplicationPlan(input: { job: Record<string, unknown>; evaluation?: Record<string, unknown>; resumes?: Array<Record<string, unknown>> }): ApplicationPlan;
+export function buildApplicationPlan(input: { job: Record<string, unknown>; evaluation?: Record<string, unknown>; resumes?: Array<Record<string, unknown>>; profile?: Record<string, unknown>; evidence?: Array<Record<string, unknown>> }): ApplicationPlan;

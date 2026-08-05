@@ -47,7 +47,7 @@ test("ready when qualifications, resume and entry are usable", () => {
 test("blocks jobs without a verified submission URL", () => {
   const plan = buildApplicationPlan({ job: { ...job, source_url: "javascript:alert(1)" }, evaluation, resumes: [] });
   assert.equal(plan.status, "blocked");
-  assert.ok(plan.hard_blockers.includes("岗位缺少可验证的真实投递入口"));
+  assert.ok(plan.hard_blockers.some((item) => item.includes("真实投递入口")));
 });
 
 

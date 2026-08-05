@@ -109,7 +109,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         body: JSON.stringify({
           package_id: id,
           status: nextStatus,
-          notes: decision === "approved" ? "材料已批准，等待用户在招聘渠道完成最终提交" : "投递包审批被拒绝",
+          submission_mode: applicationPackage.submission_capability?.mode || applicationPackage.content_bundle?.submission_capability?.mode || "link_handoff",
+          last_submission_action: decision === "approved" ? "材料已批准，等待一键投递" : "投递包审批被拒绝",
+          notes: decision === "approved" ? "简历与全部投递文案已准备，等待用户一键打开投递渠道" : "投递包审批被拒绝",
           updated_at: new Date().toISOString(),
         }),
       },

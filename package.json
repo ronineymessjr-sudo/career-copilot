@@ -38,5 +38,5 @@
     "test:job-pool": "node --test apps/web/tests/job-user-view.test.mjs",
     "test:daily": "node --test apps/web/tests/daily-recommendation-rules.test.mjs"
   },
-  "version": "1.0.1"
+  "version": "1.1.0"
 }

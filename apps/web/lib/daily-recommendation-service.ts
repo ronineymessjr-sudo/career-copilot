@@ -42,7 +42,6 @@ async function autoPrepareApplications(data: AgentData, userId: string, jobIds: 
     data<Row[]>(`resume_versions?select=*&profile_id=eq.${enc(profileId)}&status=eq.approved&order=is_master.desc,updated_at.desc`),
     data<Row[]>(`applications?select=*&user_id=eq.${enc(userId)}&job_id=in.(${jobIds.map(enc).join(",")})`),
   ]);
-  if (!resumes.length) return [];
   const overrideByJob = new Map(overrides.map((item) => [String(item.job_id), item]));
   const applicationByJob = new Map(existingApplications.map((item) => [String(item.job_id), item]));
   const orderedJobs = jobIds.map((id) => jobs.find((job) => String(job.id) === id)).filter(Boolean) as Row[];
@@ -55,8 +54,8 @@ async function autoPrepareApplications(data: AgentData, userId: string, jobIds: 
     const normalizedJob = { ...job, company: job.company_name, company_tier: job.company_tier_text };
     const evaluation = evaluateJob(normalizedJob, evidence, new Date(), profile) as Row;
     if (evaluation.eligible !== true || evaluation.needs_confirmation === true || Number(evaluation.total_score ?? 0) < Number(preferences.minimum_score ?? 70)) continue;
-    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes }) as Row;
-    if (plan.status !== "ready" || !plan.resume?.id) continue;
+    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes, profile, evidence }) as Row;
+    if (plan.status !== "ready") continue;
 
     await data("job_evaluations?on_conflict=user_id,job_id", {
       method: "POST",
@@ -68,7 +67,7 @@ async function autoPrepareApplications(data: AgentData, userId: string, jobIds: 
         hr_preference: evaluation.inferred_hr_preference, risks: evaluation.interview_risks, evaluated_at: new Date().toISOString(),
       }]),
     });
-    const generated = buildApplicationPackage(normalizedJob, evaluation, evidence, resumes, { selected_resume_id: plan.resume.id, profile }) as Row;
+    const generated = buildApplicationPackage(normalizedJob, evaluation, evidence, resumes, { selected_resume_id: plan.resume?.id, profile }) as Row;
     const packages = await data<Row[]>("application_packages?on_conflict=user_id,job_id", {
       method: "POST",
       headers: { Prefer: "resolution=merge-duplicates,return=representation" },
@@ -77,7 +76,9 @@ async function autoPrepareApplications(data: AgentData, userId: string, jobIds: 
         resume_version_name: generated.resume_version_name, resume_filename: generated.resume_filename,
         greeting: generated.greeting, email_subject: generated.email_subject, email_body: generated.email_body,
         highlighted_keywords: generated.highlighted_keywords, evidence_refs: generated.evidence_refs,
-        truth_check: { ...generated.truth_check, application_plan: { fit_score: plan.fit_score, resume_alignment_score: plan.resume.alignment_score, missing_skills: plan.missing_skills, required_materials: plan.required_materials, submission_mode: plan.submission_mode }, automatic_preparation: true },
+        content_bundle: generated.content_bundle, tailored_resume: generated.tailored_resume,
+        submission_capability: generated.submission_capability, prepared_at: generated.prepared_at,
+        truth_check: { ...generated.truth_check, application_plan: { fit_score: plan.fit_score, resume_alignment_score: plan.resume?.alignment_score ?? 0, missing_skills: plan.missing_skills, required_materials: plan.required_materials, submission_mode: plan.submission_mode }, automatic_preparation: true },
         approval: "pending", approval_note: "每日推荐自动准备，等待用户确认", approved_at: null, updated_at: new Date().toISOString(),
       }]),
     });

@@ -1,39 +1,38 @@
-# Career Copilot V2 — Complete Platform R2
+# Career Copilot V2 — Complete Platform R3
 
-Career Copilot 是一个多用户岗位聚合、每日个性化推荐、多版本简历匹配和投递辅助平台。当前交付是完整源码，不是增量补丁。
+Career Copilot 是一个多用户岗位聚合、个性化推荐与投递准备工作台。
 
-## 产品结构
+## R3 新增
 
-- **登录与账号**：注册、邮箱验证、登录、找回密码、修改密码和退出登录。
-- **今日简报**：展示当天为当前用户生成的推荐、岗位池、来源健康和待办。
-- **岗位发现**：展示完整岗位池；画像只影响排序和解释，不隐藏其他岗位。
-- **岗位来源**：自动聚合 Greenhouse、Lever、Ashby 公开 ATS；其他平台通过真实 URL/JD 导入。
-- **投递管理**：每日推荐可自动选择简历、准备材料和加入队列；缺口与批准状态集中处理。
-- **数据看板**：来源、匹配、投递与转化数据。
-- **完整画像**：保存个人简介、技能、教育、经历、项目、语言、证书、链接和岗位偏好。
-- **多版本简历库**：上传原文件、建立主简历、创建通用版本、生成岗位定制版本并保留历史。
-- **项目证据**：保存可核验的项目与能力证据，为材料生成提供依据。
+- 完整岗位定制简历内容
+- 招呼语、求职信、邮件、申请理由与常见问答
+- 可打印并保存为 PDF 的定制简历
+- 完整投递材料包 HTML 与申请问答 Markdown
+- 招聘邮箱 `mailto:` 预填
+- 真实招聘页面一键跳转
+- 项目证据可选，不再作为所有岗位的通用阻塞条件
+- 迁移 `0016_application_kits_one_click_handoff.sql`
 
-## 简历存储
+## 技术栈
 
-- 结构化版本、名称、方向、状态和匹配信息保存在 Supabase 表 `resume_versions`。
-- 上传的 PDF、DOC、DOCX、TXT 原文件保存在私有 Storage 桶 `resume-files`。
-- 文件路径以用户 ID 开头，并由 Storage RLS 限制为当前账号读取。
-- 岗位定制简历始终建立新版本，不覆盖主简历。
+- Next.js 15 / React 19 / TypeScript
+- OpenNext for Cloudflare Workers
+- Cloudflare Scheduler Worker
+- Supabase Auth、Postgres、RLS、Storage
+- Python FastAPI 备用 API 与测试
 
-## 每日推荐与自动准备
+## 快速部署
 
-Cloudflare Scheduler 每天 00:00 UTC 触发，即亚洲 UTC+8 地区 08:00。定时任务会：
+```bash
+npm install --registry=https://registry.npmjs.org --no-audit --no-fund
+npm run test:complete
+python -m pytest apps/api/tests -q
+python scripts/validate_cloudflare.py
+python scripts/verify_complete_package.py
+npm --workspace workers/scheduler run cf-typegen
+npm --workspace apps/web run check
+npm --workspace workers/scheduler run check
+npm --workspace apps/web run cf:build
+```
 
-1. 更新公开岗位来源；
-2. 为每个用户读取自己的画像；
-3. 从完整岗位池生成独立排序；
-4. 按设置自动选择最佳已批准简历；
-5. 检查硬性资格、材料和项目证据；
-6. 将符合条件的材料包放入投递管理，等待用户批准和最终提交。
-
-系统不会自动外部提交、自动发送邮件，也不会保存招聘平台密码、Cookie 或验证码。
-
-## 开始部署
-
-依次阅读：`START_HERE.md`、`DEPLOY_WITH_DEEPSPEED.md`、`DATABASE_DEPLOYMENT_NOTE.md`、`SECRETS_REQUIRED.md`、`DEPLOY_CHECKLIST.md`。
+完整部署流程见 `DEPLOY_WITH_DEEPSPEED.md`。

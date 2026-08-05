@@ -1,4 +1,5 @@
 import { extractJobSkills, recommendResumePersona, RESUME_PERSONAS } from "./agent-runtime.mjs";
+import { detectSubmissionCapability } from "./application-kit.mjs";
 
 function normalize(value) {
   return String(value ?? "").toLowerCase().replace(/[^\p{L}\p{N}+#.]+/gu, " ").replace(/\s+/g, " ").trim();
@@ -65,14 +66,15 @@ function detectRequiredMaterials(job) {
   return materials;
 }
 
-export function buildApplicationPlan({ job, evaluation = {}, resumes = [] }) {
+export function buildApplicationPlan({ job, evaluation = {}, resumes = [], profile = {}, evidence = [] }) {
   const hardBlockers = [...new Set([
     ...(evaluation.hard_filter_reasons ?? evaluation.blockers ?? []),
     ...(evaluation.eligible === false && !(evaluation.hard_filter_reasons ?? evaluation.blockers ?? []).length ? ["岗位未通过硬性资格检查"] : []),
   ])];
   const preparationItems = [...new Set(evaluation.confirmation_questions ?? [])];
   const sourceUrl = httpUrl(job?.source_url);
-  if (!sourceUrl) hardBlockers.push("岗位缺少可验证的真实投递入口");
+  const submissionCapability = detectSubmissionCapability(job);
+  if (!submissionCapability.supported_action) hardBlockers.push("岗位缺少可验证的真实投递入口或招聘邮箱");
 
   const rankedResumes = resumes
     .filter((resume) => resume?.status !== "archived")
@@ -80,16 +82,21 @@ export function buildApplicationPlan({ job, evaluation = {}, resumes = [] }) {
     .sort((left, right) => right.score - left.score || String(right.resume?.updated_at ?? "").localeCompare(String(left.resume?.updated_at ?? "")));
   const best = rankedResumes[0] ?? null;
 
-  if (!best) preparationItems.push("先创建或上传一份可用简历");
-  else {
+  const profileDetails = profile?.profile_details && typeof profile.profile_details === "object" ? profile.profile_details : {};
+  const profileCanGenerateResume = Boolean(
+    profileDetails.summary || profileDetails.headline || (profileDetails.skills ?? []).length ||
+    (profileDetails.experience ?? []).length || (profileDetails.education ?? []).length || (profileDetails.projects ?? []).length,
+  );
+  if (!best && !profileCanGenerateResume) preparationItems.push("先创建或上传一份可用简历，或完善完整画像");
+  else if (best) {
     const hasContent = Boolean(best.resume?.file_path || best.resume?.storage_path || best.resume?.plain_text) || Object.keys(best.resume?.content ?? {}).length > 0;
-    if (!hasContent) preparationItems.push(`“${best.resume?.name ?? "推荐简历"}”没有可投递文件或正文`);
-    if (best.score < 55) preparationItems.push(`当前最佳简历与岗位匹配度仅 ${best.score}%，需要生成针对该岗位的版本`);
+    if (!hasContent && !profileCanGenerateResume) preparationItems.push(`“${best.resume?.name ?? "推荐简历"}”没有可投递文件或正文`);
   }
 
   const requiredMaterials = detectRequiredMaterials(job);
-  const availableText = resumeText(best?.resume ?? {});
+  const availableText = normalize(`${resumeText(best?.resume ?? {})} ${JSON.stringify(profileDetails)} ${JSON.stringify(evidence ?? [])}`);
   for (const material of requiredMaterials) {
+    if (material.includes("求职信")) continue;
     if (material.includes("GitHub") && /github/.test(availableText)) continue;
     if (material.includes("作品集") && /作品集|portfolio|demo/.test(availableText)) continue;
     preparationItems.push(`岗位要求补充：${material}`);
@@ -106,6 +113,7 @@ export function buildApplicationPlan({ job, evaluation = {}, resumes = [] }) {
     status,
     job_id: String(job?.id ?? ""),
     source_url: sourceUrl,
+    submission_capability: submissionCapability,
     fit_score: clamp(evaluation.total_score ?? evaluation.final_score ?? 0),
     resume: best ? {
       id: String(best.resume.id),
@@ -114,12 +122,21 @@ export function buildApplicationPlan({ job, evaluation = {}, resumes = [] }) {
       status: best.resume.status ?? "draft",
       alignment_score: best.score,
       filename: best.resume.original_filename ?? best.resume.storage_path?.split("/").pop() ?? best.resume.file_path?.split("/").pop() ?? "",
+      tailored_copy_generated: best.score < 85,
+    } : profileCanGenerateResume ? {
+      id: null,
+      name: "画像生成定制版",
+      persona: recommendResumePersona(job),
+      status: "generated",
+      alignment_score: clamp(evaluation.total_score ?? 0),
+      filename: "",
+      tailored_copy_generated: true,
     } : null,
     hard_blockers: [...new Set(hardBlockers)],
     preparation_items: preparationItems,
     missing_skills: missingSkills,
     required_materials: requiredMaterials,
-    submission_mode: job?.channel === "email" ? "email_assisted" : "browser_assisted",
+    submission_mode: submissionCapability.mode,
     requires_final_confirmation: true,
   };
 }

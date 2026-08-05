@@ -19,7 +19,19 @@ type Job = Record<string, any> & {
 type PlanResponse = { plan: ApplicationPlan; application_package: Record<string, any> | null };
 type PlanState = PlanResponse & { error?: string };
 type FilterKey = "all" | "recommended" | "ready" | "verify" | "submitted";
-type HandoffResponse = { target_url: string; channel: string; mode: "browser_handoff"; external_submission_performed: false };
+type HandoffResponse = {
+  target_url: string;
+  channel: string;
+  mode: "email_compose" | "link_handoff" | "direct_api";
+  action_label: string;
+  external_submission_performed: false;
+  primary_copy_text?: string;
+  material_kit_url: string;
+  tailored_resume_url: string;
+  answers_url: string;
+  original_resume_url?: string | null;
+  next_step: string;
+};
 type VerificationPatch = { accepts_2028: boolean | null; accepts_students: boolean | null; days_per_week: number | null; minimum_months: number | null };
 
 function eligibility(job: Job) {
@@ -75,9 +87,9 @@ function PlanPanel({ job, state, busyId, onVerify, onConfirm }: { job: Job; stat
     </div>;
   }
   return <div className="platform-plan ok">
-    <div><CheckCircle2 size={17}/><strong>简历和材料已匹配</strong></div>
-    <div className="platform-plan-summary three"><span><small>推荐简历</small><strong>{plan.resume?.name ?? "推荐简历"}</strong></span><span><small>匹配度</small><strong>{plan.resume?.alignment_score ?? 0}%</strong></span><span><small>投递方式</small><strong>{plan.submission_mode === "email_assisted" ? "邮件" : "招聘平台"}</strong></span></div>
-    <button className="primary-button" type="button" onClick={() => void onConfirm(job, state)} disabled={busyId === `submit-${job.id}`}><Send size={16}/>{busyId === `submit-${job.id}` ? "连接中…" : "确认并投递"}</button>
+    <div><CheckCircle2 size={17}/><strong>定制简历和全部投递文案已生成</strong></div>
+    <div className="platform-plan-summary three"><span><small>推荐简历</small><strong>{plan.resume?.name ?? "推荐简历"}</strong></span><span><small>匹配度</small><strong>{plan.resume?.alignment_score ?? 0}%</strong></span><span><small>投递方式</small><strong>{plan.submission_mode === "email_assisted" ? "邮件已预填" : "真实申请页面"}</strong></span></div>
+    <button className="primary-button" type="button" onClick={() => void onConfirm(job, state)} disabled={busyId === `submit-${job.id}`}><Send size={16}/>{busyId === `submit-${job.id}` ? "准备中…" : "确认并去投递"}</button>
   </div>;
 }
 
@@ -189,8 +201,14 @@ export function JobsWorkspace() {
     try {
       const approved = await controlFetch<{ application: Record<string, any> }>(`/api/control/approvals/${pack.id}`, { method: "POST", body: JSON.stringify({ decision: "approve", channel: job.channel, note: `用户选择投递；系统自动匹配 ${state.plan.resume?.name ?? "推荐简历"}` }) });
       const handoff = await controlFetch<HandoffResponse>(`/api/control/applications/${approved.application.id}/open-submission`, { method: "POST" });
+      if (handoff.primary_copy_text) {
+        try { await navigator.clipboard.writeText(handoff.primary_copy_text); } catch { /* Clipboard permission may be unavailable. */ }
+      }
       if (popup) popup.location.replace(handoff.target_url); else window.location.assign(handoff.target_url);
-      setMessage("投递页已打开。平台要求登录或验证码时，只需在新页面完成该步骤。"); await load();
+      setMessage(handoff.mode === "email_compose"
+        ? "邮件草稿已打开，正文也已复制；检查收件人和附件后即可发送。"
+        : "真实申请页面已打开，完整简历和文案保留在投递管理中，按需复制或下载后即可提交。");
+      await load();
     } catch (error) { popup?.close(); setMessage(error instanceof Error ? error.message : "投递连接失败"); }
     finally { setBusyId(""); }
   }

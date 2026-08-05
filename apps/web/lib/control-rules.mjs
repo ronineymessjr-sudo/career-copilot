@@ -1,3 +1,5 @@
+import { buildApplicationContentBundle } from "./application-kit.mjs";
+
 const ROLE_KEYWORDS = [
   "开发", "工程", "产品", "设计", "运营", "市场", "销售", "财务", "法务", "人力",
   "数据", "分析", "测试", "实施", "解决方案", "咨询", "研究", "供应链", "客户成功",
@@ -270,6 +272,9 @@ export function preserveVerifiedJobFields(parsed, existing = {}) {
 
 export function validatePackageEvidence(applicationPackage, evidence = []) {
   const refs = Array.isArray(applicationPackage?.evidence_refs) ? applicationPackage.evidence_refs : [];
+  if (refs.length === 0) {
+    return { passed: true, blockers: [], invalid_refs: [], evidence_optional: true };
+  }
   const verified = new Map();
   for (const item of evidence ?? []) {
     if (item?.active === false) continue;
@@ -288,12 +293,12 @@ export function validatePackageEvidence(applicationPackage, evidence = []) {
     if (changed) invalidRefs.push({ id, reason: "evidence_changed" });
   }
   const blockers = [];
-  if (refs.length === 0) blockers.push("投递包没有引用任何 Career Vault 证据");
   if (invalidRefs.length) blockers.push("投递包引用的证据已删除、停用、取消核验或发生变化，请重新生成材料");
   return {
-    passed: refs.length > 0 && invalidRefs.length === 0,
+    passed: invalidRefs.length === 0,
     blockers,
     invalid_refs: invalidRefs,
+    evidence_optional: false,
   };
 }
 
@@ -464,34 +469,25 @@ export function buildApplicationPackage(job, evaluation, evidence = [], resumeVe
   const selectedEvidence = verified.filter((item) => {
     const skill = lower(item.skill);
     return (evaluation.matched_skills ?? []).some((matched) => skill.includes(matched) || matched.includes(skill));
-  }).slice(0, 3);
-  const fallbackEvidence = selectedEvidence.length ? selectedEvidence : verified.slice(0, 3);
+  }).slice(0, 4);
+  const fallbackEvidence = selectedEvidence.length ? selectedEvidence : verified.slice(0, 4);
   const selectedResumeId = String(options?.selected_resume_id ?? "");
   const activeResumes = (resumeVersions ?? []).filter((item) => item?.status !== "archived");
   const resume = (selectedResumeId ? activeResumes.find((item) => String(item.id) === selectedResumeId) : null)
     ?? activeResumes.find((item) => String(item.target_job_id ?? "") === String(job?.id ?? "") && item.status === "approved")
     ?? activeResumes.find((item) => item.status === "approved")
+    ?? activeResumes.find((item) => item.is_master)
     ?? activeResumes[0]
     ?? null;
-  const resolvedResumeName = resume?.name ?? "通用简历";
   const candidate = options?.profile && typeof options.profile === "object" ? options.profile : {};
-  const profileKeywords = Array.isArray(candidate?.preferences?.keywords) ? candidate.preferences.keywords.map(String) : [];
-  const highlighted = [...new Set([...(evaluation.matched_skills ?? []), ...profileKeywords])].filter(Boolean).slice(0, 6);
-  const projects = [...new Set(fallbackEvidence.map((item) => item.project).filter(Boolean))].slice(0, 2);
-  const projectText = projects.join("、") || "已核验项目证据";
-  const graduationYear = candidate.graduation_year == null || candidate.graduation_year === "" ? 0 : Number(candidate.graduation_year);
-  const major = String(candidate.major ?? "").trim();
-  const degree = String(candidate.degree ?? "").trim();
-  const hasConfirmedIdentity = Boolean(graduationYear || major || degree);
-  const identityParts = [graduationYear ? `${graduationYear} 届` : "", major, degree].filter(Boolean);
-  const identity = hasConfirmedIdentity ? identityParts.join("") : "一名关注该岗位的候选人";
-  const availabilityDays = Number(candidate.availability_days ?? 0);
-  const availabilityMonths = Number(candidate.availability_months ?? 0);
-  const capability = highlighted.slice(0, 4).join("、") || "与岗位相关的能力";
-  const scheduleText = job.is_internship && availabilityDays > 0 && availabilityMonths > 0
-    ? `我目前可每周投入 ${availabilityDays} 天、持续 ${availabilityMonths} 个月。`
-    : "";
-  const greeting = `您好，我是${identity}，关注贵司的“${job.title}”。我具备 ${capability} 的实践，相关证据来自 ${projectText}。${scheduleText}希望进一步了解团队的工作重点、交付标准和招聘流程。`;
+  const contentBundle = buildApplicationContentBundle({
+    job,
+    evaluation,
+    profile: candidate,
+    resume,
+    evidence: fallbackEvidence,
+    accountEmail: String(options?.account_email ?? ""),
+  });
   const evidenceRefs = fallbackEvidence.map((item) => ({
     id: item.id ?? null,
     skill: item.skill,
@@ -499,20 +495,40 @@ export function buildApplicationPackage(job, evaluation, evidence = [], resumeVe
     evidence: item.evidence,
     confidence: item.confidence ?? 90,
   }));
+  const resumeContent = resume?.content && typeof resume.content === "object" ? resume.content : {};
+  const profileDetails = candidate?.profile_details && typeof candidate.profile_details === "object" ? candidate.profile_details : {};
+  const hasResumeMaterial = Boolean(
+    resume?.storage_path || resume?.file_path || resume?.plain_text || Object.keys(resumeContent).length,
+  );
+  const hasProfileMaterial = Boolean(
+    profileDetails.summary || profileDetails.headline || (profileDetails.skills ?? []).length ||
+    (profileDetails.experience ?? []).length || (profileDetails.education ?? []).length || (profileDetails.projects ?? []).length,
+  );
   const blockers = [];
   if (evaluation.needs_confirmation) blockers.push(...evaluation.confirmation_questions);
-  if (!evidenceRefs.length) blockers.push("Career Vault 中没有可引用的已核验证据");
-  const truthPassed = evidenceRefs.length > 0;
+  if (!hasResumeMaterial && !hasProfileMaterial) blockers.push("没有可用于生成简历的画像或简历内容");
+  const truthPassed = blockers.length === 0;
   return {
     resume_version_id: resume?.id ?? null,
-    resume_version_name: resolvedResumeName,
+    resume_version_name: resume?.name ?? "画像生成简历",
     resume_filename: resume?.original_filename ?? resume?.storage_path?.split("/").pop() ?? resume?.file_path?.split("/").pop() ?? "",
-    greeting,
-    email_subject: job.channel === "email" ? `应聘 ${job.title}｜${hasConfirmedIdentity ? identityParts.join("") : "候选人"}` : null,
-    email_body: job.channel === "email" ? `${greeting}\n\n项目证据：\n- ${evidenceRefs.map((item) => `${item.project}：${item.evidence}`).join("\n- ")}` : null,
-    highlighted_keywords: highlighted,
+    greeting: contentBundle.greeting,
+    email_subject: contentBundle.email_subject,
+    email_body: contentBundle.email_body,
+    highlighted_keywords: contentBundle.highlighted_keywords,
     evidence_refs: evidenceRefs,
-    truth_check: { passed: truthPassed, blockers, generated_from_verified_evidence_only: true },
+    content_bundle: contentBundle,
+    tailored_resume: contentBundle.tailored_resume,
+    submission_capability: contentBundle.submission_capability,
+    prepared_at: new Date().toISOString(),
+    truth_check: {
+      passed: truthPassed,
+      blockers,
+      generated_from_saved_profile_and_resume_only: true,
+      verified_evidence_only_when_evidence_is_used: true,
+      evidence_optional: evidenceRefs.length === 0,
+      no_invented_metrics: true,
+    },
     approval: "pending",
   };
 }

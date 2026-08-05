@@ -3,7 +3,7 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     service: "career-copilot-v2",
-    version: "1.0.1",
+    version: "1.1.0",
     runtime: "cloudflare-workers",
     mode: process.env.APP_MODE ?? "demo",
     controlPlane: "approval-first",
@@ -36,8 +36,12 @@ export async function GET() {
     privateMultiResumeLibrary: true,
     perUserDailyRecommendations: true,
     automaticApplicationPreparation: true,
+    completeApplicationKits: true,
+    tailoredResumePrintExport: true,
+    emailComposeHandoff: true,
+    oneClickApplicationHandoff: true,
     automaticExternalSubmission: false,
-    materialExports: ["markdown", "json", "html", "eml"],
+    materialExports: ["markdown", "json", "html", "eml", "kit", "resume", "answers"],
     supabaseConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
     timestamp: new Date().toISOString(),
   });

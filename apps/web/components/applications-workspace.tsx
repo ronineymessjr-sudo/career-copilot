@@ -2,11 +2,23 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Bot, CheckCircle2, ChevronDown, ExternalLink, Inbox, RefreshCw, Save, ShieldCheck, Sparkles } from "lucide-react";
-import { controlFetch } from "@/lib/control-client";
+import { ArrowRight, Bot, CheckCircle2, ChevronDown, ClipboardCheck, Copy, Download, ExternalLink, FileText, Inbox, RefreshCw, Save, ShieldCheck, Sparkles } from "lucide-react";
+import { controlDownload, controlFetch } from "@/lib/control-client";
 
 type Application = Record<string, any>;
-type HandoffResponse = { target_url: string; channel: string; mode: "browser_handoff"; external_submission_performed: false };
+type HandoffResponse = {
+  target_url: string;
+  channel: string;
+  mode: "email_compose" | "link_handoff" | "direct_api";
+  action_label: string;
+  external_submission_performed: false;
+  primary_copy_text?: string;
+  material_kit_url: string;
+  tailored_resume_url: string;
+  answers_url: string;
+  original_resume_url?: string | null;
+  next_step: string;
+};
 type AutomationPreference = {
   enabled: boolean;
   timezone: string;
@@ -17,24 +29,73 @@ type AutomationPreference = {
   require_profile_score: number;
 };
 
-function ApplicationRow({ item, activeHandoffId, busyId, onStart, onConfirm, onApprove }: { item: Application; activeHandoffId: string; busyId: string; onStart: (item: Application) => Promise<void>; onConfirm: (item: Application) => Promise<void>; onApprove: (item: Application) => Promise<void> }) {
+function safeFilename(value: string, fallback: string) {
+  const cleaned = value.replace(/[\\/:*?"<>|]+/g, "-").trim();
+  return cleaned || fallback;
+}
+
+function CopyButton({ value, label = "复制" }: { value: string; label?: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() {
+    if (!value) return;
+    await navigator.clipboard.writeText(value);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  }
+  return <button type="button" className="kit-copy-button" onClick={() => void copy()} disabled={!value}><Copy size={13}/>{copied ? "已复制" : label}</button>;
+}
+
+function MaterialBlock({ label, value }: { label: string; value: string }) {
+  if (!value) return null;
+  return <article className="application-kit-block"><header><strong>{label}</strong><CopyButton value={value}/></header><p>{value}</p></article>;
+}
+
+function ApplicationMaterials({ item, onOpenExport }: { item: Application; onOpenExport: (path: string, filename: string, open: boolean) => Promise<void> }) {
+  const job = item.job ?? {};
+  const pack = item.application_package ?? {};
+  const bundle = pack.content_bundle ?? {};
+  const answers = Array.isArray(bundle.common_answers) ? bundle.common_answers : [];
+  const attachments = Array.isArray(bundle.attachments) ? bundle.attachments : [];
+  const basename = safeFilename(`${job.company_name || "公司"}-${job.title || "岗位"}`, "application");
+  return <div className="application-kit-panel">
+    <div className="application-kit-actions">
+      <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=resume`, `${basename}-定制简历.html`, true)}><FileText size={14}/>定制简历 / 保存 PDF</button>
+      {pack.resume_version_id ? <button type="button" onClick={() => void onOpenExport(`/api/control/resumes/${pack.resume_version_id}/file`, pack.resume_filename || `${basename}-原始简历`, false)}><Download size={14}/>下载原始简历</button> : null}
+      <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=kit`, `${basename}-投递材料.html`, true)}><ClipboardCheck size={14}/>打开完整材料包</button>
+      <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=answers`, `${basename}-申请问答.md`, false)}><Download size={14}/>下载申请问答</button>
+    </div>
+    <div className="application-kit-grid">
+      <MaterialBlock label="招呼语" value={String(bundle.greeting || pack.greeting || "")}/>
+      <MaterialBlock label="求职信" value={String(bundle.cover_letter || "")}/>
+      <MaterialBlock label="邮件主题" value={String(bundle.email_subject || pack.email_subject || "")}/>
+      <MaterialBlock label="邮件正文" value={String(bundle.email_body || pack.email_body || "")}/>
+      {answers.map((answer: Record<string, any>) => <MaterialBlock key={String(answer.key || answer.label)} label={String(answer.label || "申请回答")} value={String(answer.value || "")}/>)}
+    </div>
+    {attachments.length ? <section className="application-attachment-list"><strong>附件检查</strong><div>{attachments.map((attachment: Record<string, any>) => <span key={String(attachment.key)} className={attachment.key === "resume" || attachment.key === "cover_letter" ? "ready" : "check"}><CheckCircle2 size={13}/>{attachment.label}</span>)}</div></section> : null}
+    <p className="application-kit-note">定制简历只使用已保存画像、已有简历和已核验项目证据，不会编造经历或数据。外部招聘平台的最终提交仍需要你确认。</p>
+  </div>;
+}
+
+function ApplicationRow({ item, activeHandoffId, busyId, onStart, onConfirm, onApprove, onOpenExport }: { item: Application; activeHandoffId: string; busyId: string; onStart: (item: Application) => Promise<void>; onConfirm: (item: Application) => Promise<void>; onApprove: (item: Application) => Promise<void>; onOpenExport: (path: string, filename: string, open: boolean) => Promise<void> }) {
   const job = item.job ?? {};
   const pack = item.application_package ?? {};
   const readiness = item.readiness ?? { blockers: [] };
+  const capability = pack.submission_capability ?? pack.content_bundle?.submission_capability ?? item.submission ?? {};
   const ready = item.status === "ready_to_submit" && readiness.ready_to_submit === true;
   const opened = activeHandoffId === String(item.id);
   const canApprove = item.status !== "submitted" && pack.id && pack.approval === "pending" && pack.truth_check?.passed === true && item.evaluation?.eligible === true && item.evaluation?.needs_confirmation !== true;
-  return <article className="platform-application-row">
+  const actionLabel = capability.action_label || (capability.mode === "email_compose" ? "打开邮件投递" : "一键去投递");
+  return <article className="platform-application-row application-row-r3">
     <div className="platform-application-job"><span>{job.company_name ?? "待核验公司"}</span><strong>{job.title ?? "岗位"}</strong><small>{[job.city, job.workplace, job.source_name || item.channel].filter(Boolean).join(" · ") || "岗位入口已准备"}</small></div>
-    <div className="platform-application-resume"><span>已匹配简历</span><strong>{pack.resume_version_name || "简历待匹配"}</strong><small>{pack.truth_check?.application_plan?.resume_alignment_score != null ? `匹配度 ${pack.truth_check.application_plan.resume_alignment_score}%` : "等待材料匹配"}</small></div>
-    <div className="platform-application-state">{ready ? <span className="platform-status ok">可以投递</span> : item.status === "submitted" ? <span className="platform-status done">已投递</span> : canApprove ? <span className="platform-status warn">等待批准</span> : <span className="platform-status warn">需要补齐</span>}</div>
+    <div className="platform-application-resume"><span>已准备简历</span><strong>{pack.resume_version_name || "画像生成定制版"}</strong><small>{pack.truth_check?.application_plan?.resume_alignment_score != null ? `原始版本匹配度 ${pack.truth_check.application_plan.resume_alignment_score}% · 已生成定制内容` : "已生成岗位定制内容"}</small></div>
+    <div className="platform-application-state">{ready ? <span className="platform-status ok">材料齐全</span> : item.status === "submitted" ? <span className="platform-status done">已投递</span> : canApprove ? <span className="platform-status warn">等待确认</span> : <span className="platform-status warn">需要补齐</span>}</div>
     <div className="platform-application-actions">
-      {ready ? <><button className="primary-button" type="button" onClick={() => void onStart(item)} disabled={busyId === `open-${item.id}`}><ExternalLink size={15}/>{busyId === `open-${item.id}` ? "连接中…" : "前往投递"}</button>{opened ? <button className="ghost-button" type="button" onClick={() => void onConfirm(item)} disabled={busyId === `confirm-${item.id}`}>标记已投递</button> : null}</>
+      {ready ? <><button className="primary-button" type="button" onClick={() => void onStart(item)} disabled={busyId === `open-${item.id}`}><ExternalLink size={15}/>{busyId === `open-${item.id}` ? "准备中…" : actionLabel}</button>{opened ? <button className="ghost-button" type="button" onClick={() => void onConfirm(item)} disabled={busyId === `confirm-${item.id}`}>确认已投递</button> : null}</>
         : item.status === "submitted" ? <small>{item.submitted_at ? new Date(item.submitted_at).toLocaleString("zh-CN") : "已确认"}</small>
-        : canApprove ? <button className="primary-button" type="button" onClick={() => void onApprove(item)} disabled={busyId === `approve-${item.id}`}><CheckCircle2 size={15}/>{busyId === `approve-${item.id}` ? "批准中…" : "检查并批准"}</button>
+        : canApprove ? <button className="primary-button" type="button" onClick={() => void onApprove(item)} disabled={busyId === `approve-${item.id}`}><CheckCircle2 size={15}/>{busyId === `approve-${item.id}` ? "确认中…" : "确认材料并进入投递"}</button>
         : <Link className="ghost-button" href={`/jobs?job=${encodeURIComponent(String(job.id ?? ""))}`}>返回岗位处理</Link>}
     </div>
-    {pack.greeting || readiness.blockers?.length ? <details className="platform-application-details"><summary><ChevronDown size={14}/>{readiness.blockers?.length ? "查看阻塞原因" : "查看投递话术"}</summary><div>{readiness.blockers?.length ? <ul>{readiness.blockers.map((blocker: string) => <li key={blocker}>{blocker}</li>)}</ul> : <p>{pack.greeting}</p>}</div></details> : null}
+    {pack.id ? <details className="platform-application-details application-kit-details"><summary><ChevronDown size={14}/>查看简历与全部投递文案</summary><ApplicationMaterials item={item} onOpenExport={onOpenExport}/></details> : readiness.blockers?.length ? <details className="platform-application-details"><summary><ChevronDown size={14}/>查看阻塞原因</summary><div><ul>{readiness.blockers.map((blocker: string) => <li key={blocker}>{blocker}</li>)}</ul></div></details> : null}
   </article>;
 }
 
@@ -66,12 +127,26 @@ export function ApplicationsWorkspace() {
     blocked: items.filter((item) => item.status !== "submitted" && !(item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true)),
   }), [items]);
 
+  async function openExport(path: string, filename: string, openInNewTab: boolean) {
+    try { await controlDownload(path, filename, openInNewTab); }
+    catch (error) { setMessage(error instanceof Error ? error.message : "材料打开失败"); }
+  }
+
   async function startSubmission(item: Application) {
     const popup = window.open("about:blank", "_blank");
-    if (popup) { popup.opener = null; popup.document.title = "正在连接投递入口…"; popup.document.body.textContent = "Career Copilot 正在验证投递入口…"; }
+    if (popup) { popup.opener = null; popup.document.title = "正在准备投递…"; popup.document.body.textContent = "Career Copilot 正在准备简历、文案和真实投递入口…"; }
     setBusyId(`open-${item.id}`);
-    try { const result = await controlFetch<HandoffResponse>(`/api/control/applications/${item.id}/open-submission`, { method: "POST" }); setActiveHandoffId(String(item.id)); setMessage("招聘页面已打开。完成平台提交后，回到这里点击“标记已投递”。"); if (popup) popup.location.replace(result.target_url); else window.location.assign(result.target_url); }
-    catch (error) { popup?.close(); setMessage(error instanceof Error ? error.message : "投递入口连接失败"); }
+    try {
+      const result = await controlFetch<HandoffResponse>(`/api/control/applications/${item.id}/open-submission`, { method: "POST" });
+      if (result.primary_copy_text) await navigator.clipboard.writeText(result.primary_copy_text).catch(() => undefined);
+      setActiveHandoffId(String(item.id));
+      setMessage(result.mode === "email_compose" ? "邮件主题和正文已经填好；检查附件后发送。" : "招呼语已复制，真实申请页已经打开；简历和全部文案仍保留在工作台。");
+      if (result.target_url.startsWith("mailto:")) {
+        popup?.close();
+        window.location.href = result.target_url;
+      } else if (popup) popup.location.replace(result.target_url);
+      else window.location.assign(result.target_url);
+    } catch (error) { popup?.close(); setMessage(error instanceof Error ? error.message : "投递入口连接失败"); }
     finally { setBusyId(""); }
   }
 
@@ -79,7 +154,7 @@ export function ApplicationsWorkspace() {
     const job = item.job ?? {};
     if (!window.confirm(`确认已经完成投递？\n\n${job.company_name ?? ""} · ${job.title ?? ""}`)) return;
     setBusyId(`confirm-${item.id}`);
-    try { await controlFetch(`/api/control/applications/${item.id}/confirm-submission`, { method: "POST", body: JSON.stringify({ confirmed: true, note: "用户确认已在招聘平台完成提交" }) }); setActiveHandoffId(""); setMessage("已记录为已投递。"); await load(); }
+    try { await controlFetch(`/api/control/applications/${item.id}/confirm-submission`, { method: "POST", body: JSON.stringify({ confirmed: true, note: "用户确认已在招聘平台或邮件渠道完成提交" }) }); setActiveHandoffId(""); setMessage("已记录为已投递。"); await load(); }
     catch (error) { setMessage(error instanceof Error ? error.message : "状态更新失败"); }
     finally { setBusyId(""); }
   }
@@ -89,10 +164,10 @@ export function ApplicationsWorkspace() {
     if (!pack?.id) return;
     setBusyId(`approve-${item.id}`);
     try {
-      await controlFetch(`/api/control/approvals/${pack.id}`, { method: "POST", body: JSON.stringify({ decision: "approve", channel: item.job?.channel || item.channel || "platform", note: "用户确认每日推荐自动准备的材料" }) });
-      setMessage("材料已批准，岗位已进入可以投递列表。");
+      await controlFetch(`/api/control/approvals/${pack.id}`, { method: "POST", body: JSON.stringify({ decision: "approve", channel: item.job?.channel || item.channel || "platform", note: "用户确认岗位定制简历与全部投递文案" }) });
+      setMessage("材料已确认，现在可以一键打开投递渠道。");
       await load();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "批准失败"); }
+    } catch (error) { setMessage(error instanceof Error ? error.message : "确认失败"); }
     finally { setBusyId(""); }
   }
 
@@ -111,20 +186,21 @@ export function ApplicationsWorkspace() {
     setBusyId("automation-run");
     try {
       const result = await controlFetch<{ result: Record<string, any> }>("/api/control/automation", { method: "POST", body: JSON.stringify({ action: "run_now" }) });
-      setMessage(`今日推荐已重新生成：推荐 ${result.result.recommended ?? 0} 个岗位，自动准备 ${result.result.prepared ?? 0} 个投递。`);
+      setMessage(`今日推荐已重新生成：推荐 ${result.result.recommended ?? 0} 个岗位，自动准备 ${result.result.prepared ?? 0} 个完整投递包。`);
       await load();
     } catch (error) { setMessage(error instanceof Error ? error.message : "今日推荐运行失败"); }
     finally { setBusyId(""); }
   }
 
+  const rowProps = { activeHandoffId, busyId, onStart: startSubmission, onConfirm: confirmSubmitted, onApprove: approve, onOpenExport: openExport };
   return <section className="platform-workspace">
-    <header className="platform-page-head"><div><h1>投递管理</h1><p>每日推荐会自动匹配简历、检查材料并准备投递包；最终外部提交仍由你确认。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
+    <header className="platform-page-head"><div><h1>投递管理</h1><p>系统每天推荐岗位并准备定制简历、求职信、招呼语和常见问答；支持的渠道直接打开已准备动作，其他渠道跳转真实申请页。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
 
     <section className="platform-panel automation-panel">
-      <header><Bot size={20}/><div><h2>每日推荐与自动投递准备</h2><p>每天 08:00（亚洲时区）为每个账号独立生成推荐。系统可自动准备材料，但不会绕过平台登录、验证码或最终提交确认。</p></div><button className="ghost-button compact" type="button" onClick={() => void runNow()} disabled={busyId === "automation-run"}><Sparkles size={14}/>{busyId === "automation-run" ? "运行中…" : "立即生成今日推荐"}</button></header>
+      <header><Bot size={20}/><div><h2>每日推荐与完整投递包</h2><p>每天 08:00（亚洲时区）为每个账号独立生成推荐，并自动准备岗位定制简历与全部文案。</p></div><button className="ghost-button compact" type="button" onClick={() => void runNow()} disabled={busyId === "automation-run"}><Sparkles size={14}/>{busyId === "automation-run" ? "运行中…" : "立即生成今日推荐"}</button></header>
       {automation ? <div className="automation-settings">
         <label className="platform-checkbox"><input type="checkbox" checked={automation.enabled} onChange={(event) => setAutomation({ ...automation, enabled: event.target.checked })}/>启用每日推荐</label>
-        <label className="platform-checkbox"><input type="checkbox" checked={automation.auto_prepare_enabled} onChange={(event) => setAutomation({ ...automation, auto_prepare_enabled: event.target.checked })}/>自动匹配简历并准备投递材料</label>
+        <label className="platform-checkbox"><input type="checkbox" checked={automation.auto_prepare_enabled} onChange={(event) => setAutomation({ ...automation, auto_prepare_enabled: event.target.checked })}/>自动生成简历和全部投递文案</label>
         <label>每日推荐数量<input type="number" min="1" max="30" value={automation.recommendation_limit} onChange={(event) => setAutomation({ ...automation, recommendation_limit: Number(event.target.value) })}/></label>
         <label>最低匹配分<input type="number" min="0" max="100" value={automation.minimum_score} onChange={(event) => setAutomation({ ...automation, minimum_score: Number(event.target.value) })}/></label>
         <label>每日自动准备上限<input type="number" min="0" max="10" value={automation.auto_prepare_limit} onChange={(event) => setAutomation({ ...automation, auto_prepare_limit: Number(event.target.value) })}/></label>
@@ -133,16 +209,16 @@ export function ApplicationsWorkspace() {
       <footer>{latest ? <span>最近生成：{latest.recommendation_date} · 推荐 {(latest.ranked_job_ids ?? []).length} 个 · 准备 {(latest.prepared_application_ids ?? []).length} 个</span> : <span>尚未生成个人每日推荐</span>}</footer>
     </section>
 
-    <section className="platform-queue-summary"><article><strong>{groups.ready.length}</strong><span>可以直接投递</span></article><article><strong>{groups.blocked.length}</strong><span>等待批准或补齐</span></article><article><strong>{groups.submitted.length}</strong><span>最近已完成</span></article><Link href="/jobs">继续选岗位<ArrowRight size={15}/></Link></section>
+    <section className="platform-queue-summary"><article><strong>{groups.ready.length}</strong><span>材料齐全可投递</span></article><article><strong>{groups.blocked.length}</strong><span>等待确认或补齐</span></article><article><strong>{groups.submitted.length}</strong><span>最近已完成</span></article><Link href="/jobs">继续选岗位<ArrowRight size={15}/></Link></section>
     {message ? <div className="platform-message">{message}</div> : null}
 
-    {!items.length ? <section className="platform-empty-guide"><Inbox size={26}/><h2>投递队列目前为空</h2><p>立即运行一次今日推荐，系统会从完整岗位池中选择匹配岗位并准备投递；也可以手动从岗位池点击“投这个”。</p><div><button className="primary-button" type="button" onClick={() => void runNow()}><Sparkles size={15}/>生成今日推荐</button><Link href="/jobs"><strong>浏览完整岗位池</strong><small>查看所有岗位并手动选择</small></Link><Link href="/resumes"><strong>准备多份简历</strong><small>上传主简历和不同方向版本</small></Link></div></section> : null}
+    {!items.length ? <section className="platform-empty-guide"><Inbox size={26}/><h2>投递队列目前为空</h2><p>立即运行今日推荐，系统会自动选择岗位、匹配简历并生成完整投递包。</p><div><button className="primary-button" type="button" onClick={() => void runNow()}><Sparkles size={15}/>生成今日推荐</button><Link href="/jobs"><strong>浏览完整岗位池</strong><small>查看所有岗位并手动选择</small></Link><Link href="/resumes"><strong>准备多份简历</strong><small>上传主简历和不同方向版本</small></Link></div></section> : null}
 
-    {groups.ready.length ? <section className="platform-section"><header><h2>等待投递</h2><span>{groups.ready.length} 个</span></header><div className="platform-data-panel"><div className="platform-table-head platform-application-table-head"><span>岗位</span><span>简历</span><span>状态</span><span>操作</span></div>{groups.ready.map((item) => <ApplicationRow key={item.id} item={item} activeHandoffId={activeHandoffId} busyId={busyId} onStart={startSubmission} onConfirm={confirmSubmitted} onApprove={approve}/>)}</div></section> : items.length ? <section className="platform-notice neutral"><ShieldCheck size={19}/><span><strong>还没有可以直接投递的岗位</strong><small>下面列出了自动准备或手动选择后，仍待批准、补条件或补材料的岗位。</small></span><Link href="/jobs">继续选择岗位</Link></section> : null}
+    {groups.ready.length ? <section className="platform-section"><header><h2>材料齐全，可以投递</h2><span>{groups.ready.length} 个</span></header><div className="platform-data-panel"><div className="platform-table-head platform-application-table-head"><span>岗位</span><span>简历</span><span>状态</span><span>操作</span></div>{groups.ready.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></section> : items.length ? <section className="platform-notice neutral"><ShieldCheck size={19}/><span><strong>还没有材料齐全的岗位</strong><small>下面列出了仍待确认条件、材料或用户批准的岗位。</small></span><Link href="/jobs">继续选择岗位</Link></section> : null}
 
-    {groups.blocked.length ? <section className="platform-section"><header><h2>等待批准或需要补齐</h2><span>{groups.blocked.length} 个</span></header><div className="platform-data-panel"><div className="platform-table-head platform-application-table-head"><span>岗位</span><span>简历</span><span>状态</span><span>操作</span></div>{groups.blocked.map((item) => <ApplicationRow key={item.id} item={item} activeHandoffId={activeHandoffId} busyId={busyId} onStart={startSubmission} onConfirm={confirmSubmitted} onApprove={approve}/>)}</div></section> : null}
+    {groups.blocked.length ? <section className="platform-section"><header><h2>等待确认或需要补齐</h2><span>{groups.blocked.length} 个</span></header><div className="platform-data-panel"><div className="platform-table-head platform-application-table-head"><span>岗位</span><span>简历</span><span>状态</span><span>操作</span></div>{groups.blocked.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></section> : null}
 
-    {groups.submitted.length ? <details className="platform-history"><summary><CheckCircle2 size={16}/>最近已投递 <span>{groups.submitted.length}</span></summary><div>{groups.submitted.map((item) => <ApplicationRow key={item.id} item={item} activeHandoffId={activeHandoffId} busyId={busyId} onStart={startSubmission} onConfirm={confirmSubmitted} onApprove={approve}/>)}</div></details> : null}
-    <p className="platform-safety">自动投递在这里的含义是：自动推荐、自动选简历、自动生成材料并加入待投递队列。最终提交仍在招聘平台页面完成；工作台不会保存平台密码、Cookie 或验证码。</p>
+    {groups.submitted.length ? <details className="platform-history"><summary><CheckCircle2 size={16}/>最近已投递 <span>{groups.submitted.length}</span></summary><div>{groups.submitted.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></details> : null}
+    <p className="platform-safety">一键投递在这里表示：系统生成全部材料并打开已准备的邮件或真实招聘页面。系统不会保存招聘平台密码、Cookie 或验证码，也不会把“打开页面”冒充成已经提交。</p>
   </section>;
 }

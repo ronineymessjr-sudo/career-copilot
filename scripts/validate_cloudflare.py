@@ -78,6 +78,10 @@ REQUIRED = [
     ROOT / "scripts/generate_agent_evaluation_report.mjs",
     ROOT / "docs/agent-evaluation-report.md",
     ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql",
+    ROOT / "supabase/migrations/0016_rls_grants_shared_pool.sql",
+    ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql",
+    ROOT / "apps/web/lib/application-kit.mjs",
+    ROOT / "apps/web/lib/application-export.mjs",
     ROOT / "apps/web/app/login/page.tsx",
     ROOT / "apps/web/app/api/control/profile/route.ts",
     ROOT / "apps/web/app/api/control/resumes/upload/route.ts",
@@ -116,7 +120,7 @@ for required in ["job_sources", "discovery_runs", "gmail_draft_id", "hr_verified
 assert "provider in ('greenhouse','lever')" in migration
 
 runtime = (ROOT / "apps/web/app/api/runtime/route.ts").read_text()
-assert 'version: "1.0.1"' in runtime
+assert 'version: "1.1.0"' in runtime
 assert "automaticSubmission: false" in runtime
 assert "gmailDraftOnly: true" in runtime
 assert "publicSourceDiscovery: true" in runtime
@@ -324,8 +328,8 @@ assert "SUPABASE_SECRET_KEY" not in client_text_m07
 
 
 api_main = (ROOT / "apps/api/app/main.py").read_text()
-assert 'version="1.0.1"' in api_main
-assert '"version":"1.0.1"' in api_main
+assert 'version="1.1.0"' in api_main
+assert '"version":"1.1.0"' in api_main
 
 auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text()
 assert "包内全部迁移（按文件名顺序）" in auth_gate
@@ -339,8 +343,9 @@ assert "target_host" in open_submission
 
 applications_workspace = (ROOT / "apps/web/components/applications-workspace.tsx").read_text()
 assert "/open-submission" in applications_workspace
-assert "招聘页面已打开" in applications_workspace
-assert "external_submission_performed: false" in applications_workspace
+assert "真实申请页已经打开" in applications_workspace
+assert "一键投递在这里表示" in applications_workspace
+assert "打开完整材料" in applications_workspace
 assert "Gmail" not in applications_workspace
 
 complete_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text()
@@ -350,8 +355,8 @@ assert "platform-sidebar-note" in complete_shell
 
 root_package = json.loads((ROOT / "package.json").read_text())
 web_package = json.loads((ROOT / "apps/web/package.json").read_text())
-assert root_package["version"] == "1.0.1"
-assert web_package["version"] == "1.0.1"
+assert root_package["version"] == "1.1.0"
+assert web_package["version"] == "1.1.0"
 assert web_package["dependencies"]["@langchain/core"] == "1.2.3"
 assert web_package["dependencies"]["@langchain/langgraph"] == "1.4.8"
 assert web_package["dependencies"]["@langchain/langgraph-checkpoint"] == "1.0.3"
@@ -372,15 +377,23 @@ for required in [
 assert "alter column graduation_year drop not null" in migration15.lower()
 assert "alter column graduation_year drop default" in migration15.lower()
 
-migration16 = (ROOT / "supabase/migrations/0016_rls_grants_shared_pool.sql").read_text()
-for required in [
-    "job_scores_owner_all",
-    "resume_alignments_owner_all",
-    "daily_recommendations_owner_insert",
-    "daily_recommendations_owner_update",
-    "grant insert, update, delete on career_copilot.daily_recommendations",
-]:
+migration16 = (ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql").read_text()
+for required in ["content_bundle", "tailored_resume", "submission_capability", "submission_mode", "handoff_opened_at"]:
     assert required in migration16
+assert "drop table" not in migration16.lower()
+assert "drop schema" not in migration16.lower()
+
+migration16rls = (ROOT / "supabase/migrations/0016_rls_grants_shared_pool.sql").read_text()
+for required in ["job_scores_owner_all", "resume_alignments_owner_all", "daily_recommendations_owner_insert", "grant insert, update, delete on career_copilot.daily_recommendations"]:
+    assert required in migration16rls
+
+application_kit = (ROOT / "apps/web/lib/application-kit.mjs").read_text()
+for required in ["buildApplicationContentBundle", "buildTailoredResume", "detectSubmissionCapability", "buildMailtoUrl", "no_invented_metrics"]:
+    assert required in application_kit
+
+application_export = (ROOT / "apps/web/lib/application-export.mjs").read_text()
+for required in ["tailoredResumeHtml", "answersMarkdown", "packetHtml"]:
+    assert required in application_export
 
 profile_service = (ROOT / "apps/web/lib/profile-service.ts").read_text()
 agent_controller = (ROOT / "apps/web/lib/agent-controller.ts").read_text()
@@ -412,7 +425,7 @@ login_page = (ROOT / "apps/web/app/login/page.tsx").read_text()
 for required in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
     assert required in login_page
 
-for flag in ["completeUserProfiles: true", "privateMultiResumeLibrary: true", "perUserDailyRecommendations: true", "automaticApplicationPreparation: true", "automaticExternalSubmission: false"]:
+for flag in ["completeUserProfiles: true", "privateMultiResumeLibrary: true", "perUserDailyRecommendations: true", "automaticApplicationPreparation: true", "completeApplicationKits: true", "tailoredResumePrintExport: true", "emailComposeHandoff: true", "oneClickApplicationHandoff: true", "automaticExternalSubmission: false"]:
     assert flag in runtime
 
 migration8 = (ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql").read_text()

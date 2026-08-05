@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       : [];
     const normalizedJob = { ...job, company: job.company_name, company_tier: job.company_tier_text };
     const evaluation = evaluateJob(normalizedJob, evidence, new Date(), profile) as Record<string, any>;
-    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes }) as Record<string, any>;
+    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes, profile, evidence }) as Record<string, any>;
 
     await dataRequest(auth, "job_evaluations?on_conflict=user_id,job_id", {
       method: "POST",
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     let applicationPackage: Record<string, any> | null = null;
     if (plan.status === "ready") {
-      const generated = buildApplicationPackage(normalizedJob, evaluation, evidence, resumes, { selected_resume_id: plan.resume?.id, profile }) as Record<string, any>;
+      const generated = buildApplicationPackage(normalizedJob, evaluation, evidence, resumes, { selected_resume_id: plan.resume?.id, profile, account_email: auth.email }) as Record<string, any>;
       const rows = await dataRequest<Array<Record<string, any>>>(auth, "application_packages?on_conflict=user_id,job_id", {
         method: "POST",
         headers: { Prefer: "resolution=merge-duplicates,return=representation" },
@@ -98,6 +98,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
           email_body: generated.email_body,
           highlighted_keywords: generated.highlighted_keywords,
           evidence_refs: generated.evidence_refs,
+          content_bundle: generated.content_bundle,
+          tailored_resume: generated.tailored_resume,
+          submission_capability: generated.submission_capability,
+          prepared_at: generated.prepared_at,
           truth_check: {
             ...generated.truth_check,
             application_plan: {

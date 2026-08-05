@@ -1,1461 +1,1479 @@
 {
-  "release": "Career Copilot V2 Complete Platform R2",
-  "release_label": "complete-platform-profile-resume-daily-2026.08.05",
+  "release": "Career Copilot V2 Complete Platform R3",
+  "application_version": "1.1.0",
+  "latest_migration": "0016_application_kits_one_click_handoff.sql",
   "base_repository_commit": "615265f",
-  "latest_migration": "0015_profile_resume_daily_recommendations.sql",
-  "test_results": {
-    "node": 72,
-    "python": 14,
-    "total": 86,
-    "failures": 0,
-    "typescript_tsx_parsed": 94
-  },
-  "automatic_external_submission": false,
-  "file_count": 289,
+  "file_count": 294,
+  "total_bytes": 1202201,
   "files": [
     {
       "path": ".dockerignore",
-      "size": 111,
+      "bytes": 111,
       "sha256": "901289d95483825d0c9b53aabd964c6d70abaf050d22b0d525c9fa14e94124d2"
     },
     {
       "path": ".github/workflows/cloudflare-deploy.yml",
-      "size": 8974,
-      "sha256": "dfba0b18f7783b9e91c615a11d1430bf16c01e039fa18c61ed24b55f099a57e0"
+      "bytes": 8974,
+      "sha256": "c2c517421522fa9d346eeeca6964cc881b68d15eb4130ebfc1fbccb88b3e6fd7"
     },
     {
       "path": ".github/workflows/engineering-evidence.yml",
-      "size": 3035,
+      "bytes": 3035,
       "sha256": "9e60fbb19f6b14a5a3fe163dc84d0ba9b870268238ede38bc942a0eec9565cd2"
     },
     {
       "path": ".gitignore",
-      "size": 247,
+      "bytes": 247,
       "sha256": "355ff662874c012d2f640aafbadc99bc4078af1258e3c674823977ceabc3df06"
     },
     {
       "path": "DATABASE_DEPLOYMENT_NOTE.md",
-      "size": 2117,
-      "sha256": "2bcabcc18ea030e63056b57d857d7786cc65a4368b5160aae493584a619bc559"
+      "bytes": 865,
+      "sha256": "73d6cdb53f31888337eec582499d68d2426eabb4f21353968ede1ca9017d8c67"
     },
     {
       "path": "DEPLOY_CHECKLIST.md",
-      "size": 2528,
-      "sha256": "756864f50343c37f1b0bc6de6ebcaa5027b2422e13beea8f41ab646daeb359cf"
+      "bytes": 1474,
+      "sha256": "bcff39190a6d763e45f152ac3c34f040c7bfb7edfe06e69cc5af0d5d351bd641"
     },
     {
       "path": "DEPLOY_WITH_DEEPSPEED.md",
-      "size": 4534,
-      "sha256": "f75f5f5197d3acd6dcda59fc0fc60288fdfd2dd91e3704ecb40b300ebf80f7d5"
+      "bytes": 1464,
+      "sha256": "ac0d860a7f21c715388e7a2535eb725e356904c5356130c3e034c7d5c6ebd25f"
     },
     {
       "path": "FULL_PACKAGE_VERSION.txt",
-      "size": 275,
-      "sha256": "a3b997b777d4b28b4591eff50cae3d215544d2eb721340a874fe1fd953a54556"
+      "bytes": 277,
+      "sha256": "07d3f97cd21ded52415905f591f97036e7f0297044c8a8858ef10628d95e4f4b"
     },
     {
       "path": "LICENSE",
-      "size": 1087,
+      "bytes": 1087,
       "sha256": "6c14b93b0a45f7ebab974822d4c03e0fcce212794fc6f175e612783b03538f89"
     },
     {
       "path": "Makefile",
-      "size": 697,
+      "bytes": 697,
       "sha256": "eb4a6c63eaf45a66ab2e4e3c888c32b4ee3f8f8c8790f8e297e7fed0228e9852"
     },
     {
+      "path": "R3_VALIDATION.md",
+      "bytes": 851,
+      "sha256": "9cfcce6f1659c715e5fd6aa55c0952e9b42ffd0619eb7174dab02157d3b595e0"
+    },
+    {
       "path": "README.md",
-      "size": 2260,
-      "sha256": "121bd485489085a8bc9555a967e7315ece77205cbad92bfedc026f452888ecd5"
+      "bytes": 1189,
+      "sha256": "cef808a18096106292698da94f476ceae2e22b5772e4a66ece4201a16ffaee3a"
     },
     {
       "path": "RELEASE_COMPLETE_PLATFORM.md",
-      "size": 1210,
-      "sha256": "2e58e0fad3d01438cd5cb28a022969677a0c1ede919ad865d2005278139083b5"
+      "bytes": 1473,
+      "sha256": "bacdddc91bf3150553ecb187d68ace52a413464dc54ed2888eebe15c91d7bde6"
     },
     {
       "path": "SECRETS_REQUIRED.md",
-      "size": 1400,
+      "bytes": 1400,
       "sha256": "5a87e9fc0c1153a894ae13925c9ca30209abcb331002abb654e08b778aba1200"
     },
     {
-      "path": "SMOKE_RESULT_M08_1.json",
-      "size": 612,
-      "sha256": "9aff3759903236b55c17e6478569eaa180ab5ca6193422ae4f4b4aaa6f4d50fb"
-    },
-    {
       "path": "START_HERE.md",
-      "size": 2564,
-      "sha256": "0e164f5b0cd63e8c3b8ae7274afdafbbfe4006d22175dc1fe408a1cc853a7ffe"
+      "bytes": 2029,
+      "sha256": "f487fb156f4632f30100a45971326e8b396ee50103794313cf6a9e2771901ac0"
     },
     {
       "path": "apps/api/.env.example",
-      "size": 979,
+      "bytes": 979,
       "sha256": "d2bd2e02c38da16db931f92ca8df91b9f96f0492297169267b42ebe1f11f6749"
     },
     {
       "path": "apps/api/Dockerfile",
-      "size": 231,
+      "bytes": 231,
       "sha256": "47eac8e6ffd3e009563b8fdc8baafadfa8794404d297c1538da99e72fc0f1f6a"
     },
     {
       "path": "apps/api/app/__init__.py",
-      "size": 29,
+      "bytes": 29,
       "sha256": "5dddc026d546d0a7bbb95908ff81f83a85525cc5fedffa48b91a1eede092b617"
     },
     {
       "path": "apps/api/app/agent_demo.py",
-      "size": 6077,
+      "bytes": 6077,
       "sha256": "0ffb97f55826151597dcb8ad7f49f437844b5f9b1e6a69c3de1f9e8cf0f1bf61"
     },
     {
       "path": "apps/api/app/benchmark.py",
-      "size": 3826,
+      "bytes": 3826,
       "sha256": "fe583754e52cf189fc8864f2e94eb86acaa970ac52c373eed257c4242f9101b5"
     },
     {
       "path": "apps/api/app/config.py",
-      "size": 1830,
+      "bytes": 1830,
       "sha256": "0be5265a5f81f3e99c4c6959ede65ad2a4a70cb4da36837d4793fae37c326ca2"
     },
     {
       "path": "apps/api/app/db.py",
-      "size": 6046,
+      "bytes": 6046,
       "sha256": "e6a012e2503ca5c42db9adcb2bc6cecc44dd08128fc826b33f06293755f0bc7e"
     },
     {
       "path": "apps/api/app/git_evidence.py",
-      "size": 5539,
+      "bytes": 5539,
       "sha256": "32330ab847553ae4281da142715d09b8b3ba220ce00674835016c9b48898cda7"
     },
     {
       "path": "apps/api/app/integrations/__init__.py",
-      "size": 56,
+      "bytes": 56,
       "sha256": "75c0f7efb6cfe25f86630d92fc0a625cf8dfe1b28ba0bca9e0a4cf7a28eca2cb"
     },
     {
       "path": "apps/api/app/integrations/supabase_rest.py",
-      "size": 4923,
+      "bytes": 4923,
       "sha256": "14c8c7aba766c1cb95c43f74c385d5339b433d7cb24ca8e561b722d76f931651"
     },
     {
       "path": "apps/api/app/main.py",
-      "size": 10129,
-      "sha256": "c58aa21abb366eb58066371b14098f7445d39bcdcee67921404656312d11dd25"
+      "bytes": 10129,
+      "sha256": "c9663be8d9b4ad4ea67b6266d47a2b14279338e1e224c256017ba9941eb828c1"
     },
     {
       "path": "apps/api/app/model_runtime.py",
-      "size": 5117,
+      "bytes": 5117,
       "sha256": "c2ad725ae52c8eaf350a7326819b245eea70ebbcdc5e4879feed23d824c4bda7"
     },
     {
       "path": "apps/api/app/profile.py",
-      "size": 2829,
+      "bytes": 2829,
       "sha256": "ff7376d8014bfe677ab36090f8864dab0b2eb904e7541a97b07c4121f45673f3"
     },
     {
       "path": "apps/api/app/repository.py",
-      "size": 16515,
+      "bytes": 16515,
       "sha256": "6fd3babdd70d3d2b27926cd91866673de79b79d7843de9d834c1629166986b27"
     },
     {
       "path": "apps/api/app/schemas.py",
-      "size": 6528,
+      "bytes": 6528,
       "sha256": "5a90f927df9441068977d828bd9c7d1315bd555e8dfd8e9ce113c27fb423425d"
     },
     {
       "path": "apps/api/app/scoring.py",
-      "size": 8979,
+      "bytes": 8979,
       "sha256": "60f273ce5feb75582199bd588c2a9026e81f4123cc822b5ff7a74ebdc7c14bba"
     },
     {
       "path": "apps/api/app/supabase_sync.py",
-      "size": 7556,
+      "bytes": 7556,
       "sha256": "c781d3b516c208787ffa7fd0b45d1f3f0c51b337b6a4fe31f0428bd856e4d63a"
     },
     {
       "path": "apps/api/app/tailoring.py",
-      "size": 2855,
+      "bytes": 2855,
       "sha256": "f111db66dd02a1e2782529f01c7965eecafaa7b3e91da89d9e85e1aace46be63"
     },
     {
       "path": "apps/api/app/workflow.py",
-      "size": 1936,
+      "bytes": 1936,
       "sha256": "c63cb76f8ea14440d65ea87c9ce554ffb28feafbdcca1b350ff62b8b89df7c2e"
     },
     {
       "path": "apps/api/data/seed_jobs.json",
-      "size": 6249,
+      "bytes": 6249,
       "sha256": "8729257272678e65c0b2670270f11a7740c904f0474d90a55304fa52ceeafd16"
     },
     {
       "path": "apps/api/pyproject.toml",
-      "size": 151,
+      "bytes": 151,
       "sha256": "6316d58369cc46293ca73e577901616feceff15f9b32a7b7e9741b150dafe5f3"
     },
     {
       "path": "apps/api/requirements.txt",
-      "size": 93,
+      "bytes": 93,
       "sha256": "2caa0f31a37283fc628fc7a5ca536f55c55a6f87aa3a257f210094b7ec236eb0"
     },
     {
       "path": "apps/api/scripts/collect_git_evidence.py",
-      "size": 1378,
+      "bytes": 1378,
       "sha256": "1dc1c215b5f2286e9927d071e0a8f09b7aa917ce3ce3140682b7bea71651cc76"
     },
     {
       "path": "apps/api/scripts/prepare_top.py",
-      "size": 461,
+      "bytes": 461,
       "sha256": "d341f62db4bee61d16287c0c934fec2f592d7227d5dbde0178e172fbfd398902"
     },
     {
       "path": "apps/api/scripts/run_model_benchmark.py",
-      "size": 815,
+      "bytes": 815,
       "sha256": "51dc2442457a6c0a4863853fded9d10f0e1722337a17499ff8c6c3c38c39dbe0"
     },
     {
       "path": "apps/api/scripts/seed.py",
-      "size": 680,
+      "bytes": 680,
       "sha256": "384c538cb1ef2923bb0205bbe4a2f392a1e0a0208cd2c7464c300d44c98d6167"
     },
     {
       "path": "apps/api/scripts/seed_engineering.py",
-      "size": 1190,
+      "bytes": 1190,
       "sha256": "888c8f157eed10b826a2a95c15cacf4ba931bf480b9653c6558970168ad35cbc"
     },
     {
       "path": "apps/api/tests/conftest.py",
-      "size": 638,
+      "bytes": 638,
       "sha256": "9e91e124dd43cdc5b367a37baf9db682543c1586c4b1ee597985b3306c8e0a43"
     },
     {
       "path": "apps/api/tests/test_agent_demo.py",
-      "size": 2024,
+      "bytes": 2024,
       "sha256": "eb3277d2d520b6a3183b52a36d1b9b179df1a993fc67b6f0c1a00ade2517e565"
     },
     {
       "path": "apps/api/tests/test_engineering.py",
-      "size": 2224,
+      "bytes": 2224,
       "sha256": "800ec4a4b2aedfc9c585940503ee20daf2a61e9efbf8517479fbfe547a5f95c6"
     },
     {
       "path": "apps/api/tests/test_milestone03.py",
-      "size": 5581,
+      "bytes": 5581,
       "sha256": "28b0fe346c7efba6bc727101d51e56a346b88b0102ad778e9fa8c52ea75da742"
     },
     {
       "path": "apps/api/tests/test_scoring.py",
-      "size": 1346,
+      "bytes": 1346,
       "sha256": "e7f2891af8cdb58d5a95c998c70238fb3f5ad46720c1ddf03da534095b8a9754"
     },
     {
       "path": "apps/api/tests/test_workflow.py",
-      "size": 1458,
+      "bytes": 1458,
       "sha256": "ed97d1d4fd41c509904310eccf364f290120a5ce5f9cbca35254d3a736b9ced8"
     },
     {
       "path": "apps/web/.env.example",
-      "size": 626,
+      "bytes": 626,
       "sha256": "3f970735df8efa3ffc14bf1c8705c4dc85767d3bc2ab0c262163968502986c0a"
     },
     {
       "path": "apps/web/Dockerfile",
-      "size": 790,
+      "bytes": 790,
       "sha256": "c2cc405499c7beddc2c1cc0a3cd970bfa825ad70ce2ea6eba82ef967591d32a6"
     },
     {
       "path": "apps/web/app/agents/page.tsx",
-      "size": 123,
+      "bytes": 123,
       "sha256": "e43e002ccaf767e0bb15e4dc951a45ae965fa1b7404d547c9107967f09df7031"
     },
     {
       "path": "apps/web/app/analytics/page.tsx",
-      "size": 279,
+      "bytes": 279,
       "sha256": "52d3ae1a08f5ab43059656ed8db6bfaba20dbaa499fe46ea821990936b11557b"
     },
     {
       "path": "apps/web/app/api/control/agents/run/route.ts",
-      "size": 1956,
+      "bytes": 1956,
       "sha256": "4ccc862e1bc8888442176d2ac8a135b145160ecd6dda70894274303da92c4dab"
     },
     {
       "path": "apps/web/app/api/control/analytics/route.ts",
-      "size": 1419,
+      "bytes": 1419,
       "sha256": "9dc6b586ccc1c93bd2e9396a5bda9cbf92bde126e4c980aecf57dabe83c050f6"
     },
     {
       "path": "apps/web/app/api/control/applications/[id]/confirm-submission/route.ts",
-      "size": 4564,
+      "bytes": 4564,
       "sha256": "24febfc2a88e131ee9f985988a35f67a0774236b48491729c6f2c9c4c73fbb3d"
     },
     {
       "path": "apps/web/app/api/control/applications/[id]/export/route.ts",
-      "size": 4006,
-      "sha256": "b3bc56b7fae903a122f0972293fec12444f21bf2838c0886539b23f44e0ca4eb"
+      "bytes": 4454,
+      "sha256": "4db6c9a071d30974d6a9d6ea68e9748afe68acc6117eeefbf50227c66ef9433b"
     },
     {
       "path": "apps/web/app/api/control/applications/[id]/gmail-draft/route.ts",
-      "size": 4983,
+      "bytes": 4983,
       "sha256": "5fd2f4814bae4bf06ace8ad2830feda519f31da5d63fd8a18575269e5100d902"
     },
     {
       "path": "apps/web/app/api/control/applications/[id]/open-submission/route.ts",
-      "size": 3270,
-      "sha256": "0ef6710c452503fc5775e3ec0bd834c2a69c1459d86f6a392792077c9b042193"
+      "bytes": 5697,
+      "sha256": "9b9be873f93b3b88551cffd8b3fb76dcf7bbf77faa032187da0b9f1abb57dbe7"
     },
     {
       "path": "apps/web/app/api/control/applications/route.ts",
-      "size": 3699,
+      "bytes": 3699,
       "sha256": "8fb35f80686edc842cc0442ecab1df87597afd6c46af1d1e3f5c774c6fd7fdbe"
     },
     {
       "path": "apps/web/app/api/control/approvals/[id]/route.ts",
-      "size": 6356,
-      "sha256": "3333674d0e9eb93939225a70bf399b7ff9e6c2ceee575a8567c42b65b3f6c6d7"
+      "bytes": 6656,
+      "sha256": "232af15bc4886ab99a4608d3168ab0e753edf71890c8b80c85700e1abdf4274d"
     },
     {
       "path": "apps/web/app/api/control/automation/route.ts",
-      "size": 2974,
+      "bytes": 2974,
       "sha256": "a98acade0f314754af0c563e6efd3ac8041b46c182acc9ecf8ce06616e03d4da"
     },
     {
       "path": "apps/web/app/api/control/career-vault/route.ts",
-      "size": 1998,
+      "bytes": 1998,
       "sha256": "a58273805f4589c9a6e5e2a2a3188582288d9c27c827e4208af2602dcaa4313d"
     },
     {
       "path": "apps/web/app/api/control/evaluations/route.ts",
-      "size": 1941,
+      "bytes": 1941,
       "sha256": "97aa2cb36621682d9a6a4f406f66ca509a27cf03514a234f59371f9d0e5faea9"
     },
     {
       "path": "apps/web/app/api/control/interviews/[id]/complete/route.ts",
-      "size": 5299,
+      "bytes": 5299,
       "sha256": "b24d0645b912a3b0a6b83f18c270a70b425b693d43aee3f13651907f8c6a4594"
     },
     {
       "path": "apps/web/app/api/control/interviews/[id]/prepare/route.ts",
-      "size": 3205,
+      "bytes": 3205,
       "sha256": "de33ac6cdedaef376c00e3f747da22577cba649e70a6ced9b8d89d4702596b7b"
     },
     {
       "path": "apps/web/app/api/control/interviews/route.ts",
-      "size": 4436,
+      "bytes": 4436,
       "sha256": "a50dd60f4af2a6d237cb33cc65a1b525caacacf8e6dda1c7e6fd32e0fae510e0"
     },
     {
       "path": "apps/web/app/api/control/jobs/[id]/apply-plan/route.ts",
-      "size": 5759,
-      "sha256": "0d297b1b973dcb77b4c3038e0ffdf1f220d9758f55129881f8fbff0ef87bfc24"
+      "bytes": 6023,
+      "sha256": "249aa7ed422dd16d8a6d88b25d37578587dff39799fe714d12d2616f0d808483"
     },
     {
       "path": "apps/web/app/api/control/jobs/[id]/evaluate/route.ts",
-      "size": 3068,
+      "bytes": 3068,
       "sha256": "7e52b8313c61f78663dda31f7ed2e62a625f53d3927fdd33d35ca18d286f05b3"
     },
     {
       "path": "apps/web/app/api/control/jobs/[id]/prepare/route.ts",
-      "size": 4342,
-      "sha256": "66035bdccf0323ebe5a8ce7466d60331b813dceb8345fc147d4ea19c593890f5"
+      "bytes": 4623,
+      "sha256": "f058c48291718a4aeca555829cdef718472c59b9f1b2df360a260bc82607e7ee"
     },
     {
       "path": "apps/web/app/api/control/jobs/[id]/route.ts",
-      "size": 3515,
+      "bytes": 3515,
       "sha256": "92aa2a8473af7095d78c241eb0c063bcd2dafc5877cd270803df013f08fe5de1"
     },
     {
       "path": "apps/web/app/api/control/jobs/route.ts",
-      "size": 5643,
+      "bytes": 5643,
       "sha256": "d7243a52d4a117cf8649f30d453792c5661f9f26825ebbb0137225541bba2d2f"
     },
     {
       "path": "apps/web/app/api/control/knowledge/documents/[id]/route.ts",
-      "size": 1343,
+      "bytes": 1343,
       "sha256": "1d49dd423a8f4f3238d50678bf34036e272003ef88ae96608ab08c502cb0fe59"
     },
     {
       "path": "apps/web/app/api/control/knowledge/documents/route.ts",
-      "size": 5978,
+      "bytes": 5978,
       "sha256": "6f1fcf397e118d5005f93bf3865d16d8ec0550fdc3da365e6e89d6426bd4366c"
     },
     {
       "path": "apps/web/app/api/control/knowledge/search/route.ts",
-      "size": 2353,
+      "bytes": 2353,
       "sha256": "0e82cd1a121ff7d1825cf0137f611dfcd21a544fbd423b4ae60c529612b3d72c"
     },
     {
       "path": "apps/web/app/api/control/profile/route.ts",
-      "size": 6130,
+      "bytes": 6130,
       "sha256": "85a308f6ca51e762afc47c2735f8511e53e6e468cf2818a4433a8956afc25e2c"
     },
     {
       "path": "apps/web/app/api/control/ranking/jobs/route.ts",
-      "size": 1414,
+      "bytes": 1414,
       "sha256": "b8eb6e9d04f17391d6f313e857f193d921dfc20947e61bd8a71dd2712ba83581"
     },
     {
       "path": "apps/web/app/api/control/resumes/[id]/file/route.ts",
-      "size": 1716,
+      "bytes": 1716,
       "sha256": "00556225644a7c0807c54246deed7d04f4d8e21aca17f61571b56fdf13742a33"
     },
     {
       "path": "apps/web/app/api/control/resumes/[id]/route.ts",
-      "size": 3102,
+      "bytes": 3102,
       "sha256": "d873b4a5f8da2efd871ff45debe9425d68f4f35b49d905e5e90a2213568fe3e1"
     },
     {
       "path": "apps/web/app/api/control/resumes/route.ts",
-      "size": 6597,
+      "bytes": 6597,
       "sha256": "2fa0124624eb3016c3492236dbb076368d53a957a836f54fdd423ba3385e0097"
     },
     {
       "path": "apps/web/app/api/control/resumes/upload/route.ts",
-      "size": 3940,
+      "bytes": 3940,
       "sha256": "a6054dab3d9fffa263348e47a1fb612625b5d697b9b34e7f30b02c6e65c7ddac"
     },
     {
       "path": "apps/web/app/api/control/session/route.ts",
-      "size": 379,
+      "bytes": 379,
       "sha256": "d3e177186765bad8b890088bf4240c4e313614599f449c1484d30c8917a34cd0"
     },
     {
       "path": "apps/web/app/api/control/skill-gaps/[id]/route.ts",
-      "size": 1421,
+      "bytes": 1421,
       "sha256": "88e7ab259ca2c6090467543ee9ad05680246e653916db71d9492285a6938fde4"
     },
     {
       "path": "apps/web/app/api/control/skill-gaps/route.ts",
-      "size": 1502,
+      "bytes": 1502,
       "sha256": "25fffd8c8de51ec872d9a712e95ebd7c68cf6e77158aa288b701d5a934361f97"
     },
     {
       "path": "apps/web/app/api/control/sources/[id]/route.ts",
-      "size": 2440,
+      "bytes": 2440,
       "sha256": "1bb284848b2ad093946f7277261de80ed45f36d5c5d654a31956421ea020b5f5"
     },
     {
       "path": "apps/web/app/api/control/sources/route.ts",
-      "size": 2981,
+      "bytes": 2981,
       "sha256": "8c33f94507178e59f3ff96234846cef3196ff07a3eef1b06af5c8beca3a085d3"
     },
     {
       "path": "apps/web/app/api/control/sources/run/route.ts",
-      "size": 1113,
+      "bytes": 1113,
       "sha256": "f9fff365c4735fa7b85f9439284d3580516da424cf2bb15d950538a2dfad503e"
     },
     {
       "path": "apps/web/app/api/control/weekly-review/route.ts",
-      "size": 1200,
+      "bytes": 1200,
       "sha256": "4eeef391c5ce002e42fe7075a6789c763064b0883c6d6131284c6555b0677d99"
     },
     {
       "path": "apps/web/app/api/control/workflows/[id]/resume/route.ts",
-      "size": 5541,
+      "bytes": 5541,
       "sha256": "aac4cad82f6c0fc77f5eea4136284d6e96d486178b4186df6d89ce9d428b042d"
     },
     {
       "path": "apps/web/app/api/control/workflows/evidence-promotion/route.ts",
-      "size": 4277,
+      "bytes": 4277,
       "sha256": "da29363fdaefb1a6aaeb823421d10ba13f18f6cfa43816e94e63c6664427bd00"
     },
     {
       "path": "apps/web/app/api/control/workflows/route.ts",
-      "size": 887,
+      "bytes": 887,
       "sha256": "07cb01936ac2932f21288e01259c8478ca0179880e872a99f41eaf13e24267c1"
     },
     {
       "path": "apps/web/app/api/cron/daily/route.ts",
-      "size": 2412,
+      "bytes": 2412,
       "sha256": "b7ef342b79460657527dea7034616a0e04f976664f4159f1ad1d2a35e60606d6"
     },
     {
       "path": "apps/web/app/api/cron/weekly/route.ts",
-      "size": 1512,
+      "bytes": 1512,
       "sha256": "1092952eee18a4910087793b8c5d87152c60442f85efeb9bcdaefedaf0793a49"
     },
     {
       "path": "apps/web/app/api/mcp/route.ts",
-      "size": 2988,
-      "sha256": "eb37bc1eb31cc762569afa2d733b0027617c75dc85cba3c4a0c7b1090416446a"
+      "bytes": 2988,
+      "sha256": "9f9f7f67f8b39af4a7abd558964674492db4fbe6ac2ef1737fe615146796d053"
     },
     {
       "path": "apps/web/app/api/runtime/route.ts",
-      "size": 1547,
-      "sha256": "dde0fd1e25c471629a7be3b2164622d344cc0ec534f8ec9af06a8861dd171874"
+      "bytes": 1716,
+      "sha256": "a12a2d9db38d8181e9661cbac7ec608f9d413e1c3fc6d71cc82f622074201ddb"
     },
     {
       "path": "apps/web/app/applications/page.tsx",
-      "size": 292,
+      "bytes": 292,
       "sha256": "85469e357bbb8f23ab8141d5a542efc047e40a7d040a50c137a1e0e77de49de3"
     },
     {
       "path": "apps/web/app/career-vault/page.tsx",
-      "size": 290,
+      "bytes": 290,
       "sha256": "db98a87993eae4aa2c74e744e6cfb2caa035e674c62a7a4bd5757a02297abd49"
     },
     {
       "path": "apps/web/app/engineering/page.tsx",
-      "size": 264,
+      "bytes": 264,
       "sha256": "f47fb7f7ff1691b60cddbd106d2377f66d41a5bb13da6a3af65b516817e6b52e"
     },
     {
       "path": "apps/web/app/globals.css",
-      "size": 130656,
-      "sha256": "ff63e7db92a6ccfda54f8040db4ad7a60d70f78274c3e28178200b5767508d81"
+      "bytes": 133124,
+      "sha256": "2908f26afbbdfc93c811073dfbb82914154fb36ca4584e4eefe5370895a6de8c"
     },
     {
       "path": "apps/web/app/interviews/page.tsx",
-      "size": 282,
+      "bytes": 282,
       "sha256": "02bd29d75e0e79d5a95fc1d2683e7dcefb240bd9ee8a42b8f1dc1691946f3cc1"
     },
     {
       "path": "apps/web/app/jobs/page.tsx",
-      "size": 268,
+      "bytes": 268,
       "sha256": "5f238b325dce0cf16344903858b8fcb9447b373e693c66e4374b9e1cac403ab6"
     },
     {
       "path": "apps/web/app/knowledge/page.tsx",
-      "size": 283,
+      "bytes": 283,
       "sha256": "8364bc9fa5020083a9271a71d42be70beafa2bfae62de88a51bfb35c204879d9"
     },
     {
       "path": "apps/web/app/layout.tsx",
-      "size": 377,
+      "bytes": 377,
       "sha256": "ace6538b811be9f612e2d18483b8e1927444073e725a63376b5fa069b8831ebb"
     },
     {
       "path": "apps/web/app/login/page.tsx",
-      "size": 7595,
+      "bytes": 7595,
       "sha256": "3693f8e545f64bbd4b61fa6e6db76dc1825878d885a214ca55898b01e2945a6e"
     },
     {
       "path": "apps/web/app/page.tsx",
-      "size": 280,
+      "bytes": 280,
       "sha256": "e3f3cddbef05053f3469a30c784d1a05d5f1bb276456ddb8e1d7c4691dc420aa"
     },
     {
       "path": "apps/web/app/playground/page.tsx",
-      "size": 376,
+      "bytes": 376,
       "sha256": "32aa32581ada3bdcbe23e5728d900d834e4efe1229a492a5578f225068b20fe1"
     },
     {
       "path": "apps/web/app/profile/page.tsx",
-      "size": 277,
+      "bytes": 277,
       "sha256": "97ee9c61fec8d2dffbe12f38f34df70c2774fd4128f7c25c1317e2b5ac1af964"
     },
     {
       "path": "apps/web/app/resumes/page.tsx",
-      "size": 286,
+      "bytes": 286,
       "sha256": "fe89a7bbcef7979929841dd8254e7bad65711bbde30b1318b06eb3db7dfa72be"
     },
     {
       "path": "apps/web/app/settings/page.tsx",
-      "size": 289,
+      "bytes": 289,
       "sha256": "da4f1e9465fdc554d434fec7c0106f62b5023f0eaecef6a4a702eb069787f821"
     },
     {
       "path": "apps/web/app/sources/page.tsx",
-      "size": 277,
+      "bytes": 277,
       "sha256": "06357e487d7c0d6ff3b0562688bfcb18593c33ebc28df411dce0187a6a403440"
     },
     {
       "path": "apps/web/components/agent-dashboard.tsx",
-      "size": 9891,
+      "bytes": 9891,
       "sha256": "4cd86c50a9a612e8b74a24c88f31709ef40bb7377a554d703aa1ceb225237014"
     },
     {
       "path": "apps/web/components/agent-playground.tsx",
-      "size": 7372,
+      "bytes": 7372,
       "sha256": "bff533e8b568e019eed57877f15941cf0f3d84df498d472fe6558c6111af83ea"
     },
     {
       "path": "apps/web/components/analytics-workspace.tsx",
-      "size": 6689,
+      "bytes": 6689,
       "sha256": "e3fd8283ebbd3d1968074094cfbf82bce196512578bab67bebc84e95e3495087"
     },
     {
       "path": "apps/web/components/app-shell.tsx",
-      "size": 3178,
+      "bytes": 3178,
       "sha256": "a745046eb91d8b83b7073f0780e562120f6471b4ba60b0ad479f2635d994ee53"
     },
     {
       "path": "apps/web/components/applications-workspace.tsx",
-      "size": 14540,
-      "sha256": "a0ddc61379e26dd9e0f6718fff98952c36e5d150cd0e234d41cb9c571b937922"
+      "bytes": 19507,
+      "sha256": "8623cb9da1648d0202a28f575c6574de28a7287c1bf20afa9672cee2a72f3558"
     },
     {
       "path": "apps/web/components/auth-gate.tsx",
-      "size": 4411,
+      "bytes": 4411,
       "sha256": "1fbb47c196f684d92920d703c2bc537db540d9b81888ae985d0b0d857e684050"
     },
     {
       "path": "apps/web/components/career-vault-workspace.tsx",
-      "size": 4438,
+      "bytes": 4438,
       "sha256": "75cc93ef2e61bafb5719ae8565fd3a874ecc76107fae1942c79acb51565e48e7"
     },
     {
       "path": "apps/web/components/connections-workspace.tsx",
-      "size": 3630,
+      "bytes": 3630,
       "sha256": "c1c225ad4b5487b1c1c9b1ee5ae097a7af7a394d7c0cd1c10dc62eb6f56c2a34"
     },
     {
       "path": "apps/web/components/dashboard.tsx",
-      "size": 3841,
+      "bytes": 3841,
       "sha256": "f9953344089fa0b0bc3018a13d5a294a10b0536518228db7ab1e1bf813c55b7e"
     },
     {
       "path": "apps/web/components/data-page.tsx",
-      "size": 858,
+      "bytes": 858,
       "sha256": "e5216168399382ea86e168972bff81bf8cdfa77b48ca356d0f459b43cba84ee3"
     },
     {
       "path": "apps/web/components/engineering-dashboard.tsx",
-      "size": 8986,
+      "bytes": 8986,
       "sha256": "9fc53166838f02830d2614fe2901585cb7e4f87e78c66c38eb3de484ccffe9e0"
     },
     {
       "path": "apps/web/components/interviews-workspace.tsx",
-      "size": 10623,
+      "bytes": 10623,
       "sha256": "f322a1ace7835926b92e30460061c17393c62f34e36f6a7540db6b6f6825f63a"
     },
     {
       "path": "apps/web/components/jobs-workspace.tsx",
-      "size": 21318,
-      "sha256": "fddbadc8411a9f34cb7985afe9ebaf916a7d407238f041e323db1abf302ce6c9"
+      "bytes": 21946,
+      "sha256": "5910265bb799c16be33af74b980da67e1c7969e2fc3a0c7dfb6ee3e3ace494a4"
     },
     {
       "path": "apps/web/components/knowledge-workspace.tsx",
-      "size": 15535,
+      "bytes": 15535,
       "sha256": "e58e406892ed2f34f2adb13ada44b32f16d2bf79270dc0ba1d49fc22f622b999"
     },
     {
       "path": "apps/web/components/operations-dashboard.tsx",
-      "size": 881,
+      "bytes": 881,
       "sha256": "c4cf598385dd55b02b077951384b42d2394f3fe95440e786262f7892e6523500"
     },
     {
       "path": "apps/web/components/overview-workspace.tsx",
-      "size": 10126,
+      "bytes": 10126,
       "sha256": "6a4038243c11e2b48c967a164b4411a0975821b7221219ab0bbe37bb9aec7c29"
     },
     {
       "path": "apps/web/components/profile-workspace.tsx",
-      "size": 15154,
+      "bytes": 15154,
       "sha256": "c445fbd179ec5d8910938509c6eca518fab7b0671de045999c19850fd58262ab"
     },
     {
       "path": "apps/web/components/resume-agent-workspace.tsx",
-      "size": 16423,
+      "bytes": 16423,
       "sha256": "9743875894a79a59a3e54f9f2f3b34d7f8d846aaa505ccd51e4170f821595ae0"
     },
     {
       "path": "apps/web/components/runtime-banner.tsx",
-      "size": 541,
+      "bytes": 541,
       "sha256": "d30f4a855f6de77ee1a7ea4f03d3ecbe1f6b39b1c11ef097b623ed372943c19a"
     },
     {
       "path": "apps/web/components/sources-workspace.tsx",
-      "size": 12504,
+      "bytes": 12504,
       "sha256": "f577d7e81dc5dd02e53d503371887109cda32f44fe407bba223f1170ab6213f7"
     },
     {
       "path": "apps/web/lib/agent-controller.ts",
-      "size": 7008,
+      "bytes": 7008,
       "sha256": "b493cb40fa98f7c3fef3047dc4cd0fe105248d72514702212f90597bc8fe5724"
     },
     {
       "path": "apps/web/lib/agent-runtime.d.ts",
-      "size": 2364,
+      "bytes": 2364,
       "sha256": "90942669dcf467511a6cf16fc2fe51c10d9796366b770dffc42352088f902920"
     },
     {
       "path": "apps/web/lib/agent-runtime.mjs",
-      "size": 26916,
+      "bytes": 26916,
       "sha256": "d2dada33920fffa8127c9719e0e674bb2eb7d8b545439835b816d998b146c6f3"
     },
     {
       "path": "apps/web/lib/agent-service.ts",
-      "size": 12977,
+      "bytes": 12977,
       "sha256": "7a60308c0b3daf50b75f7a2980a43a6e1c5a88b1b8c4535da6f5dfd041adbd8e"
     },
     {
       "path": "apps/web/lib/analytics-service.ts",
-      "size": 4611,
+      "bytes": 4611,
       "sha256": "4374ed0eef37780be9cf07ae2de1f6c8c340716b45a9b2aa0d503b7de96187f5"
     },
     {
       "path": "apps/web/lib/api.ts",
-      "size": 1615,
+      "bytes": 1615,
       "sha256": "455c3c7ab6beb1b8d66737fa4825519a9b68cb8e4add9b9130b9aef80cc89742"
     },
     {
       "path": "apps/web/lib/application-export.d.ts",
-      "size": 611,
-      "sha256": "deed2d9066f191a2162b703cd7a9cf774e0df7904929a7aca303c5f39b1cb8c6"
+      "bytes": 922,
+      "sha256": "2afd6b6c97997746ae1e093be7d7e0c323492bcd6c8f654713f75907ec4fcc06"
     },
     {
       "path": "apps/web/lib/application-export.mjs",
-      "size": 5918,
-      "sha256": "9d9c2ffaee67bbb7460132c2a5568db617168cf155384629a102f6a9a100f00f"
+      "bytes": 11472,
+      "sha256": "8e8ab7b8b79ce2de3341664ddabba6cf5a05107dcb1934a8a81ea1f11310b461"
+    },
+    {
+      "path": "apps/web/lib/application-kit.d.ts",
+      "bytes": 376,
+      "sha256": "a5133daabc235c338a71222159f45542d61eae0e82513ba9c3fca3c858487af6"
+    },
+    {
+      "path": "apps/web/lib/application-kit.mjs",
+      "bytes": 13827,
+      "sha256": "b37afb7ba9b9a10078571bc23b4bd93cb79580b93eba95f4ef7a7be1f0dc9242"
     },
     {
       "path": "apps/web/lib/application-plan.d.ts",
-      "size": 882,
-      "sha256": "aeff1de9e1c4e9cba4d2311f967ce418d831d7151e69eef18bd6c331bbf158af"
+      "bytes": 960,
+      "sha256": "42fa7bc9fcf1f0848a25b52812931d9c908146287690106bd0108fc93974a12b"
     },
     {
       "path": "apps/web/lib/application-plan.mjs",
-      "size": 5670,
-      "sha256": "b70cdc832fd2c4fa645e9b5f26d4f784b74d8ffe424848beee1b454c9a7146bf"
+      "bytes": 6696,
+      "sha256": "bd277fd4b2ffdd2d770a7e1dba1e9a7a2e7ed6157fe9bfb463b286828f31db12"
     },
     {
       "path": "apps/web/lib/application-safety.ts",
-      "size": 1288,
+      "bytes": 1288,
       "sha256": "48ee88f044c55ef5c821237b428816e45711286eac8437796424c2795e75a627"
     },
     {
       "path": "apps/web/lib/application-view.mjs",
-      "size": 1476,
+      "bytes": 1476,
       "sha256": "21201d1785828305b0f1609c7681f1debd909764f8e438494a407d908ee5995b"
     },
     {
       "path": "apps/web/lib/career-agent-graph.d.ts",
-      "size": 95,
+      "bytes": 95,
       "sha256": "f8296ceb7840ca3bab0c216d3039afa34ad5f95a9f42c1be2e5cb52e1bc72346"
     },
     {
       "path": "apps/web/lib/career-agent-graph.mjs",
-      "size": 4602,
+      "bytes": 4602,
       "sha256": "66a12d65c8a60c42e0d3af01cdd6244b795fe3eb41019fa7714c2bf5b505da0a"
     },
     {
       "path": "apps/web/lib/control-client.ts",
-      "size": 3524,
+      "bytes": 3524,
       "sha256": "8c8024cccee314d6527798b112d4e31132883c7a98d60cb3104c42fd81230541"
     },
     {
       "path": "apps/web/lib/control-rules.d.ts",
-      "size": 1769,
-      "sha256": "0aa89a7a5bde2978c1bf40708a9a918d5d7865b90f0ac5bdadf66e8d32e1d467"
+      "bytes": 1807,
+      "sha256": "9ae1039a1a695a14311e8101e0534274d8b8baffbfa78660b6adc872ea92cabb"
     },
     {
       "path": "apps/web/lib/control-rules.mjs",
-      "size": 26731,
-      "sha256": "f2948acc2263de2364c765258d4080182be415af90f2fcf345674f32d8ec1964"
+      "bytes": 26298,
+      "sha256": "ea78f481b06c63d87e172ef4585b8d5fab51be6c55c7b3e82ad81a9bc6a0056e"
     },
     {
       "path": "apps/web/lib/daily-recommendation-rules.d.ts",
-      "size": 105,
+      "bytes": 105,
       "sha256": "247f1928c1aa2f8619934ba77b0c5f5e071f5f9c64e1951be237a6db52ae88f3"
     },
     {
       "path": "apps/web/lib/daily-recommendation-rules.mjs",
-      "size": 677,
+      "bytes": 677,
       "sha256": "834ffb939b7306155c196fdcce1b294bad0dadcbe0385c7dd4ad787ab375db05"
     },
     {
       "path": "apps/web/lib/daily-recommendation-service.ts",
-      "size": 8183,
-      "sha256": "7c711cd216f6b134429b801ec6b672ead04347309abd8f68116a7f5f75b129f4"
+      "bytes": 8349,
+      "sha256": "b55f82c0f2ff1c0c687d766743b96a9c79e7950fe61bfc6599d499ed0df794a0"
     },
     {
       "path": "apps/web/lib/discovery-service.ts",
-      "size": 9994,
+      "bytes": 9994,
       "sha256": "cc9d82adffa56911301d47b96ba277adbe90fb33e1be6304655ce32e2fb21062"
     },
     {
       "path": "apps/web/lib/dispatch-rules.mjs",
-      "size": 2562,
+      "bytes": 2562,
       "sha256": "b88a89fac1a2facba69f7769a66b64ab32ff41eebd5f9acee59315ed763cd781"
     },
     {
       "path": "apps/web/lib/embedding-service.ts",
-      "size": 2371,
+      "bytes": 2371,
       "sha256": "53ac7abdbecfc9d20a77eef2e47ba476301727054dac2dd809ce4df53e23f098"
     },
     {
       "path": "apps/web/lib/evidence-promotion-graph.mjs",
-      "size": 2152,
+      "bytes": 2152,
       "sha256": "58b7a56efaa883d2fc3ecce0a9573605eb354e8dc4fee4392f13a9bb712496b3"
     },
     {
       "path": "apps/web/lib/interview-learning.d.ts",
-      "size": 662,
+      "bytes": 662,
       "sha256": "36f0067a7bf157b3554f6896673099473a8690129f013b344f18784edfe73a22"
     },
     {
       "path": "apps/web/lib/interview-learning.mjs",
-      "size": 14363,
+      "bytes": 14363,
       "sha256": "787fe7b1c0d89744cc6e8fee892f6bfe5fbf049be11a2bfa6c99bc27ddfff3a3"
     },
     {
       "path": "apps/web/lib/job-sources.d.ts",
-      "size": 981,
+      "bytes": 981,
       "sha256": "bb0f4f78d2b680be8b51a3108ccf14811be270f6510144d561ae418b8603f0b4"
     },
     {
       "path": "apps/web/lib/job-sources.mjs",
-      "size": 9971,
+      "bytes": 9971,
       "sha256": "98edba2388343b369539576aa98841ef0d0d327f16ac871bb3e33b616437a09d"
     },
     {
       "path": "apps/web/lib/job-user-view.d.ts",
-      "size": 366,
+      "bytes": 366,
       "sha256": "c2e3b8d28eb73c3b622c5efbddf3f5d7a44b0182795346b85ef4909ac107d363"
     },
     {
       "path": "apps/web/lib/job-user-view.mjs",
-      "size": 2013,
+      "bytes": 2013,
       "sha256": "a6d0cc11fc03977e141352cd8a039a8009c111e71a030fb5b64a2d103130c9f3"
     },
     {
       "path": "apps/web/lib/knowledge-rules.d.ts",
-      "size": 1018,
+      "bytes": 1018,
       "sha256": "93e8f3268296b920ccbe990ed6bbacefc34266fa3bfbeaef974550c787ad6a97"
     },
     {
       "path": "apps/web/lib/knowledge-rules.mjs",
-      "size": 6952,
+      "bytes": 6952,
       "sha256": "ce958380f8acb1055aa10fc609a41119d8162310c755de6785ae592e43222da5"
     },
     {
       "path": "apps/web/lib/mock-data.ts",
-      "size": 4305,
+      "bytes": 4305,
       "sha256": "b275ca1cc4027f0eb466108e118a6316eb5d5bf8e79c54bd9e60807dfe63d5bf"
     },
     {
       "path": "apps/web/lib/portfolio-demo.d.ts",
-      "size": 250,
+      "bytes": 250,
       "sha256": "ea8a6599e8efd341a1954e5a12d10c7f3586942b35288d0f0a34c220894a7f47"
     },
     {
       "path": "apps/web/lib/portfolio-demo.mjs",
-      "size": 3677,
+      "bytes": 3677,
       "sha256": "40f528a6da6ec139f2547ef699a003364e342216788564fd688ab47c90ca504b"
     },
     {
       "path": "apps/web/lib/profile-service.ts",
-      "size": 1040,
+      "bytes": 1040,
       "sha256": "1073d7385c8b3369c2541c93c0310a3ce453adf34ddbb7d18d9327fc151cbc03"
     },
     {
       "path": "apps/web/lib/recommendation-profile.d.ts",
-      "size": 1604,
+      "bytes": 1604,
       "sha256": "29b97bcac1b1d36d986979ac0af4bdda43768df4c3edbbd577411d2d29ac3bbf"
     },
     {
       "path": "apps/web/lib/recommendation-profile.mjs",
-      "size": 9136,
+      "bytes": 9136,
       "sha256": "396d918045578904674caf0f8ab3fd9974431bb2df883af7095d3cd26dbaf8e2"
     },
     {
       "path": "apps/web/lib/supabase-browser.ts",
-      "size": 519,
+      "bytes": 519,
       "sha256": "d384dd596a95a3f633788e245e1f75663953925b506bbac37316cfcf38e036e9"
     },
     {
       "path": "apps/web/lib/supabase-control.ts",
-      "size": 6656,
+      "bytes": 6656,
       "sha256": "1737932fbdd43bac816c727f555a2f0dacb646696dc74c372536043601b75973"
     },
     {
       "path": "apps/web/lib/supabase-langgraph-checkpointer.mjs",
-      "size": 7084,
+      "bytes": 7084,
       "sha256": "0b9f6f47f3c6f3c5b227d4569f3f9cb9f9054f8b239bf97e7403cbd6b63d5cd9"
     },
     {
       "path": "apps/web/lib/types.ts",
-      "size": 907,
+      "bytes": 907,
       "sha256": "43910fcfdac82ef68cd2aec39a8dca7394272ad634cb7e7f97cc5a5e21b12010"
     },
     {
       "path": "apps/web/next-env.d.ts",
-      "size": 81,
+      "bytes": 81,
       "sha256": "879741880b6ab48da99dcc06dcc674d381c9826137b0496bf7bb368f302de9fc"
     },
     {
       "path": "apps/web/next.config.ts",
-      "size": 259,
+      "bytes": 259,
       "sha256": "4cb02fb60b2c0d2c0b48d16352e8f4692cb74e6061eba68736b6d976fa75bef2"
     },
     {
       "path": "apps/web/open-next.config.ts",
-      "size": 109,
+      "bytes": 109,
       "sha256": "55e057e2d32667bb36a088d306191b6df66c85d6d5d51e69b5a2b015079575a8"
     },
     {
       "path": "apps/web/package.json",
-      "size": 1644,
-      "sha256": "c59d0c42af7436485f9b1c9663a57d7efa0c3714b080462f28e3e459eb49f9c3"
+      "bytes": 1644,
+      "sha256": "ca5b82b6a098ee044c4a5308798dc31487652bf985bd1726316b16cabfe60005"
     },
     {
       "path": "apps/web/public/_headers",
-      "size": 67,
+      "bytes": 67,
       "sha256": "90137f0fac2f988faf25c5910b0cfa1b6df9d31596a6b21f4ce4bba6ede5b569"
     },
     {
       "path": "apps/web/tests/agent-runtime.test.mjs",
-      "size": 6436,
+      "bytes": 6436,
       "sha256": "2c5eb74833afb61347fbe516643a77c7696a7d1689a3a9b6ad24afac8f74159e"
     },
     {
       "path": "apps/web/tests/application-export.test.mjs",
-      "size": 1215,
+      "bytes": 1215,
       "sha256": "023f5bcde4edde63bf2fdb8efbdd176c32124acf5170fa5fc4920540881ca03e"
     },
     {
+      "path": "apps/web/tests/application-kit.test.mjs",
+      "bytes": 2926,
+      "sha256": "c6470c65ea228d16f61a883d97f57b8c21229bd07b81889901088eb8937214ec"
+    },
+    {
       "path": "apps/web/tests/application-plan.test.mjs",
-      "size": 3370,
-      "sha256": "4c83efb916322a362835d6a01ccb1a3b28c0f33ead41a7ba94ced566e5806743"
+      "bytes": 3367,
+      "sha256": "f1d6af4a16d697a93803ae27ef772e7b654189464d6985b20ff46527c90e17b8"
     },
     {
       "path": "apps/web/tests/application-view.test.mjs",
-      "size": 1315,
+      "bytes": 1315,
       "sha256": "8db8f0b4bd0f6041cf9f0e673c9af63fdff791f676b4216623a56bf8aea9639b"
     },
     {
       "path": "apps/web/tests/control-rules.test.mjs",
-      "size": 9889,
-      "sha256": "3ffffb0d183172911eb08ea856fbb0079313e298099783cd4df0b7985b1d2aef"
+      "bytes": 10131,
+      "sha256": "cb074701155797a70e003d62d43a24a5c057fcf79378c85fc723b1ea11ea1eed"
     },
     {
       "path": "apps/web/tests/daily-recommendation-rules.test.mjs",
-      "size": 645,
+      "bytes": 645,
       "sha256": "b2a183b8278add1116e51e2621111cc565f838c17d904937557486cace7fb44d"
     },
     {
       "path": "apps/web/tests/dispatch-queue.test.mjs",
-      "size": 2619,
+      "bytes": 2619,
       "sha256": "249d240f031a804a60212a551cc336210c437e03f7faf6c0c9172341cac77998"
     },
     {
       "path": "apps/web/tests/interview-learning.test.mjs",
-      "size": 5033,
+      "bytes": 5033,
       "sha256": "a3cb1e09e613d199484faa340d8766410d0445d32343c2fe9c4bdbe88c6815cf"
     },
     {
       "path": "apps/web/tests/job-sources.test.mjs",
-      "size": 4760,
+      "bytes": 4760,
       "sha256": "b50432b83ffce0d0058042c843431e24116e69ccbd19d44a33ca3f85eb4f6a6b"
     },
     {
       "path": "apps/web/tests/job-user-view.test.mjs",
-      "size": 1075,
+      "bytes": 1075,
       "sha256": "222622dc16e8c4b02773a5fe39913f8323921e736e1e17753502b2f155d181ea"
     },
     {
       "path": "apps/web/tests/knowledge-rules.test.mjs",
-      "size": 3168,
+      "bytes": 3168,
       "sha256": "cbc6b6953ee2b055020cf3f2567bc379a80013855a957f2ee97e57800284ece2"
     },
     {
       "path": "apps/web/tests/portfolio-demo.test.mjs",
-      "size": 978,
+      "bytes": 978,
       "sha256": "5be02c78dad3e5f3e80625d715338727858a1b0cb20efb9f935d19c757ef9ba1"
     },
     {
       "path": "apps/web/tests/recommendation-profile.test.mjs",
-      "size": 2653,
+      "bytes": 2653,
       "sha256": "7eefceeeda7ec79d467e5eefc2879fe834480c23f6fdb88f99ff71a62eb84778"
     },
     {
       "path": "apps/web/tsconfig.json",
-      "size": 559,
+      "bytes": 559,
       "sha256": "e1aec308290de2674dc460b26c3fce754ce6c04ff45c65ccdce866667f8ad3d5"
     },
     {
       "path": "apps/web/wrangler.jsonc",
-      "size": 655,
+      "bytes": 655,
       "sha256": "018c128a32a1e8a599f02a3bdb94cd9c9b3d927d5c7a3c9eabb3bab95daac9f1"
     },
     {
       "path": "docker-compose.yml",
-      "size": 1890,
+      "bytes": 1890,
       "sha256": "af5fb6b9b2c61a2ddb11c81fcaf1e0c74336c9e2fa56ae5cb1d86f58f7ed5f5d"
     },
     {
       "path": "docs/ARCHITECTURE.md",
-      "size": 915,
+      "bytes": 915,
       "sha256": "ee17bf1989a25df022f8370102a0dbb09342da250c1354d376a8a7615227ab15"
     },
     {
       "path": "docs/COMPLETE_PLATFORM_ARCHITECTURE.md",
-      "size": 3879,
+      "bytes": 3879,
       "sha256": "9942d7baf9c7042b17dcbb6cf1364dac70bd50fb22f67e56d7f4fee2dd6d6420"
     },
     {
       "path": "docs/DESIGN_SYSTEM.md",
-      "size": 770,
+      "bytes": 770,
       "sha256": "623ca03ce56a8eb973602aa5375ada6056537c2a90ebe48ef3dbf9f5c10bc6c2"
     },
     {
       "path": "docs/MILESTONE_01.md",
-      "size": 578,
+      "bytes": 578,
       "sha256": "197184e3c964f11bc06ef8c759e2e7f7305737973bb24893b524a91e99824ce6"
     },
     {
       "path": "docs/MILESTONE_02.md",
-      "size": 2151,
+      "bytes": 2151,
       "sha256": "451c0b4e7f2d06de3a7ffab578d985f6b946084a6059b0dcff9659d48c381dd2"
     },
     {
       "path": "docs/MILESTONE_03.md",
-      "size": 2883,
+      "bytes": 2883,
       "sha256": "256ad168d7c93c6290da3f4a0aced9827b4e6cfe723038efb0db098303865508"
     },
     {
       "path": "docs/MILESTONE_04.md",
-      "size": 1658,
+      "bytes": 1658,
       "sha256": "faad61bc2307f9ececa73d7da240758f52c335de2a3de4a9c0950e05ecade245"
     },
     {
       "path": "docs/MILESTONE_04_1.md",
-      "size": 761,
+      "bytes": 761,
       "sha256": "51684e41ad5a7818f9f52597d2fda2d7601b630871dbb0b16ee0bcfa99675170"
     },
     {
       "path": "docs/MILESTONE_05.md",
-      "size": 5350,
+      "bytes": 5350,
       "sha256": "7487c204b0645c6711782ea4831206c97898be0d57bd6d0a36546d6bd1243b80"
     },
     {
       "path": "docs/MILESTONE_06.md",
-      "size": 4606,
+      "bytes": 4606,
       "sha256": "e32ea1b70078c1f82656d563913588858127ec0b7f4f74c38e1022f22f5e36bf"
     },
     {
       "path": "docs/MILESTONE_07.md",
-      "size": 5256,
+      "bytes": 5256,
       "sha256": "5c0a68698ed1e6a1fd0e0648c67540d88fe3e7f348110f922b7ae087485004d8"
     },
     {
       "path": "docs/MILESTONE_08.md",
-      "size": 6630,
+      "bytes": 6630,
       "sha256": "697eb56db4083b6d993ffbf65684b3c7e930fcf8398115441df8b6e0ac0ef400"
     },
     {
       "path": "docs/MILESTONE_08_1.md",
-      "size": 1776,
+      "bytes": 1776,
       "sha256": "a09c9d0ff526af1c499f3b1a61b24f9d8175a0a2530e22f70a504094284ce0cf"
     },
     {
       "path": "docs/OPEN_SOURCE_RESEARCH.md",
-      "size": 697,
+      "bytes": 697,
       "sha256": "a1e8054cd64d8fe6ad4a2d10c2e0c9e4e88f09c9237e617e122aaec93db3d989"
     },
     {
       "path": "docs/PRD.md",
-      "size": 1905,
+      "bytes": 1905,
       "sha256": "2e5d13294db6634a4ce8bf1428019b847eb040a7447c45389b35fe0739a193a4"
     },
     {
+      "path": "docs/R3_APPLICATION_KIT_ARCHITECTURE.md",
+      "bytes": 980,
+      "sha256": "f593bdd97123c6c86d5dbff53c82d1ddaa89da5c12c9b8297c9775d3a08a8db8"
+    },
+    {
       "path": "docs/ROADMAP.md",
-      "size": 3684,
+      "bytes": 3684,
       "sha256": "21ae80afd81a35df4365dfe5f733969af849cb84a51e93f0f3f91b120de3ec39"
     },
     {
       "path": "docs/SOURCE_COVERAGE.md",
-      "size": 1425,
+      "bytes": 1425,
       "sha256": "56561cf0188d8523a0d9c329f2ac86e6fde47c4ce16994716016fc2380db9734"
     },
     {
       "path": "docs/agent-evaluation-report.md",
-      "size": 1723,
+      "bytes": 1723,
       "sha256": "be10eea44ebd0cdcddcec52aaa48369e135f2c62d033eb147b96169a0cd5bda7"
     },
     {
       "path": "docs/history/legacy-releases/AGENT_EVALUATION_RESULT_M08_1.json",
-      "size": 534,
+      "bytes": 534,
       "sha256": "57672205c61174ecd4e75fa9d1db146b0294420e3ae6dfdd1c4a21e2568516ec"
     },
     {
       "path": "docs/history/legacy-releases/CLOUDFLARE_DEPLOY.md",
-      "size": 883,
+      "bytes": 883,
       "sha256": "cc331db38f6c0c546b90abe3b8c4501f8306e58981744da4790df59586f99618"
     },
     {
       "path": "docs/history/legacy-releases/CODEX_DEPLOY_NOW.md",
-      "size": 431,
+      "bytes": 431,
       "sha256": "8cadd46396cd562e892420bb0c48ccd1a6190fa989a12a193289f72b18592d65"
     },
     {
       "path": "docs/history/legacy-releases/DEPLOYMENT_HANDOFF.md",
-      "size": 1928,
+      "bytes": 1928,
       "sha256": "72cbc1b6f49f370d0576610947ab1a23ed0d5221e7edf16b4431a131a079c493"
     },
     {
       "path": "docs/history/legacy-releases/DEPLOYMENT_HANDOFF_M05.md",
-      "size": 2893,
+      "bytes": 2893,
       "sha256": "fa68851bce192ccd34efe8fb8a7982fc1a7f1145888d62846280db49f3466ff7"
     },
     {
       "path": "docs/history/legacy-releases/DEPLOYMENT_HANDOFF_M06.md",
-      "size": 1908,
+      "bytes": 1908,
       "sha256": "752e0e931934bfc50b540907853b83d54df3cd15bda7acba4de7bb724c9f5eec"
     },
     {
       "path": "docs/history/legacy-releases/DEPLOYMENT_HANDOFF_M07.md",
-      "size": 2741,
+      "bytes": 2741,
       "sha256": "d00816724a351272e7a49c07a6fea9d8902781427ba858c8a8794131455d9169"
     },
     {
       "path": "docs/history/legacy-releases/DEPLOYMENT_HANDOFF_M08.md",
-      "size": 3277,
+      "bytes": 3277,
       "sha256": "468396a73274112c6de66837b2b13afe9a2b3a92fa3a4561b3f13dd3ea03e1eb"
     },
     {
       "path": "docs/history/legacy-releases/DEPLOYMENT_HANDOFF_M08_1.md",
-      "size": 1928,
+      "bytes": 1928,
       "sha256": "72cbc1b6f49f370d0576610947ab1a23ed0d5221e7edf16b4431a131a079c493"
     },
     {
       "path": "docs/history/legacy-releases/MANIFEST_M03.md",
-      "size": 785,
+      "bytes": 785,
       "sha256": "683e8837a708dc97835108ca1dd9ba2a466639ecf5354cd0c284311d6280f9de"
     },
     {
       "path": "docs/history/legacy-releases/MANIFEST_M04.md",
-      "size": 523,
+      "bytes": 523,
       "sha256": "1a4aeb981a9954ebd7b4c79f4f0b1da13d39ab4759c8ffa69c3f22a55fd5650e"
     },
     {
       "path": "docs/history/legacy-releases/MANIFEST_M04_1.md",
-      "size": 433,
+      "bytes": 433,
       "sha256": "146da093adcdb73461030f7cc83d23845f185c3f89dc6a12a182c1f1f18a4daa"
     },
     {
       "path": "docs/history/legacy-releases/MANIFEST_M05.md",
-      "size": 1441,
+      "bytes": 1441,
       "sha256": "fb38127d03476d7176abbd51b2f3885abc202108a7811869b64e224e222ee34d"
     },
     {
       "path": "docs/history/legacy-releases/MANIFEST_M06.md",
-      "size": 1408,
+      "bytes": 1408,
       "sha256": "c419a174fa00cbcd316e6477cd8fd6bf8eb7bae252e3d1e35f0f8f87f77f6262"
     },
     {
       "path": "docs/history/legacy-releases/MANIFEST_M07.md",
-      "size": 1758,
+      "bytes": 1758,
       "sha256": "aa850be043468db97a3ebc8215dda8bcccf05cc94f715b9443f80ce799d24ec4"
     },
     {
       "path": "docs/history/legacy-releases/MANIFEST_M08.md",
-      "size": 1622,
+      "bytes": 1622,
       "sha256": "daec39256170654262514aa91df034949202f4228a022f2cceb3e5097a7f15dc"
     },
     {
       "path": "docs/history/legacy-releases/MANIFEST_M08_1.md",
-      "size": 977,
+      "bytes": 977,
       "sha256": "8a77bb0c15b05c365f119eaa122b36934e64feffaae10356efca77dd3c25b26f"
     },
     {
       "path": "docs/history/legacy-releases/ONLINE_STATUS.md",
-      "size": 720,
+      "bytes": 720,
       "sha256": "b0a1e4c4951fcc9a17d675104deb469a9f21d7637038c59b46ef36ba8d66d64f"
     },
     {
       "path": "docs/history/legacy-releases/ONLINE_STATUS_M05.md",
-      "size": 1407,
+      "bytes": 1407,
       "sha256": "d01785b56384edb157fe5e5f9d0283a0795f220a25ea0387270593bdd7b3f5be"
     },
     {
       "path": "docs/history/legacy-releases/ONLINE_STATUS_M06.md",
-      "size": 1087,
+      "bytes": 1087,
       "sha256": "26b6ba5d0e672296e8bf0cb016c754eca043bfc7e69e5f5086809ec4c9073b0c"
     },
     {
       "path": "docs/history/legacy-releases/ONLINE_STATUS_M07.md",
-      "size": 1788,
+      "bytes": 1788,
       "sha256": "52adfa10247c3e76bfb3b0bfa4336f734ad24312c384e3576cbd9bff54014463"
     },
     {
       "path": "docs/history/legacy-releases/ONLINE_STATUS_M08.md",
-      "size": 1635,
+      "bytes": 1635,
       "sha256": "6b54c262edabc59f5ead579baac73803f91b819676ef0d0f9eb85e6be338d1cd"
     },
     {
       "path": "docs/history/legacy-releases/ONLINE_STATUS_M08_1.md",
-      "size": 720,
+      "bytes": 720,
       "sha256": "b0a1e4c4951fcc9a17d675104deb469a9f21d7637038c59b46ef36ba8d66d64f"
     },
     {
       "path": "docs/history/legacy-releases/QA_REPORT.md",
-      "size": 2891,
+      "bytes": 2891,
       "sha256": "c4eca1d301089576167c7a20d3d2fcc3c8ce85114198fdaf69301a7db8af9ede"
     },
     {
       "path": "docs/history/legacy-releases/QA_REPORT_M05.md",
-      "size": 2551,
+      "bytes": 2551,
       "sha256": "f289a814b4c9349fd69c57f65ef3ed6e96991dee42d30d181516efe735bd2ad0"
     },
     {
       "path": "docs/history/legacy-releases/QA_REPORT_M06.md",
-      "size": 2176,
+      "bytes": 2176,
       "sha256": "7b9ffbee929345ee24742dd697017d7d062b75a33fecbc79e7df4020d6142635"
     },
     {
       "path": "docs/history/legacy-releases/QA_REPORT_M07.md",
-      "size": 2661,
+      "bytes": 2661,
       "sha256": "2c23ee256e2ed21c4ecc090e6cdb4c3d27ed6f71f1c5a962d156b21ba9333172"
     },
     {
       "path": "docs/history/legacy-releases/QA_REPORT_M08.md",
-      "size": 2962,
+      "bytes": 2962,
       "sha256": "71d7c8320df6ddce37a8bd1ac97f74667e923fa12851044b1ebf3c85513c498e"
     },
     {
       "path": "docs/history/legacy-releases/QA_REPORT_M08_1.md",
-      "size": 2891,
+      "bytes": 2891,
       "sha256": "c4eca1d301089576167c7a20d3d2fcc3c8ce85114198fdaf69301a7db8af9ede"
     },
     {
       "path": "docs/history/legacy-releases/RELEASE_EVIDENCE_M06.json",
-      "size": 1141,
+      "bytes": 1141,
       "sha256": "9539289847dd205d488a39ee2bf60e8d345fbfac1bd2a98b5764401d7a33beae"
     },
     {
       "path": "docs/history/legacy-releases/RELEASE_EVIDENCE_M07.json",
-      "size": 1505,
+      "bytes": 1505,
       "sha256": "57cb5411e80cd37a7b2ea48a48d17fbc935624ba4ad2e3a7b4cbccb5ba488d84"
     },
     {
       "path": "docs/history/legacy-releases/RELEASE_EVIDENCE_M08_1.json",
-      "size": 1295,
+      "bytes": 1295,
       "sha256": "5d0cc0348cd828b3f1625c7e5f54c353aa8c31161924c9e8463e5908c8b6f618"
     },
     {
       "path": "docs/history/legacy-releases/RELEASE_MANIFEST.json",
-      "size": 20130,
+      "bytes": 20130,
       "sha256": "2fee143927e1908f5a716bb75e876951d778bc01ab39895d9333297c6194e272"
     },
     {
       "path": "docs/history/legacy-releases/RELEASE_STATUS.md",
-      "size": 771,
+      "bytes": 771,
       "sha256": "3397e37b71acbd31ef0e1b949e953e48bb7e93ae0c8c01a2fea018fe1ca6e666"
     },
     {
       "path": "docs/history/legacy-releases/SMOKE_RESULT_M04.json",
-      "size": 556,
+      "bytes": 556,
       "sha256": "be80066f756a1a04b13efb4b048c387f552feca58fd3b022414cc321ae2f4128"
     },
     {
       "path": "docs/history/legacy-releases/SMOKE_RESULT_M04_1.json",
-      "size": 704,
+      "bytes": 704,
       "sha256": "5c66f819294d109693002e8eb9e43212ac07135db47965b8a48f5fb493070181"
     },
     {
       "path": "docs/history/legacy-releases/SMOKE_RESULT_M05.json",
-      "size": 613,
+      "bytes": 613,
       "sha256": "b6316db6d238b7a66720d85529d9932ffdae7a7ccc84aa0a2b5851710818f7b4"
     },
     {
       "path": "docs/history/legacy-releases/SMOKE_RESULT_M06.json",
-      "size": 560,
+      "bytes": 560,
       "sha256": "44e41766adacef9e1c8a24fd3e4479f3d7c9e6623e7b237a59601561d641e588"
     },
     {
       "path": "docs/history/legacy-releases/SMOKE_RESULT_M07.json",
-      "size": 551,
+      "bytes": 551,
       "sha256": "242cc4991b11673645e9e05bf1a21674d45b054edc6dc64ca37fb8aa26e409dd"
     },
     {
       "path": "docs/history/legacy-releases/SMOKE_RESULT_M08.json",
-      "size": 737,
+      "bytes": 737,
       "sha256": "bf986a6e20b731b9dc22bcf353bc3f03ecaca7194b56dfc4adbb3a32c50712a2"
     },
     {
       "path": "package.json",
-      "size": 2470,
-      "sha256": "4edbe8a829e620922bb7f2a32b8f58a09757848687f19c4b583daf3d8e63a1b7"
+      "bytes": 2470,
+      "sha256": "4aabfdde600d5cca9a7327bef9be0f74e3843f5c06190a476a2409f948a31914"
     },
     {
       "path": "prototype/app.js",
-      "size": 12912,
+      "bytes": 12912,
       "sha256": "83acfec6df37e0c5aed6470636f465a39d704427b1d1261be90c58dc15955ea3"
     },
     {
       "path": "prototype/index.html",
-      "size": 1827,
+      "bytes": 1827,
       "sha256": "a0c2a20aedc96b72f431b28499fe9cc727b67d906512b44d2a60dac470e8d3ce"
     },
     {
       "path": "prototype/styles.css",
-      "size": 14812,
+      "bytes": 14812,
       "sha256": "7d41285c75a03bbb40a1e855a97e7bec7cde85444e6ecd738642a63bb0b06ade"
     },
     {
       "path": "scripts/deploy_cloudflare.sh",
-      "size": 6443,
-      "sha256": "9347f37493c384a61a95551d0b6b0a9c820c2e67204e32f316032f1f180bcc2e"
+      "bytes": 6443,
+      "sha256": "f965465ed39c7babf893ac353dad37fdd9c21a072097e3bebc22e1bd027d1e9c"
     },
     {
       "path": "scripts/full_release.ps1",
-      "size": 2384,
+      "bytes": 2384,
       "sha256": "3287d5903c5542dce93bd0b5cce5c48f3a90a89b2f86afda9812ec3096fae749"
     },
     {
       "path": "scripts/full_release.sh",
-      "size": 1623,
+      "bytes": 1623,
       "sha256": "b359896aff170d7c5a65e02e2b5ba91f4a0e67bb667838227e613bf99af1d163"
     },
     {
       "path": "scripts/generate_agent_evaluation_report.mjs",
-      "size": 3805,
+      "bytes": 3805,
       "sha256": "e186a644fd15481e40fc1923850ac01d732f88dee19c748ddf6dad4df0ecd37e"
     },
     {
       "path": "scripts/production_e2e_m06.mjs",
-      "size": 3364,
+      "bytes": 3364,
       "sha256": "473bae5d5b55d94dca8a963ab7503bc0c82e7115f0e9bb1735023ac603e142cf"
     },
     {
       "path": "scripts/production_e2e_m07.mjs",
-      "size": 3417,
+      "bytes": 3417,
       "sha256": "a1c384d9095d4b8b8aac052e04284e335cb694d333871b616bbee76f451a33a2"
     },
     {
       "path": "scripts/production_e2e_m08.mjs",
-      "size": 3481,
-      "sha256": "508f8b13ccd32b3c5866f81eaf7b2c2b27cb631767a1dda022dde5509608d902"
+      "bytes": 3481,
+      "sha256": "b2da5749be7a0a0d97e0201117acabc170969dab2f077beac6882f532a78fc9c"
     },
     {
       "path": "scripts/production_e2e_m08_1.mjs",
-      "size": 844,
-      "sha256": "acf4d2902d2ccf27aff590be11c891696a4bcb32b63cd16e8b03eaded7d1fddf"
+      "bytes": 844,
+      "sha256": "f514d1d3bd80fc25825a10f4e0b722e7cb894032cddde072a5ebbcd799bf7146"
     },
     {
       "path": "scripts/smoke_api.py",
-      "size": 1524,
+      "bytes": 1524,
       "sha256": "fb3eb63e3375fd28422dc0f874353493a4e84ff4aaeafc8ee7b916fd2852082f"
     },
     {
       "path": "scripts/smoke_control_plane.mjs",
-      "size": 3622,
+      "bytes": 3622,
       "sha256": "99c9018ce468ea9f6f9b9ef2526ac7f2082f898ba6ae3df7ec41e7105fac0dee"
     },
     {
       "path": "scripts/smoke_m03.py",
-      "size": 4292,
+      "bytes": 4292,
       "sha256": "d0ffa763ab5b1ee52173150f5de0bf0cb668c6912aeca0a2194dff3065ebd438"
     },
     {
       "path": "scripts/smoke_m05.mjs",
-      "size": 3672,
+      "bytes": 3672,
       "sha256": "aba48129de96fd2845c91fb635cbebefc736c0a1497cfe93086f3b0d6bdf0f51"
     },
     {
       "path": "scripts/smoke_m06.mjs",
-      "size": 4096,
+      "bytes": 4096,
       "sha256": "b329a8f62c6a00660ab5bcd9ace9164ef489c3747e3b16ef686649c900dde4c9"
     },
     {
       "path": "scripts/smoke_m07.mjs",
-      "size": 2742,
+      "bytes": 2742,
       "sha256": "a63d66b26589a95e04b21facf9ae76b555132448900c8733f2aea0387d78160b"
     },
     {
       "path": "scripts/smoke_m08.mjs",
-      "size": 3892,
+      "bytes": 3892,
       "sha256": "e3476939f55de3a6fca56923665fa648d2ba994b8399e5a686738191c69bc567"
     },
     {
       "path": "scripts/smoke_m08_1.mjs",
-      "size": 2086,
-      "sha256": "74593f6adb80e8797cc256ef74807857970c5f8c157aac3193f224242569d2a7"
+      "bytes": 2086,
+      "sha256": "b66f39fe57f558f193ff8d0c5dd22def421822281655f2b0b586164fd85de570"
     },
     {
       "path": "scripts/validate_cloudflare.py",
-      "size": 23157,
-      "sha256": "0965b10a6b3dbc276646d27bdc0b01cbfa8ae5c486e9f8f0da6fb9a6d214e4db"
+      "bytes": 24342,
+      "sha256": "2bd29fbc1673c8776888bcdbdae4d8887708e28e50dbb871d8417709116dd897"
     },
     {
       "path": "scripts/validate_frontend.mjs",
-      "size": 1015,
+      "bytes": 1015,
       "sha256": "9afa27c0ee0945477e240733e1ac436e25da57d49bb1ba28d2fc6736341cedb0"
     },
     {
       "path": "scripts/verify_complete_package.py",
-      "size": 4920,
-      "sha256": "4d2d9855be227c7804f5cdb70406a33c41ad9ded710407fb9d2595aaf4a7feb5"
+      "bytes": 6041,
+      "sha256": "c8589ad47bca1ee749f05a4eae8eae9cd840ea2c88ba5ab3bff9886bdf1e0ca9"
     },
     {
       "path": "supabase/migrations/0001_core.sql",
-      "size": 6348,
+      "bytes": 6348,
       "sha256": "1b19bfcc487d664c0545127d4f531ab5931e64626205d8164ab2a81a4e26b85e"
     },
     {
       "path": "supabase/migrations/0002_engineering_evidence.sql",
-      "size": 3036,
+      "bytes": 3036,
       "sha256": "7836fa98340d47ca7836216a5e7f55f0b14f2df13bc7241208857068f02d3557"
     },
     {
       "path": "supabase/migrations/0003_supabase_runtime_ci_benchmarks.sql",
-      "size": 9863,
+      "bytes": 9863,
       "sha256": "127ebdea08efb2d2d45a2d4a87f4bfb9d8669f2de191c7f033043b600094ef1c"
     },
     {
       "path": "supabase/migrations/0004_cloudflare_control_plane.sql",
-      "size": 2536,
+      "bytes": 2536,
       "sha256": "868026ea9d81b2e092bb27a03ec3939e8f64874434f8ee8ac123385af8d0a284"
     },
     {
       "path": "supabase/migrations/0005_discovery_exports_gmail.sql",
-      "size": 3736,
+      "bytes": 3736,
       "sha256": "95ca0b262d8257d8092f9e2dc614f8986ed9883823ff520f385b1f333a690444"
     },
     {
       "path": "supabase/migrations/0006_interview_learning_analytics.sql",
-      "size": 7179,
+      "bytes": 7179,
       "sha256": "319849a9474047d116584fadfec98650a149c805184fa90031f00e8bf6a8694a"
     },
     {
       "path": "supabase/migrations/0007_knowledge_graph_workflows.sql",
-      "size": 10675,
+      "bytes": 10675,
       "sha256": "91786e367ad50496f527ee56f5b4217cee92a77053556a16e7b0256d6a443351"
     },
     {
       "path": "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql",
-      "size": 12524,
+      "bytes": 12524,
       "sha256": "31f328d2957f75c2f0a4a8e6e3e14a19504288a0a9bb7b2b2d65871eb8987db3"
     },
     {
       "path": "supabase/migrations/0011_daily_application_queue.sql",
-      "size": 4327,
+      "bytes": 4327,
       "sha256": "11c11d609f66a1dcb341871d6e838b3637918333d3ff3c9927d8097d090ed187"
     },
     {
       "path": "supabase/migrations/0013_dispatch_policy_channel_alignment.sql",
-      "size": 814,
+      "bytes": 814,
       "sha256": "453e14efc492c43170640e7dcdf94fbb099e324c32eba616b8c04cf0dc42112b"
     },
     {
       "path": "supabase/migrations/0014_complete_platform_job_pool.sql",
-      "size": 8643,
+      "bytes": 8643,
       "sha256": "61d4a12ccda804fe52e6d6efde2f60a8f116d9a7a0c6a110cbdac1a7ee01236f"
     },
     {
       "path": "supabase/migrations/0015_profile_resume_daily_recommendations.sql",
-      "size": 6918,
+      "bytes": 6918,
       "sha256": "02b96cff1ce487373a210f33aa0eaf9ce37f5f5c11b6e3da150b7b9a5c8d89e5"
     },
     {
+      "path": "supabase/migrations/0016_application_kits_one_click_handoff.sql",
+      "bytes": 1331,
+      "sha256": "77b6c4a3f5603148c44b9b392e496aa6b011b242e09d17cc974336eef6328fb5"
+    },
+    {
       "path": "workers/scheduler/package.json",
-      "size": 393,
+      "bytes": 393,
       "sha256": "c390d98ea3fd4fd3835fc7e67ed2e923f4fd0161510107a3c78a12a8a6e50aa1"
     },
     {
       "path": "workers/scheduler/src/index.ts",
-      "size": 1672,
+      "bytes": 1672,
       "sha256": "9bec3f80d36c8e58a45230c457aa71b98d294980127428a89aaacacaf05bdec9"
     },
     {
       "path": "workers/scheduler/tsconfig.json",
-      "size": 256,
+      "bytes": 256,
       "sha256": "f8ad8dfe38a5836a65912a1f6a0e55778b8c621dbd747e172305e80760c6c671"
     },
     {
       "path": "workers/scheduler/wrangler.jsonc",
-      "size": 514,
+      "bytes": 514,
       "sha256": "327108d5316309f23199279986d6b74e2755f1dd58189ea6cbc0eb6b3ad22aca"
     }
   ]

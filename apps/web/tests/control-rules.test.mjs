@@ -88,16 +88,27 @@ test("explicit 2027-only restriction rejects a 2028 applicant", () => {
   assert.ok(result.hard_filter_reasons.includes("明确不接受 2028 届"));
 });
 
-test("package truth check blocks when Career Vault has no verified evidence", () => {
+test("verified project evidence is optional when saved profile or resume can support the package", () => {
   const job = parseJobIntake({
     raw_text: "接受2028届在校生实习，每周3天，至少3个月。Python FastAPI",
     company: "No Evidence",
     title: "Python 实习生",
+    source_url: "https://example.com/jobs/python-intern",
   });
-  const evaluation = evaluateJob(job, [], new Date("2026-07-24T00:00:00Z"), { graduation_year: 2028, major: "人工智能", degree: "本科", availability_days: 5, availability_months: 6, preferences: { internship_only: true, target_roles: ["AI 开发"], locations: ["远程"], work_modes: ["remote"], keywords: ["Python", "FastAPI", "LangGraph", "RAG", "Docker"] } });
-  const pack = buildApplicationPackage(job, evaluation, [], []);
-  assert.equal(pack.truth_check.passed, false);
-  assert.ok(pack.truth_check.blockers.includes("Career Vault 中没有可引用的已核验证据"));
+  const profile = {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { internship_only: true, target_roles: ["AI 开发"], locations: ["远程"], work_modes: ["remote"], keywords: ["Python", "FastAPI"] },
+    profile_details: { summary: "使用 Python 和 FastAPI 完成过课程与个人项目", skills: ["Python", "FastAPI"] },
+  };
+  const evaluation = evaluateJob(job, [], new Date("2026-07-24T00:00:00Z"), profile);
+  const pack = buildApplicationPackage(job, evaluation, [], [], { profile });
+  assert.equal(pack.truth_check.passed, true);
+  assert.equal(pack.truth_check.evidence_optional, true);
+  assert.equal(pack.evidence_refs.length, 0);
 });
 
 
