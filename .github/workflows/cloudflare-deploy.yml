@@ -72,8 +72,8 @@ jobs:
         with:
           name: worker-build
           path: |
-            apps/web/.open-next/
-            apps/web/.next/
+            apps/web/.open-next/**
+            apps/web/.next/**
             apps/web/wrangler.jsonc
           retention-days: 1
       - if: steps.auth.outputs.ready == 'true'
