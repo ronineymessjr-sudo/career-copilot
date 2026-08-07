@@ -67,6 +67,16 @@ jobs:
         name: Build Cloudflare output
         run: npm --workspace apps/web run cf:build
       - if: steps.auth.outputs.ready == 'true'
+        name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: worker-build
+          path: |
+            apps/web/.open-next/
+            apps/web/.next/
+            apps/web/wrangler.jsonc
+          retention-days: 1
+      - if: steps.auth.outputs.ready == 'true'
         name: Deploy web Worker
         working-directory: apps/web
         env:
