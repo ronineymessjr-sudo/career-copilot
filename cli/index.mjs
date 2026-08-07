@@ -671,7 +671,88 @@ async function cmdAssess() {
   }
 }
 
-const command = process.argv[2] ?? "help";
 const commands = { init: cmdInit, reset: cmdReset, search: cmdSearch, rank: cmdRank, resume: cmdResume, "resume:review": cmdResumeReview, "cover-letter": cmdCoverLetter, outcome: cmdOutcome, interview: cmdInterview, calibrate: cmdCalibrate, jd: cmdJd, assess: cmdAssess, export: cmdExport, pipeline: cmdPipeline, skills: cmdSkills, "skills:check": cmdSkillsCheck, help };
-if (!commands[command]) { help(); process.exit(1); }
-Promise.resolve(commands[command]()).catch((error) => { console.error("错误:", error.message); process.exit(1); });
+
+function saveLocalFeedback(text, usedCommand) {
+  ensureDataDir();
+  const existing = load("feedback.json", []);
+  existing.push({
+    content: text,
+    command: usedCommand,
+    timestamp: new Date().toISOString(),
+    synced: false,
+  });
+  save("feedback.json", existing);
+  console.log("📝 反馈已保存到 career-data/feedback.json（下次 export 时同步）。");
+}
+
+async function showFeedbackPrompt() {
+  const cmd = process.argv[2] ?? "help";
+  // Skip feedback for help and skills listing (non-mission commands)
+  const skipCommands = ["help", "skills", "skills:check"];
+  if (skipCommands.includes(cmd)) return;
+
+  const readline = createInterface({ input: process.stdin, output: process.stdout });
+  try {
+    await new Promise((resolve) => {
+      readline.question("\n💬 给 Career Copilot CLI 留个反馈吧？(回车跳过): ", async (answer) => {
+        readline.close();
+        const text = String(answer).trim();
+        if (!text || text.length < 3) { resolve(null); return; }
+
+        // Try to send to the API
+        const url = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.SUPABASE_SECRET_KEY;
+        if (url && key) {
+          try {
+            const response = await fetch(`${url.replace(/\/$/, "")}/api/control/feedback`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "apikey": key,
+                "Authorization": `Bearer ${key}`,
+                "Accept-Profile": "career_copilot",
+                "Content-Profile": "career_copilot",
+              },
+              body: JSON.stringify({
+                type: "general",
+                content: text,
+                source: "cli",
+                metadata: { command_used: cmd },
+              }),
+              signal: AbortSignal.timeout(8000),
+            });
+            if (response.ok) {
+              console.log("✅ 反馈已发送，感谢！");
+            } else {
+              console.log("⚠️ 反馈发送失败，已保存到本地。");
+              saveLocalFeedback(text, cmd);
+            }
+          } catch {
+            saveLocalFeedback(text, cmd);
+          }
+        } else {
+          saveLocalFeedback(text, cmd);
+        }
+        resolve(null);
+      });
+    });
+  } catch { /* ignore readline close errors */ }
+}
+
+async function main() {
+  const command = process.argv[2] ?? "help";
+  const fn = commands[command];
+  if (!fn) { help(); await showFeedbackPrompt(); process.exit(1); }
+  try {
+    await fn();
+    await showFeedbackPrompt();
+    process.exit(0);
+  } catch (error) {
+    console.error("错误:", error.message);
+    await showFeedbackPrompt();
+    process.exit(1);
+  }
+}
+
+main();

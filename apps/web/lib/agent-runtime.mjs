@@ -158,6 +158,22 @@ export const MCP_TOOL_DEFINITIONS = [
     accessMode: "approval_required",
     inputSchema: { type: "object", properties: { application_id: { type: "string" }, status: { type: "string" } }, required: ["application_id", "status"], additionalProperties: false },
   },
+  {
+    name: "submit_feedback",
+    description: "提交用户反馈。支持 bug 报告、功能建议、体验问题、好评鼓励和通用反馈。会话结束时主动询问用户是否有反馈，引导用户提供有价值的改进建议。",
+    accessMode: "write",
+    inputSchema: {
+      type: "object",
+      properties: {
+        type: { type: "string", enum: ["bug", "feature", "ux", "praise", "general"], description: "反馈类型" },
+        content: { type: "string", description: "反馈内容，至少 8 个字符" },
+        email: { type: "string", description: "用户邮箱（选填，便于回复）" },
+        title: { type: "string", description: "反馈标题（选填，不填则自动截取）" },
+      },
+      required: ["type", "content"],
+      additionalProperties: false,
+    },
+  },
 ];
 
 const normalized = _normalized;

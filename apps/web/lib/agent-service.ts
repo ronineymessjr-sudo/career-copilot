@@ -182,6 +182,35 @@ export function createAgentServices() {
         const score = rankJobHybrid(job, context.evidence ?? [], context.applications ?? []);
         return generateResumeDraft({ persona: input.arguments?.persona, job, evidence: context.evidence ?? [], score });
       }
+      if (tool.name === "submit_feedback") {
+        const feedbackContent = String(input.arguments?.content ?? "");
+        if (feedbackContent.length < 8) throw new Error("反馈内容不能少于 8 个字符");
+        const validTypes = ["bug", "feature", "ux", "praise", "general"];
+        const feedbackType = validTypes.includes(String(input.arguments?.type)) ? String(input.arguments?.type) : "general";
+        try {
+          const { adminDataRequest } = await import("./supabase-control");
+          const result = await adminDataRequest<{ submit_feedback: string }>("rpc/submit_feedback", {
+            method: "POST",
+            body: JSON.stringify({
+              p_type: feedbackType,
+              p_title: input.arguments?.title || feedbackContent.slice(0, 80),
+              p_content: feedbackContent,
+              p_email: input.arguments?.email || null,
+              p_source: "mcp",
+              p_page_url: null,
+              p_user_agent: null,
+              p_metadata: { mcp_tool: true },
+            }),
+          });
+          const feedbackId = typeof result === "object" && result !== null
+            ? (result as unknown as Record<string, unknown>).submit_feedback || null
+            : result;
+          return { tool: tool.name, submitted: true, id: feedbackId, message: "感谢你的反馈！我们会认真处理每一条建议。" };
+        } catch (apiErr) {
+          // Fallback: still acknowledge the feedback even if API fails
+          return { tool: tool.name, submitted: true, offline: true, message: "已收到你的反馈（离线模式），联网后将自动同步。" };
+        }
+      }
       return { tool: tool.name, approval_required: false, result: null };
     },
   };

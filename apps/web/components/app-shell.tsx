@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, FileSearch, Home, LogOut, Radar, Send, Settings, UserRound } from "lucide-react";
+import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, FileSearch, Home, LogOut, MessageSquare, Radar, Send, Settings, UserRound } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { FeedbackWidget } from "@/components/feedback-widget";
 
@@ -21,6 +21,7 @@ const resourceNav = [
   ["/resumes", "简历版本", FileText],
   ["/career-vault", "项目证据", BookOpenCheck],
   ["/settings", "设置", Settings],
+  ["/feedback", "反馈中心", MessageSquare],
 ] as const;
 
 function isActive(pathname: string, href: string) {
