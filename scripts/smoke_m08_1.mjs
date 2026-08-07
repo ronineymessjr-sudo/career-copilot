@@ -23,6 +23,18 @@ assert.ok(fulltime.score.blockers.length > 0);
 const greeting = buildGreetingDraft({ job: result.job, score: result.score });
 assert.equal(greeting.status, "waiting_for_confirmation");
 
+// Verify queue module exists and exports expected functions
+const queueSource = fs.readFileSync("apps/web/lib/queue-consumer.mjs", "utf-8");
+const queueExports = ["submitQueueJob", "pollQueueJob", "getQueueResult", "consumeQueueJobs", "tryProcessJob"];
+const allExportsPresent = queueExports.every((fn) => queueSource.includes(`export async function ${fn}`) || queueSource.includes(`export function ${fn}`));
+assert.equal(allExportsPresent, true);
+const queueEndpoints = ["/api/queue/submit", "/api/queue/poll", "/api/queue/result", "/api/queue/consume"];
+const allEndpointsPresent = queueEndpoints.every((ep) => {
+  const routeFile = `apps/web/app/api/queue/${ep.split("/").pop()}/route.ts`;
+  return fs.existsSync(routeFile);
+});
+assert.equal(allEndpointsPresent, true);
+
 const smoke = {
   version: "2.0.2",
   mode: "offline-milestone-08.1-smoke",
@@ -38,6 +50,8 @@ const smoke = {
   automatic_submission: false,
   automatic_email_send: false,
   live_cloudflare_verified: false,
+  queue_module_exports_verified: allExportsPresent,
+  queue_endpoints: queueEndpoints,
 };
 const output = process.argv[2] ?? "SMOKE_RESULT_M08_1.json";
 fs.writeFileSync(output, `${JSON.stringify(smoke, null, 2)}\n`);

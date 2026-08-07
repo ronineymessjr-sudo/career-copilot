@@ -23,8 +23,18 @@ export default {
     return json({ ok: false, error: "Not found" }, 404);
   },
   async scheduled(event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    const weekly = event.cron === "0 12 * * SUN";
-    const path = weekly ? "/api/cron/weekly" : "/api/cron/daily";
-    ctx.waitUntil(trigger(env, path).then((result) => console.log(JSON.stringify({ event: weekly ? "weekly-review" : "daily-agent-cycle", cron: event.cron, ...result }))));
+    let path: string;
+    let eventName: string;
+    if (event.cron === "0 12 * * SUN") {
+      path = "/api/cron/weekly";
+      eventName = "weekly-review";
+    } else if (event.cron === "0 0 * * *") {
+      path = "/api/cron/daily";
+      eventName = "daily-agent-cycle";
+    } else {
+      path = "/api/queue/consume";
+      eventName = "queue-consume";
+    }
+    ctx.waitUntil(trigger(env, path).then((result) => console.log(JSON.stringify({ event: eventName, cron: event.cron, ...result }))));
   },
 } satisfies ExportedHandler<Env>;

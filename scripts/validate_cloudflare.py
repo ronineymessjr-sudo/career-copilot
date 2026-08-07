@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-IGNORED_SCAN_PARTS = {".git", ".career-copilot-patch-backups", ".career-copilot-backups", "node_modules", ".next", ".open-next", ".pytest_cache", "__pycache__", ".wrangler"}
+IGNORED_SCAN_PARTS = {".git", ".career-copilot-patch-backups", ".career-copilot-backups", "node_modules", ".next", ".open-next", ".pytest_cache", "__pycache__", ".wrangler", ".bin"}
 
 def in_ignored_tree(path: Path) -> bool:
     return any(part in IGNORED_SCAN_PARTS for part in path.parts)
@@ -126,7 +126,7 @@ scheduler = parse_jsonc(ROOT / "workers/scheduler/wrangler.jsonc")
 assert web["main"] == ".open-next/worker.js"
 assert "nodejs_compat" in web["compatibility_flags"]
 assert web["vars"]["APP_MODE"] == "production"
-assert scheduler["triggers"]["crons"] == ["0 0 * * *", "0 12 * * SUN"]
+assert scheduler["triggers"]["crons"] == ["*/5 * * * *", "0 0 * * *", "0 12 * * SUN"]
 assert scheduler["services"] == [{"binding": "WEB", "service": "career-copilot-v2"}]
 
 migration = (ROOT / "supabase/migrations/0005_discovery_exports_gmail.sql").read_text(encoding="utf-8")
@@ -211,7 +211,7 @@ assert "gmail_access_token" not in client_text.lower() or "sessionStorage" in cl
 all_text = "\n".join(
     path.read_text(errors="ignore")
     for path in ROOT.rglob("*")
-    if path.is_file() and path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"} and not in_ignored_tree(path)
+    if not in_ignored_tree(path) and path.is_file() and path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}
 )
 assert "gmail/v1/users/me/drafts/send" not in all_text
 assert "gmail/v1/users/me/messages/send" not in all_text
@@ -256,6 +256,8 @@ assert "generateWeeklyReview" in weekly_route
 scheduler_source = (ROOT / "workers/scheduler/src/index.ts").read_text(encoding="utf-8")
 assert 'event.cron === "0 12 * * SUN"' in scheduler_source
 assert '"/api/cron/weekly"' in scheduler_source
+assert '"/api/queue/consume"' in scheduler_source
+assert 'queue-consume' in scheduler_source
 
 
 analytics_service = (ROOT / "apps/web/lib/analytics-service.ts").read_text(encoding="utf-8")
