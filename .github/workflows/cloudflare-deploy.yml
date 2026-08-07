@@ -75,6 +75,7 @@ jobs:
             apps/web/.open-next/**
             apps/web/.next/**
             apps/web/wrangler.jsonc
+          include-hidden-files: true
           retention-days: 1
       - if: steps.auth.outputs.ready == 'true'
         name: Deploy web Worker
