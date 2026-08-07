@@ -7,5 +7,5 @@
   "mode": "production",
   "schedule": "0 0 * * *,0 12 * * SUN",
   "verified_at": "2026-08-07T06:21:39Z",
-  "verification_run": "https://github.com/ronineymessjr-sudo/public-apis-resource/actions/runs/31153553081"
+  "verification_run": "https://github.com/ronineymessjr-sudo/public-apis-resource/actions/runs/31153675034"
 }
