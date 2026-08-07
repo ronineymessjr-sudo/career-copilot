@@ -158,6 +158,60 @@ def check_workbuddy_sessions():
     }
 
 
+def check_feedback():
+    """Check Supabase user_feedback table for feedback count and recent items"""
+    import os
+    supabase_url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    supabase_key = os.environ.get("SUPABASE_SECRET_KEY") or os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY")
+    if not supabase_url or not supabase_key:
+        return {"error": "Supabase credentials not configured"}
+
+    supabase_url = supabase_url.rstrip("/")
+    result = {"total": 0, "by_type": {}, "by_source": {}, "recent_5": []}
+
+    try:
+        # Total count
+        req = urllib.request.Request(
+            f"{supabase_url}/rest/v1/career_copilot/user_feedback?select=count",
+            headers={"apikey": supabase_key, "Authorization": f"Bearer {supabase_key}"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = resp.read()
+            # Supabase returns count in content-range header
+            cr = resp.headers.get("content-range", "")
+            if cr and "/" in cr:
+                result["total"] = int(cr.split("/")[-1])
+
+        # By type
+        for fb_type in ["bug", "feature", "general", "praise", "ux"]:
+            req2 = urllib.request.Request(
+                f"{supabase_url}/rest/v1/career_copilot/user_feedback?type=eq.{fb_type}&select=count",
+                headers={"apikey": supabase_key, "Authorization": f"Bearer {supabase_key}"},
+            )
+            with urllib.request.urlopen(req2, timeout=10) as resp2:
+                cr2 = resp2.headers.get("content-range", "")
+                if cr2 and "/" in cr2:
+                    result["by_type"][fb_type] = int(cr2.split("/")[-1])
+
+        # Recent 5
+        req3 = urllib.request.Request(
+            f"{supabase_url}/rest/v1/career_copilot/user_feedback?select=id,type,title,source,created_at&order=created_at.desc&limit=5",
+            headers={"apikey": supabase_key, "Authorization": f"Bearer {supabase_key}"},
+        )
+        with urllib.request.urlopen(req3, timeout=10) as resp3:
+            data3 = json.loads(resp3.read())
+            result["recent_5"] = [
+                {"type": r.get("type"), "title": r.get("title", "")[:60],
+                 "source": r.get("source"), "created": r.get("created_at", "")[:10]}
+                for r in (data3 if isinstance(data3, list) else [])
+            ]
+
+    except Exception as e:
+        result["error"] = str(e)
+
+    return result
+
+
 def main():
     cwd = os.getcwd()
 
@@ -168,6 +222,7 @@ def main():
         "github": check_github_stats(cwd),
         "workbuddy_expert": check_workbuddy_expert(),
         "workbuddy_sessions": check_workbuddy_sessions(),
+        "feedback": check_feedback(),
     }
 
     # Print summary
@@ -205,6 +260,18 @@ def main():
     print(f"WorkBuddy Sessions: {ws.get('career_copilot_sessions', 0)} career-copilot sessions")
     for e in ws.get("all_expert_usage", []):
         print(f"  {e['expert']}: {e['sessions']} sessions")
+
+    print()
+    fb = report["feedback"]
+    print(f"User Feedback: {fb.get('total', 0)} total")
+    by_type = fb.get("by_type", {})
+    if by_type:
+        print(f"  Types: {', '.join(f'{k}={v}' for k, v in by_type.items() if v > 0)}")
+    recent = fb.get("recent_5", [])
+    if recent:
+        print(f"  Recent:")
+        for r in recent[:3]:
+            print(f"    [{r.get('type', '?')}] {r.get('title', '?')} ({r.get('source', '?')}, {r.get('created', '?')})")
 
     if "--json" in sys.argv:
         print()

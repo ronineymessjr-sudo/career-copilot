@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, FileSearch, Home, LogOut, Radar, Send, Settings, UserRound } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { FeedbackWidget } from "@/components/feedback-widget";
 
 const primaryNav = [
   ["/", "今日简报", Home],
@@ -51,5 +52,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className="platform-mobile-header"><Link href="/" className="platform-mobile-brand"><span>C</span><strong>Career Copilot</strong></Link><nav>{primaryNav.map(([href, label]) => <Link key={href} href={href} className={isActive(pathname, href) ? "active" : ""}>{label}</Link>)}</nav></header>
       <main className="platform-main">{children}</main>
     </div>
+    <FeedbackWidget />
   </div>;
 }
