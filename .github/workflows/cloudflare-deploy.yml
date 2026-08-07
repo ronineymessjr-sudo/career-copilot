@@ -61,6 +61,12 @@ jobs:
         name: Restore Linux native OpenNext dependency
         run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
       - if: steps.auth.outputs.ready == 'true'
+        name: Build web app
+        run: npm --workspace apps/web run build
+      - if: steps.auth.outputs.ready == 'true'
+        name: Build Cloudflare output
+        run: npm --workspace apps/web run cf:build
+      - if: steps.auth.outputs.ready == 'true'
         name: Deploy web Worker
         working-directory: apps/web
         env:
