@@ -10,7 +10,7 @@ assert.ok(["S", "A", "B"].includes(result.score.grade));
 assert.equal(result.resume.truth_check.verified_evidence_only, true);
 assert.equal(result.resume.truth_check.automatic_submission, false);
 assert.equal(result.greeting.automatic_send, false);
-assert.equal(Object.keys(RESUME_PERSONAS).length, 4);
+assert.equal(Object.keys(RESUME_PERSONAS).length, 11);
 const grounding = evaluateGrounding({
   output: JSON.stringify(result.resume),
   citations: result.resume.evidence_refs,
