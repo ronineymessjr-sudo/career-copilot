@@ -1,0 +1,52 @@
+name: 用户反馈 / Feedback
+description: 使用 Career Copilot 后的反馈和建议
+title: "[反馈] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢使用 Career Copilot！请填写以下信息帮助我们改进。
+        Thank you for using Career Copilot! Please fill in the following.
+  - type: dropdown
+    id: usage-type
+    attributes:
+      label: 使用方式 / Usage
+      description: 你是通过哪种方式使用的？
+      options:
+        - WorkBuddy 专家中心 (Expert Center)
+        - GitHub 源码部署 (Self-hosted)
+        - 在线 Demo (Web App)
+        - CLI 命令行
+    validations:
+      required: true
+  - type: dropdown
+    id: feature-used
+    attributes:
+      label: 使用的功能 / Feature
+      options:
+        - 岗位发现 (Job Discovery)
+        - JD 分析 (Job Analysis)
+        - 简历定制 (Resume Tailoring)
+        - 投递管理 (Application Management)
+        - 面试准备 (Interview Prep)
+        - 数据分析 (Analytics)
+        - 其他 (Other)
+    validations:
+      required: true
+  - type: textarea
+    id: feedback
+    attributes:
+      label: 反馈内容 / Feedback
+      description: 你觉得怎么样？有什么可以改进的？
+      placeholder: "例如：岗位聚合很好用，但简历导出格式希望能支持 PDF..."
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 环境信息 / Environment
+      description: 操作系统、浏览器等
+      placeholder: "Windows 11, Chrome 120, ..."
+    validations:
+      required: false

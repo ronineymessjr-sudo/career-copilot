@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 在线试用 / Try Online
+    url: https://career-copilot-v2.photomagic.workers.dev
+    about: 直接访问 Web 应用体验
+  - name: WorkBuddy 专家中心 / Expert Center
+    url: https://www.codebuddy.cn/docs/workbuddy/Overview
+    about: 在 WorkBuddy 中搜索「职业副驾」使用
+  - name: 安装指南 / Installation Guide
+    url: https://github.com/ronineymessjr-sudo/public-apis-resource#快速开始
+    about: 查看 README 中的安装步骤

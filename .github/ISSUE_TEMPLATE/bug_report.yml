@@ -1,0 +1,38 @@
+name: Bug 报告 / Bug Report
+description: 报告使用中遇到的问题
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么 / What happened
+      description: 清晰描述问题
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤 / Steps to reproduce
+      description: 如何触发这个问题
+      placeholder: "1. 打开...\n2. 点击...\n3. 看到..."
+    validations:
+      required: true
+  - type: dropdown
+    id: usage-type
+    attributes:
+      label: 使用方式 / Usage
+      options:
+        - WorkBuddy 专家中心
+        - GitHub 源码部署
+        - 在线 Demo
+        - CLI
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 错误日志 / Error logs
+      description: 如果有报错信息请粘贴
+    validations:
+      required: false
