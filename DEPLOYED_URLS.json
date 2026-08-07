@@ -3,9 +3,9 @@
   "scheduler_url": "https://career-copilot-scheduler.photomagic.workers.dev",
   "runtime_check": "https://career-copilot-v2.photomagic.workers.dev/api/runtime",
   "scheduler_health_check": "https://career-copilot-scheduler.photomagic.workers.dev/health",
-  "application_commit": "b8e76366098b3581a9e6f890642b4f438047fb11",
+  "application_commit": "7134e7a02c55fc1be3694e6fcdd480332e96e2c1",
   "mode": "production",
-  "schedule": "0 0 * * *,0 12 * * SUN",
-  "verified_at": "2026-08-07T06:21:39Z",
+  "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
+  "verified_at": "2026-08-07T07:18:00Z",
   "verification_run": "https://github.com/ronineymessjr-sudo/public-apis-resource/actions/runs/31153675034"
 }
