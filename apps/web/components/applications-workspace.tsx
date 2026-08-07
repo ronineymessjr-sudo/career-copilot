@@ -149,7 +149,7 @@ function ApplicationRow({ item, activeHandoffId, busyId, onStart, onConfirm, onA
     <div className="platform-application-state">{ready ? <span className="platform-status ok">材料齐全</span> : item.status === "submitted" ? <span className="platform-status done">已投递</span> : canApprove ? <span className="platform-status warn">等待确认</span> : <span className="platform-status warn">需要补齐</span>}</div>
     <div className="platform-application-actions">
       {ready ? <><button className="primary-button" type="button" onClick={() => void onStart(item)} disabled={busyId === `open-${item.id}`}><ExternalLink size={15}/>{busyId === `open-${item.id}` ? "准备中…" : actionLabel}</button>{opened ? <button className="ghost-button" type="button" onClick={() => void onConfirm(item)} disabled={busyId === `confirm-${item.id}`}>确认已投递</button> : null}</>
-        : item.status === "submitted" ? <small>{item.submitted_at ? new Date(item.submitted_at).toLocaleString("zh-CN") : "已确认"}</small>
+        : item.status === "submitted" ? <small>{item.submitted_at ? new Date(item.submitted_at).toLocaleString("zh-CN") : "已确认"}{item.submitted_at && (Date.now() - new Date(item.submitted_at).getTime()) / 86400000 >= 10 ? <em className="quiet-reminder"> · 已安静 {Math.round((Date.now() - new Date(item.submitted_at).getTime()) / 86400000)} 天,建议跟进</em> : null}</small>
         : canApprove ? <button className="primary-button" type="button" onClick={() => void onApprove(item)} disabled={busyId === `approve-${item.id}`}><CheckCircle2 size={15}/>{busyId === `approve-${item.id}` ? "确认中…" : "确认材料并进入投递"}</button>
         : <Link className="ghost-button" href={`/jobs?job=${encodeURIComponent(String(job.id ?? ""))}`}>返回岗位处理</Link>}
     </div>

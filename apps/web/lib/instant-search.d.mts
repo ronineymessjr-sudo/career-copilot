@@ -1,0 +1,15 @@
+export type InstantSearchPlatform = "greenhouse" | "lever" | "ashby" | "workday" | "boss" | "linkedin" | "shixiseng" | "nowcoder" | "zhaopin" | "job51" | "liepin";
+export type ProfileSearchSpec = { queryText: string; roles: string[]; locations: string[]; workModes: string[]; industries: string[]; keywords: string[]; excludedKeywords: string[]; internshipOnly: boolean; graduationYear: number | null; major: string; degree: string; headline: string; summary: string };
+export type IndexedJob = { platform: InstantSearchPlatform; platformLabel: string; company: string; title: string; location: string; workplace: "remote" | "hybrid" | "onsite" | "unknown"; salary: string; publishedAt: string | null; sourceUrl: string; applyUrl: string; rawText: string; sourcePayload: Record<string, unknown> };
+export const INSTANT_SEARCH_PLATFORMS: readonly InstantSearchPlatform[];
+export const ATS_API_PLATFORMS: readonly InstantSearchPlatform[];
+export const WEB_SEARCH_PLATFORMS: readonly InstantSearchPlatform[];
+export function buildProfileSearchSpec(profile?: Record<string, any>, extraQuery?: string): ProfileSearchSpec;
+export function searchDomains(platforms?: readonly string[]): string[];
+export function platformLabel(platform: string): string;
+export function platformDefinition(platform: string): { id: string; label: string; domains: string[] } | null;
+export function normalizeIndexedJob(input?: Record<string, any>, expectedPlatform?: string): IndexedJob | null;
+export function deduplicateIndexedJobs(jobs?: IndexedJob[]): IndexedJob[];
+export function extractResponseText(payload: Record<string, any>): string;
+export function searchPublicJobIndex(input: { profile: Record<string, any>; extraQuery?: string; platforms?: readonly string[]; apiKey?: string; model?: string; maxResults?: number; fetcher?: typeof fetch }): Promise<{ jobs: IndexedJob[]; platformReports: Array<Record<string, any>>; querySpec: ProfileSearchSpec; provider: string; responseId?: string | null }>;
+export function searchPublicJobIndexWithTavily(input: { profile: Record<string, any>; extraQuery?: string; platforms?: readonly string[]; apiKey?: string; maxResults?: number; fetcher?: typeof fetch }): Promise<{ jobs: IndexedJob[]; platformReports: Array<Record<string, any>>; querySpec: ProfileSearchSpec; provider: string }>;

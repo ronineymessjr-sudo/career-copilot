@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-IGNORED_SCAN_PARTS = {".git", ".career-copilot-patch-backups", ".career-copilot-backups", "node_modules", ".next", ".open-next", ".wrangler", ".pytest_cache", "__pycache__"}
+IGNORED_SCAN_PARTS = {".git", ".career-copilot-patch-backups", ".career-copilot-backups", "node_modules", ".next", ".open-next", ".pytest_cache", "__pycache__", ".wrangler"}
 
 def in_ignored_tree(path: Path) -> bool:
     return any(part in IGNORED_SCAN_PARTS for part in path.parts)
@@ -27,6 +27,7 @@ REQUIRED = [
     ROOT / "apps/web/lib/application-safety.ts",
     ROOT / "apps/web/app/api/control/sources/route.ts",
     ROOT / "apps/web/app/api/control/sources/run/route.ts",
+    ROOT / "apps/web/app/api/control/sources/[id]/route.ts",
     ROOT / "apps/web/app/api/control/applications/[id]/export/route.ts",
     ROOT / "apps/web/app/api/control/applications/[id]/gmail-draft/route.ts",
     ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts",
@@ -82,7 +83,18 @@ REQUIRED = [
     ROOT / "scripts/generate_agent_evaluation_report.mjs",
     ROOT / "docs/agent-evaluation-report.md",
     ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql",
+    ROOT / "supabase/migrations/0016_rls_grants_shared_pool.sql",
     ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql",
+    ROOT / "supabase/migrations/0018_recommendation_experience.sql",
+    ROOT / "supabase/migrations/0019_material_versions_application_tracking.sql",
+    ROOT / "supabase/migrations/0020_platform_scale_quality_analytics.sql",
+    ROOT / "supabase/migrations/0021_source_connections_and_platform_search.sql",
+    ROOT / "supabase/migrations/0022_instant_profile_aggregate_search.sql",
+    ROOT / "apps/web/lib/instant-search.mjs",
+    ROOT / "apps/web/lib/instant-search.d.mts",
+    ROOT / "apps/web/lib/instant-search-service.ts",
+    ROOT / "apps/web/app/api/control/search-runs/route.ts",
+    ROOT / "apps/web/tests/instant-search.test.mjs",
     ROOT / "apps/web/lib/application-kit.mjs",
     ROOT / "apps/web/lib/application-export.mjs",
     ROOT / "apps/web/app/login/page.tsx",
@@ -101,10 +113,10 @@ for path in REQUIRED:
         raise SystemExit(f"missing required file: {path.relative_to(ROOT)}")
 
 for path in [ROOT / "package.json", ROOT / "apps/web/package.json", ROOT / "workers/scheduler/package.json"]:
-    json.loads(path.read_text())
+    json.loads(path.read_text(encoding="utf-8"))
 
 def parse_jsonc(path: Path):
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     text = re.sub(r"//.*?$", "", text, flags=re.M)
     text = re.sub(r",\s*([}\]])", r"\1", text)
     return json.loads(text)
@@ -117,16 +129,20 @@ assert web["vars"]["APP_MODE"] == "production"
 assert scheduler["triggers"]["crons"] == ["0 0 * * *", "0 12 * * SUN"]
 assert scheduler["services"] == [{"binding": "WEB", "service": "career-copilot-v2"}]
 
-migration = (ROOT / "supabase/migrations/0005_discovery_exports_gmail.sql").read_text()
+migration = (ROOT / "supabase/migrations/0005_discovery_exports_gmail.sql").read_text(encoding="utf-8")
 for required in ["job_sources", "discovery_runs", "gmail_draft_id", "hr_verified_fields", "hr_verified_at", "enable row level security", "job_sources_owner_all", "discovery_runs_owner_all"]:
     assert required in migration
 assert "provider in ('greenhouse','lever')" in migration
 
-runtime = (ROOT / "apps/web/app/api/runtime/route.ts").read_text()
-assert 'version: "2.0.0"' in runtime
+runtime = (ROOT / "apps/web/app/api/runtime/route.ts").read_text(encoding="utf-8")
+assert 'version: "2.0.2"' in runtime
 assert "automaticSubmission: false" in runtime
 assert "gmailDraftOnly: true" in runtime
 assert "publicSourceDiscovery: true" in runtime
+for flag in ["sourceUrlAutoDetection: true", "sourceConnectionTesting: true", "recruitmentPlatformSearch: true", "clickableSourceCards: true"]:
+    assert flag in runtime
+for flag in ["instantProfileAggregateSearch: true", "indexedRecruitmentPlatformSearch: true", "perPlatformSearchFeedback: true", "automaticSearchResultPreparation: true"]:
+    assert flag in runtime
 assert "interviewLearningLoop: true" in runtime
 assert "conversionAnalytics: true" in runtime
 assert "weeklyReviews: true" in runtime
@@ -134,17 +150,22 @@ assert "operationalObservability: true" in runtime
 assert "automaticInterviewAcceptance: false" in runtime
 assert "automaticOfferAcceptance: false" in runtime
 
-source_lib = (ROOT / "apps/web/lib/job-sources.mjs").read_text()
+source_lib = (ROOT / "apps/web/lib/job-sources.mjs").read_text(encoding="utf-8")
 assert "boards-api.greenhouse.io" in source_lib
 assert "api.lever.co" in source_lib
 assert "internships_only" in source_lib
+for required in ["normalizeSourceInput", "testSourceConnection", "portalSearchUrl", "jobs.ashbyhq.com", "jobs.lever.co", "boss", "linkedin", "shixiseng", "nowcoder", "zhaopin", "job51", "liepin", "workday"]:
+    assert required in source_lib
+source_ui = (ROOT / "apps/web/components/sources-workspace.tsx").read_text(encoding="utf-8")
+for required in ["怎么开始", "支持的招聘平台", "去导入岗位", "聚合我的来源", "链接 / JD 导入", "聚合边界", "最近聚合任务"]:
+    assert required in source_ui
 
-cron_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text()
+cron_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text(encoding="utf-8")
 assert "runDiscovery" in cron_route
 assert "backgroundOwnerId" in cron_route
 assert "adminDataRequest" in cron_route
 
-gmail_route = (ROOT / "apps/web/app/api/control/applications/[id]/gmail-draft/route.ts").read_text()
+gmail_route = (ROOT / "apps/web/app/api/control/applications/[id]/gmail-draft/route.ts").read_text(encoding="utf-8")
 assert "gmail.googleapis.com/gmail/v1/users/me/drafts" in gmail_route
 assert "ready_to_submit" in gmail_route
 assert "approval !== \"approved\"" in gmail_route
@@ -153,28 +174,28 @@ assert "currentApplicationSafety" in gmail_route
 assert "/drafts/send" not in gmail_route
 assert "/messages/send" not in gmail_route
 
-export_route = (ROOT / "apps/web/app/api/control/applications/[id]/export/route.ts").read_text()
+export_route = (ROOT / "apps/web/app/api/control/applications/[id]/export/route.ts").read_text(encoding="utf-8")
 for fmt in ['format === "json"', 'format === "html"', 'format === "eml"']:
     assert fmt in export_route
 assert "truth_check?.passed !== true" in export_route
 assert "currentApplicationSafety" in export_route
 
 
-supabase_control = (ROOT / "apps/web/lib/supabase-control.ts").read_text()
+supabase_control = (ROOT / "apps/web/lib/supabase-control.ts").read_text(encoding="utf-8")
 admin_section = supabase_control.split("export async function adminDataRequest", 1)[1]
 assert 'headers.set("apikey", key)' in admin_section
 assert 'headers.set("Authorization", `Bearer ${key}`)' not in admin_section
 assert 'headers.delete("Authorization")' in admin_section
 
-discovery = (ROOT / "apps/web/lib/discovery-service.ts").read_text()
+discovery = (ROOT / "apps/web/lib/discovery-service.ts").read_text(encoding="utf-8")
 assert "preserveVerifiedJobFields" in discovery
 assert "jobs?select=*" in discovery
 
-jobs_patch = (ROOT / "apps/web/app/api/control/jobs/[id]/route.ts").read_text()
+jobs_patch = (ROOT / "apps/web/app/api/control/jobs/[id]/route.ts").read_text(encoding="utf-8")
 assert "hr_verified_fields" in jobs_patch
 assert "hr_verified_at" in jobs_patch
 
-deploy = (ROOT / "scripts/deploy_cloudflare.sh").read_text()
+deploy = (ROOT / "scripts/deploy_cloudflare.sh").read_text(encoding="utf-8")
 for name in ["CRON_SHARED_SECRET", "SUPABASE_SECRET_KEY", "OWNER_USER_ID", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]:
     assert f"wrangler secret put {name}" in deploy
 
@@ -211,33 +232,33 @@ for path in ROOT.rglob("*"):
         if pattern.search(text):
             raise SystemExit(f"forbidden public content in {path.relative_to(ROOT)}: {pattern.pattern}")
 
-migration6 = (ROOT / "supabase/migrations/0006_interview_learning_analytics.sql").read_text()
+migration6 = (ROOT / "supabase/migrations/0006_interview_learning_analytics.sql").read_text(encoding="utf-8")
 for required in ["interview_feedback", "skill_gaps", "weekly_reviews", "operational_events", "enable row level security", "interview_feedback_owner_all", "skill_gaps_owner_all", "weekly_reviews_owner_all", "operational_events_owner_all"]:
     assert required in migration6
 assert "security definer" not in migration6.lower()
 assert "to authenticated" in migration6
 
-learning = (ROOT / "apps/web/lib/interview-learning.mjs").read_text()
+learning = (ROOT / "apps/web/lib/interview-learning.mjs").read_text(encoding="utf-8")
 for required in ["buildInterviewPreparation", "deriveSkillGaps", "computeApplicationAnalytics", "buildWeeklyReview"]:
     assert required in learning
 assert "automatic_acceptance: false" in learning
 assert "automatic_actions: false" in learning
 
-complete_route = (ROOT / "apps/web/app/api/control/interviews/[id]/complete/route.ts").read_text()
+complete_route = (ROOT / "apps/web/app/api/control/interviews/[id]/complete/route.ts").read_text(encoding="utf-8")
 assert "confirm_status_change === true" in complete_route
 assert "validateInterviewOutcomeTransition" in complete_route
 
-weekly_route = (ROOT / "apps/web/app/api/cron/weekly/route.ts").read_text()
+weekly_route = (ROOT / "apps/web/app/api/cron/weekly/route.ts").read_text(encoding="utf-8")
 assert "CRON_SHARED_SECRET" in weekly_route
 assert "backgroundOwnerId" in weekly_route
 assert "generateWeeklyReview" in weekly_route
 
-scheduler_source = (ROOT / "workers/scheduler/src/index.ts").read_text()
+scheduler_source = (ROOT / "workers/scheduler/src/index.ts").read_text(encoding="utf-8")
 assert 'event.cron === "0 12 * * SUN"' in scheduler_source
 assert '"/api/cron/weekly"' in scheduler_source
 
 
-analytics_service = (ROOT / "apps/web/lib/analytics-service.ts").read_text()
+analytics_service = (ROOT / "apps/web/lib/analytics-service.ts").read_text(encoding="utf-8")
 for table in ["applications", "application_events", "jobs", "application_packages", "interviews", "offers", "skill_gaps", "discovery_runs", "operational_events"]:
     assert f"{table}?select=*" in analytics_service
 assert analytics_service.count("user_id=eq.${owner}") >= 9
@@ -250,14 +271,14 @@ assert "on_conflict=user_id,source_type,source_id,skill" in complete_route
 assert "validateInterviewOutcomeTransition" in complete_route
 
 
-production_e2e = (ROOT / "scripts/production_e2e_m06.mjs").read_text()
+production_e2e = (ROOT / "scripts/production_e2e_m06.mjs").read_text(encoding="utf-8")
 assert "CAREER_COPILOT_TEST_EMAIL" in production_e2e
 assert "CAREER_COPILOT_TEST_PASSWORD" in production_e2e
 assert "automatic_interview_acceptance: false" in production_e2e
 assert "automatic_offer_acceptance: false" in production_e2e
 assert "access_token" not in production_e2e.split("const result =", 1)[1]
 
-migration7 = (ROOT / "supabase/migrations/0007_knowledge_graph_workflows.sql").read_text()
+migration7 = (ROOT / "supabase/migrations/0007_knowledge_graph_workflows.sql").read_text(encoding="utf-8")
 for required in [
     "create extension if not exists vector",
     "career_documents",
@@ -282,33 +303,33 @@ assert "content_hash text" in migration7
 assert "char_start integer" in migration7
 assert "char_end integer" in migration7
 
-knowledge_rules = (ROOT / "apps/web/lib/knowledge-rules.mjs").read_text()
+knowledge_rules = (ROOT / "apps/web/lib/knowledge-rules.mjs").read_text(encoding="utf-8")
 for required in ["chunkDocument", "rankLexicalChunks", "citationForChunk", "buildEvidenceCandidate", "buildRagContext"]:
     assert required in knowledge_rules
 assert "requires_human_verification: true" in knowledge_rules
 assert "automatic_promotion: false" in knowledge_rules
 
-embedding_service = (ROOT / "apps/web/lib/embedding-service.ts").read_text()
+embedding_service = (ROOT / "apps/web/lib/embedding-service.ts").read_text(encoding="utf-8")
 assert "https://api.openai.com/v1/embeddings" in embedding_service
 assert "text-embedding-3-small" in embedding_service
 assert 'provider: "none"' in embedding_service
 
-checkpoint_saver = (ROOT / "apps/web/lib/supabase-langgraph-checkpointer.mjs").read_text()
+checkpoint_saver = (ROOT / "apps/web/lib/supabase-langgraph-checkpointer.mjs").read_text(encoding="utf-8")
 for required in ["BaseCheckpointSaver", "getTuple", "putWrites", "deleteThread", "langgraph_checkpoints", "langgraph_writes"]:
     assert required in checkpoint_saver
 
-evidence_graph = (ROOT / "apps/web/lib/evidence-promotion-graph.mjs").read_text()
+evidence_graph = (ROOT / "apps/web/lib/evidence-promotion-graph.mjs").read_text(encoding="utf-8")
 assert "interrupt(" in evidence_graph
 assert "SupabaseCheckpointSaver" in evidence_graph
 assert "automatic_promotion: false" in evidence_graph
 
-resume_route = (ROOT / "apps/web/app/api/control/workflows/[id]/resume/route.ts").read_text()
+resume_route = (ROOT / "apps/web/app/api/control/workflows/[id]/resume/route.ts").read_text(encoding="utf-8")
 assert "new Command({ resume: decision })" in resume_route
 assert "source_content_hash" in resume_route
 assert 'verification_status: "verified"' in resume_route
 assert "automatic_promotion: false" in resume_route
 
-knowledge_client = (ROOT / "apps/web/components/knowledge-workspace.tsx").read_text()
+knowledge_client = (ROOT / "apps/web/components/knowledge-workspace.tsx").read_text(encoding="utf-8")
 assert "PDF/DOCX" in knowledge_client
 assert "requires_human_verification" not in knowledge_client or "人工核验" in knowledge_client
 assert "OPENAI_API_KEY" not in knowledge_client
@@ -316,7 +337,7 @@ assert "OPENAI_API_KEY" not in knowledge_client
 for flag in ["documentKnowledgeBase: true", "pgvectorRetrieval: true", "citationRequired: true", "durableHumanInterrupts: true", "automaticEvidencePromotion: false"]:
     assert flag in runtime
 
-production_e2e7 = (ROOT / "scripts/production_e2e_m07.mjs").read_text()
+production_e2e7 = (ROOT / "scripts/production_e2e_m07.mjs").read_text(encoding="utf-8")
 assert "mutations_performed: false" in production_e2e7
 assert "automatic_evidence_promotion: false" in production_e2e7
 assert "access_token" not in production_e2e7.split("const result =", 1)[1]
@@ -330,47 +351,47 @@ assert "OPENAI_API_KEY" not in client_text_m07
 assert "SUPABASE_SECRET_KEY" not in client_text_m07
 
 
-api_main = (ROOT / "apps/api/app/main.py").read_text()
+api_main = (ROOT / "apps/api/app/main.py").read_text(encoding="utf-8")
 assert 'version="2.0.0"' in api_main
 assert '"version":"2.0.0"' in api_main
 
-auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text()
+auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text(encoding="utf-8")
 assert "包内全部迁移（按文件名顺序）" in auth_gate
 assert (ROOT / "supabase/migrations/0011_daily_application_queue.sql").exists()
 assert (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").exists()
 
-open_submission = (ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts").read_text()
+open_submission = (ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts").read_text(encoding="utf-8")
 assert "submission_handoff_opened" in open_submission
 assert "external_submission_performed: false" in open_submission
 assert "target_host" in open_submission
 
-applications_workspace = (ROOT / "apps/web/components/applications-workspace.tsx").read_text()
+applications_workspace = (ROOT / "apps/web/components/applications-workspace.tsx").read_text(encoding="utf-8")
 assert "/open-submission" in applications_workspace
 assert "真实申请页已经打开" in applications_workspace
 assert "一键投递在这里表示" in applications_workspace
-assert "打开完整材料" in applications_workspace
+assert "打开完整材料包" in applications_workspace
 assert "Gmail" not in applications_workspace
 
-complete_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text()
-for label in ["platform-frame", "岗位发现", "岗位来源", "platform-sidebar", "数据看板", "我的画像", "platform-nav", "项目证据"]:
+complete_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text(encoding="utf-8")
+for label in ["今日简报", "岗位发现", "岗位来源", "投递管理", "数据看板", "我的画像", "简历版本", "项目证据"]:
     assert label in complete_shell
-assert "platform-sidebar-note" in complete_shell
+assert "完整岗位池" in complete_shell
 
-root_package = json.loads((ROOT / "package.json").read_text())
-web_package = json.loads((ROOT / "apps/web/package.json").read_text())
-assert root_package["version"] == "2.0.0"
-assert web_package["version"] == "2.0.0"
+root_package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+web_package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
+assert root_package["version"] == "2.0.2"
+assert web_package["version"] == "2.0.2"
 assert web_package["dependencies"]["@langchain/core"] == "1.2.3"
 assert web_package["dependencies"]["@langchain/langgraph"] == "1.4.8"
 assert web_package["dependencies"]["@langchain/langgraph-checkpoint"] == "1.0.3"
 assert web_package["scripts"]["check"] == "tsc --noEmit"
 
 
-migration14 = (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").read_text()
+migration14 = (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").read_text(encoding="utf-8")
 for required in ["job_user_overrides", "visibility", "jobs_pool_select", "job_sources_scope_check", "ashby"]:
     assert required in migration14
 
-migration15 = (ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql").read_text()
+migration15 = (ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql").read_text(encoding="utf-8")
 for required in [
     "profile_details", "source_type", "storage_path", "daily_recommendation_preferences",
     "daily_recommendations", "resume-files", "resume_files_owner_select",
@@ -380,54 +401,87 @@ for required in [
 assert "alter column graduation_year drop not null" in migration15.lower()
 assert "alter column graduation_year drop default" in migration15.lower()
 
-migration16 = (ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql").read_text()
+migration16 = (ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql").read_text(encoding="utf-8")
 for required in ["content_bundle", "tailored_resume", "submission_capability", "submission_mode", "handoff_opened_at"]:
     assert required in migration16
 assert "drop table" not in migration16.lower()
 assert "drop schema" not in migration16.lower()
 
-application_kit = (ROOT / "apps/web/lib/application-kit.mjs").read_text()
+for migration_name in [
+    "0016_rls_grants_shared_pool.sql",
+    "0018_recommendation_experience.sql",
+    "0019_material_versions_application_tracking.sql",
+    "0020_platform_scale_quality_analytics.sql",
+]:
+    text = (ROOT / "supabase/migrations" / migration_name).read_text(encoding="utf-8")
+    assert "drop table" not in text.lower()
+    assert "drop schema" not in text.lower()
+
+migration21 = (ROOT / "supabase/migrations/0021_source_connections_and_platform_search.sql").read_text(encoding="utf-8")
+for required in ["connection_mode", "source_url", "connection_status", "last_verified_at", "connection_details", "greenhouse", "lever", "ashby", "workday", "boss", "linkedin", "shixiseng", "nowcoder", "zhaopin", "job51", "liepin"]:
+    assert required in migration21
+assert "drop table" not in migration21.lower()
+assert "drop schema" not in migration21.lower()
+
+instant_search = (ROOT / "apps/web/lib/instant-search.mjs").read_text(encoding="utf-8")
+for required in ["INSTANT_SEARCH_PLATFORMS", "buildProfileSearchSpec", "searchPublicJobIndex", "web_search", "allowed_domains", "json_schema", "normalizeIndexedJob"]:
+    assert required in instant_search
+instant_service = (ROOT / "apps/web/lib/instant-search-service.ts").read_text(encoding="utf-8")
+for required in ["runInstantProfileSearch", "searchPublicJobIndex", "buildApplicationPlan", "prepareApplication", "profile_search_results"]:
+    assert required in instant_service
+instant_route = (ROOT / "apps/web/app/api/control/search-runs/route.ts").read_text(encoding="utf-8")
+assert "runInstantProfileSearch" in instant_route
+instant_ui = (ROOT / "apps/web/components/jobs-workspace.tsx").read_text(encoding="utf-8")
+for required in ["即时聚合搜索", "开始聚合搜索", "本次搜索", "/api/control/search-runs", "材料已准备"]:
+    assert required in instant_ui
+migration22 = (ROOT / "supabase/migrations/0022_instant_profile_aggregate_search.sql").read_text(encoding="utf-8")
+for required in ["profile_search_runs", "profile_search_results", "platform_statuses", "jobs_prepared", "enable row level security", "profile_search_runs_owner_all", "profile_search_results_owner_all"]:
+    assert required in migration22
+assert "drop table" not in migration22.lower()
+assert "drop schema" not in migration22.lower()
+
+application_kit = (ROOT / "apps/web/lib/application-kit.mjs").read_text(encoding="utf-8")
 for required in ["buildApplicationContentBundle", "buildTailoredResume", "detectSubmissionCapability", "buildMailtoUrl", "no_invented_metrics"]:
     assert required in application_kit
 
-application_export = (ROOT / "apps/web/lib/application-export.mjs").read_text()
-for required in ["tailoredResumeHtml", "answersMarkdown", "packetHtml"]:
+application_export = (ROOT / "apps/web/lib/application-export.mjs").read_text(encoding="utf-8")
+for required in ["tailoredResumeHtml", "answersMarkdown", "packetHtml", "不会自动投递"]:
     assert required in application_export
 
-profile_service = (ROOT / "apps/web/lib/profile-service.ts").read_text()
-agent_controller = (ROOT / "apps/web/lib/agent-controller.ts").read_text()
+profile_service = (ROOT / "apps/web/lib/profile-service.ts").read_text(encoding="utf-8")
+agent_controller = (ROOT / "apps/web/lib/agent-controller.ts").read_text(encoding="utf-8")
 assert "graduation_year: null" in profile_service
 assert "graduation_year: null" in agent_controller
 
-profile_route = (ROOT / "apps/web/app/api/control/profile/route.ts").read_text()
+profile_route = (ROOT / "apps/web/app/api/control/profile/route.ts").read_text(encoding="utf-8")
 for required in ["profile_details", "education", "experience", "projects", "certifications", "links"]:
     assert required in profile_route
 
-resume_upload = (ROOT / "apps/web/app/api/control/resumes/upload/route.ts").read_text()
+resume_upload = (ROOT / "apps/web/app/api/control/resumes/upload/route.ts").read_text(encoding="utf-8")
 for required in ["resume-files", "storage_path", "application/pdf", "MAX_BYTES", "is_master"]:
     assert required in resume_upload
 
-resume_library = (ROOT / "apps/web/components/resume-agent-workspace.tsx").read_text()
-for required in ["多版本简历库", "上传文件", "主简历", "岗位定制", "下载原文件"]:
+resume_library = (ROOT / "apps/web/components/resume-agent-workspace.tsx").read_text(encoding="utf-8")
+for required in ["多版本简历库", "上传已有简历", "建立主简历", "岗位定制版本", "下载原文件"]:
     assert required in resume_library
 
-automation_route = (ROOT / "apps/web/app/api/control/automation/route.ts").read_text()
+automation_route = (ROOT / "apps/web/app/api/control/automation/route.ts").read_text(encoding="utf-8")
 assert 'body.action !== "run_now"' in automation_route
 assert "runDailyRecommendationForUser" in automation_route
 
-daily_service = (ROOT / "apps/web/lib/daily-recommendation-service.ts").read_text()
+daily_service = (ROOT / "apps/web/lib/daily-recommendation-service.ts").read_text(encoding="utf-8")
 for required in ["profileCompleteness", "buildApplicationPlan", "automatic_preparation", 'approval: \"pending\"', "recommendationDateForTimezone"]:
     assert required in daily_service
 assert "submitted" in daily_service
 
-login_page = (ROOT / "apps/web/app/login/page.tsx").read_text()
+login_page = (ROOT / "apps/web/app/login/page.tsx").read_text(encoding="utf-8")
 for required in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
     assert required in login_page
 
 for flag in ["completeUserProfiles: true", "privateMultiResumeLibrary: true", "perUserDailyRecommendations: true", "automaticApplicationPreparation: true", "completeApplicationKits: true", "tailoredResumePrintExport: true", "emailComposeHandoff: true", "oneClickApplicationHandoff: true", "automaticExternalSubmission: false"]:
     assert flag in runtime
 
-migration8 = (ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql").read_text()
+migration8 = (ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql").read_text(encoding="utf-8")
 for required in [
     "agent_runs", "agent_messages", "agent_traces", "job_scores",
     "resume_alignments", "evaluation_runs", "mcp_tool_registry",
@@ -438,17 +492,17 @@ for required in [
 assert "security definer" not in migration8.lower()
 assert "approval_required" in migration8
 
-agent_runtime = (ROOT / "apps/web/lib/agent-runtime.mjs").read_text()
+agent_runtime = (ROOT / "apps/web/lib/agent-runtime.mjs").read_text(encoding="utf-8")
 for required in ["rankJobHybrid", "generateResumeDraft", "evaluateGrounding", "evaluateRetrieval", "MCP_TOOL_DEFINITIONS"]:
     assert required in agent_runtime
 for safety in ["automatic_submission: false", "final_confirmation_required: true"]:
     assert safety in agent_runtime
 
-agent_graph = (ROOT / "apps/web/lib/career-agent-graph.mjs").read_text()
+agent_graph = (ROOT / "apps/web/lib/career-agent-graph.mjs").read_text(encoding="utf-8")
 for required in ["StateGraph", "supervisor", "job_ranker", "resume_agent", "evaluation_agent", "mcp_gateway"]:
     assert required in agent_graph
 
-mcp_route = (ROOT / "apps/web/app/api/mcp/route.ts").read_text()
+mcp_route = (ROOT / "apps/web/app/api/mcp/route.ts").read_text(encoding="utf-8")
 assert 'protocolVersion: "2025-06-18"' in mcp_route
 assert 'method === "tools/list"' in mcp_route
 assert 'method === "tools/call"' in mcp_route
@@ -458,7 +512,7 @@ for flag in ["agentRuntime: true", "hybridJobRanking: true", "mcpServer: true", 
     assert flag in runtime
 assert "local_transition" in runtime
 
-daily_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text()
+daily_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text(encoding="utf-8")
 assert "runDailyRecommendationForUser" in daily_route
 assert "profiles?select=user_id" in daily_route
 assert 'action: "daily-discovery-and-per-user-recommendations"' in daily_route
@@ -468,19 +522,19 @@ root_scripts = root_package["scripts"]
 for script in ["test:m08", "smoke:m08", "test:m08.1", "smoke:m08.1", "evaluation:m08.1"]:
     assert script in root_scripts
 
-playground = (ROOT / "apps/web/components/agent-playground.tsx").read_text()
-for required in ["Agent Playground", "SAFE DEMO"]:
+playground = (ROOT / "apps/web/components/agent-playground.tsx").read_text(encoding="utf-8")
+for required in ["Agent Playground", "SAFE DEMO", "不自动发送", "不自动投递"]:
     assert required in playground
 
-compose = (ROOT / "docker-compose.yml").read_text()
+compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
 for required in ["pgvector/pgvector:pg16", "web:", "api:", "postgres:"]:
     assert required in compose
 
-agent_demo = (ROOT / "apps/api/app/agent_demo.py").read_text()
+agent_demo = (ROOT / "apps/api/app/agent_demo.py").read_text(encoding="utf-8")
 for required in ["analyze_job", "generate_resume", "evaluate_agent", "automatic_submission"]:
     assert required in agent_demo
 
-production_e2e8 = (ROOT / "scripts/production_e2e_m08.mjs").read_text()
+production_e2e8 = (ROOT / "scripts/production_e2e_m08.mjs").read_text(encoding="utf-8")
 assert "mutations_performed: false" in production_e2e8
 assert "mcp_initialize_ok: true" in production_e2e8
 assert "access_token" not in production_e2e8.split("const result =", 1)[1]

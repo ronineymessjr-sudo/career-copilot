@@ -4,10 +4,32 @@ import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, KeyRound, Sparkles, UserPlus } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
-
 function safeNext(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
+}
+
+const SLOGANS = ["导入岗位 · 匹配画像 · 生成材料", "求职一条龙，AI 全流程辅助", "从发现到投递，一个工作台"];
+
+function useTypewriter(texts: string[]) {
+  const [index, setIndex] = useState(0);
+  const [count, setCount] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+  useEffect(() => {
+    const current = texts[index % texts.length];
+    const speed = deleting ? 35 : 90;
+    const timer = setTimeout(() => {
+      if (!deleting) {
+        if (count < current.length) { setCount((c) => c + 1); return; }
+        setDeleting(true); return;
+      }
+      if (count > 0) { setCount((c) => c - 1); return; }
+      setDeleting(false);
+      setIndex((i) => (i + 1) % texts.length);
+    }, deleting && count === 0 ? 400 : speed);
+    return () => clearTimeout(timer);
+  }, [count, deleting, index, texts]);
+  return texts[index % texts.length].slice(0, count);
 }
 
 type Mode = "login" | "register" | "reset" | "update_password";
@@ -114,10 +136,12 @@ export default function LoginPage() {
         : "进入你的个人招聘聚合与投递工作台。";
 
   return <main className="login-screen login-screen-focus">
+    <div className="login-aurora" aria-hidden="true"><i/><i/><i/></div>
+    <div className="login-float" aria-hidden="true"><span/><span/><span/><span/><span/></div>
     <section className="login-brand-panel">
-      <div className="login-brand-lockup"><div className="brand-mark"><Sparkles size={20}/></div><strong>Career Copilot</strong></div>
+      <div className="login-brand-lockup"><div className="brand-mark brand-mark-hero"><Sparkles size={22}/></div><strong>Career Copilot</strong><em>AI 求职助手</em></div>
       <h1>每天推荐岗位，自动匹配简历并准备投递</h1>
-      <p>完整岗位池、个人画像、多版本简历、项目证据和投递记录统一保存在当前账号中。</p>
+      <p className="login-slogan">{useTypewriter(SLOGANS)}<span className="login-caret"/></p>
       <div className="login-benefits">
         <span><CheckCircle2 size={17}/>每天为每个用户独立生成推荐</span>
         <span><CheckCircle2 size={17}/>自动选择最匹配的简历版本</span>

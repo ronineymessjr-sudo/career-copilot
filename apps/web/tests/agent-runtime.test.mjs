@@ -74,8 +74,8 @@ test("resume draft excludes unverified evidence", () => {
   assert.equal(draft.truth_check.automatic_submission, false);
 });
 
-test("all four resume personas are available", () => {
-  assert.deepEqual(Object.keys(RESUME_PERSONAS).sort(), ["agent_engineer", "ai_product", "ai_solution", "local_transition"].sort());
+test("all eleven resume personas are available", () => {
+  assert.deepEqual(Object.keys(RESUME_PERSONAS).sort(), ["admin", "agent_engineer", "ai_product", "ai_solution", "engineering", "finance", "hr", "legal", "live_streaming", "local_transition", "photo_video"].sort());
 });
 
 test("solution persona is recommended for implementation roles", () => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpenCheck, BriefcaseBusiness, CheckCircle2, FileText, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
+import { BookOpenCheck, BriefcaseBusiness, CheckCircle2, CircleAlert, FileText, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import { controlFetch } from "@/lib/control-client";
 
 type ProfileRecord = { title: string; organization: string; period: string; description: string };
@@ -123,6 +123,8 @@ export function ProfileWorkspace() {
 
     <div className="platform-profile-summary"><CheckCircle2 size={18}/><div><strong>{summary || "画像尚未填写"}</strong><span>{completeness.missing.length ? `还可补充：${completeness.missing.slice(0, 6).join("、")}` : "画像信息已足够用于完整推荐"}</span></div></div>
 
+    {completeness.missing.length ? <div className="platform-notice warn"><CircleAlert size={18}/><span><strong>下一步建议</strong><small>先填好下面这些，推荐会明显更准：{completeness.missing.slice(0, 6).join("、")}。填完点右下角「保存完整画像并重新推荐」即可。</small></span></div> : <div className="platform-notice ok"><CheckCircle2 size={18}/><span><strong>画像完整</strong><small>信息已足够用于完整推荐和投递准备。</small></span></div>}
+
     <form className="platform-profile-form" onSubmit={save}>
       <section className="platform-form-section">
         <header><h2>个人信息与职业定位</h2><p>这些内容构成简历主档案，不会公开给其他用户。</p></header>
@@ -141,10 +143,10 @@ export function ProfileWorkspace() {
         <div className="platform-form-grid four">
           <label>毕业年份<input type="number" min="2024" max="2040" value={profile.graduation_year ?? ""} onChange={(event) => setProfile({ ...profile, graduation_year: event.target.value ? Number(event.target.value) : null })}/></label>
           <label>专业<input value={profile.major} onChange={(event) => setProfile({ ...profile, major: event.target.value })}/></label>
-          <label>学历<input value={profile.degree} onChange={(event) => setProfile({ ...profile, degree: event.target.value })}/></label>
           <label>相关经验年数<input type="number" min="0" max="60" value={profile.details.years_experience} onChange={(event) => setProfile({ ...profile, details: { ...profile.details, years_experience: Number(event.target.value) } })}/></label>
           <label>每周可投入天数<input type="number" min="1" max="7" value={profile.availability_days} onChange={(event) => setProfile({ ...profile, availability_days: Number(event.target.value) })}/></label>
           <label>可持续月数<input type="number" min="1" max="36" value={profile.availability_months} onChange={(event) => setProfile({ ...profile, availability_months: Number(event.target.value) })}/></label>
+          <label className="full">第一学历<input value={profile.degree} onChange={(event) => setProfile({ ...profile, degree: event.target.value })} placeholder="例如 本科 / 硕士 / 博士"/></label>
         </div>
       </section>
 

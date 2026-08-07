@@ -4,7 +4,7 @@ const base = (process.env.WEB_URL || "https://career-copilot-v2.photomagic.worke
 const response = await fetch(`${base}/api/runtime`);
 assert.equal(response.ok, true);
 const runtime = await response.json();
-assert.equal(runtime.version, "2.0.0");
+assert.equal(runtime.version, "2.0.2");
 assert.equal(runtime.publicPortfolioPlayground, true);
 assert.equal(runtime.deterministicAgentDemoApi, true);
 assert.equal(runtime.dockerDemoStack, true);

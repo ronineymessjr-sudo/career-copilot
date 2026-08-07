@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildApplicationPlan } from "@/lib/application-plan.mjs";
 import { buildApplicationPackage, evaluateJob } from "@/lib/control-rules.mjs";
+import { generateCoverLetter } from "@/lib/agent-runtime.mjs";
 import { mergeJobOverride } from "@/lib/job-user-view.mjs";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
@@ -121,7 +122,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       applicationPackage = rows[0] ?? null;
     }
 
-    return NextResponse.json({ ok: true, plan, application_package: applicationPackage });
+    const coverLetter = generateCoverLetter({
+      job: normalizedJob,
+      evidence,
+      profile,
+      persona: evaluation?.matched_skills?.length ? undefined : undefined,
+      matchedSkills: evaluation.matched_skills,
+      missingSkills: evaluation.missing_skills,
+    });
+
+    return NextResponse.json({ ok: true, plan, application_package: applicationPackage, cover_letter: coverLetter });
   } catch (error) {
     return controlError(error);
   }

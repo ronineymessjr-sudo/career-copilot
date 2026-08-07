@@ -14,7 +14,8 @@
 
 可选：
 
-- `OPENAI_API_KEY`：未配置时使用确定性 lexical fallback。
+- `OPENAI_API_KEY`：公开网页索引岗位搜索需要；未配置时，已连接 Greenhouse、Lever、Ashby 仍可搜索，但 Workday、BOSS、LinkedIn 等平台会明确显示“当前不可用”。
+- `OPENAI_SEARCH_MODEL`：可选，默认 `gpt-5-mini`；这是普通环境变量，不应包含密钥。
 - `CAREER_COPILOT_API_URL`：可选 FastAPI 备用服务。
 
 ```bash
@@ -24,6 +25,7 @@ npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 npx wrangler secret put SUPABASE_SECRET_KEY
 npx wrangler secret put CRON_SHARED_SECRET
 npx wrangler secret put OWNER_USER_ID
+npx wrangler secret put OPENAI_API_KEY
 ```
 
 ## Scheduler Worker

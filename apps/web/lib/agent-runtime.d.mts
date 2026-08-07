@@ -11,6 +11,7 @@ export function rankJobsHybrid(jobs?: Array<Record<string, any>>, evidence?: Arr
 export function recommendResumePersona(job: Record<string, any>, score?: Record<string, any> | null): string;
 export function buildGreetingDraft(input: { job: Record<string, any>; score?: Record<string, any> | null; persona?: string | null }): Record<string, any>;
 export function generateResumeDraft(input: { persona?: string; job: Record<string, any>; evidence?: Array<Record<string, any>>; score?: Record<string, any> | null }): Record<string, any>;
+export function generateCoverLetter(input: { job: Record<string, any>; evidence?: Array<Record<string, any>>; profile?: Record<string, any>; persona?: string | null; matchedSkills?: string[]; missingSkills?: string[] }): Record<string, any>;
 export function evaluateGrounding(input: { output?: string; citations?: Array<Record<string, any>>; expectedEvidenceIds?: string[] }): Record<string, any>;
 export function evaluateRetrieval(input: { relevantIds?: string[]; resultIds?: string[]; k?: number }): Record<string, any>;
 export function buildDailyAgentReport(ranked?: Array<any>, skillGaps?: Array<Record<string, any>>, reportDate?: string): Record<string, any>;

@@ -1,23 +1,6 @@
-const SKILLS = {
-  python: ["python"],
-  fastapi: ["fastapi"],
-  typescript: ["typescript", "ts"],
-  javascript: ["javascript", "js"],
-  react: ["react"],
-  "next.js": ["next.js", "nextjs"],
-  postgresql: ["postgresql", "postgres", "sql", "supabase"],
-  docker: ["docker", "container"],
-  langchain: ["langchain"],
-  langgraph: ["langgraph"],
-  rag: ["rag", "retrieval augmented", "检索增强", "知识库"],
-  mcp: ["mcp", "model context protocol"],
-  evaluation: ["evaluation", "评测", "评估"],
-  cloudflare: ["cloudflare", "worker", "workers"],
-  figma: ["figma", "原型"],
-  prd: ["prd", "产品需求", "需求文档"],
-  analytics: ["analytics", "数据分析", "指标"],
-  agent: ["agent", "智能体", "ai agent"],
-};
+import { canonicalSkills as _canonicalSkills, extractJobSkills as _extractJobSkills, intersect as _intersect, normalized as _normalized, SKILLS as _SKILLS, tokenize as _tokenize } from "./skills.mjs";
+
+export const SKILLS = _SKILLS;
 
 export const RESUME_PERSONAS = {
   agent_engineer: {
@@ -51,6 +34,62 @@ export const RESUME_PERSONAS = {
     projectOrder: [],
     emphasis: ["可迁移能力", "真实经历和成果", "学习速度、协作和执行"],
     summary: "面向暂未明确分类或跨方向岗位，突出与目标 JD 最相关的真实经历。",
+  },
+  legal: {
+    label: "法律与法务版",
+    roleFamily: "Legal and Compliance",
+    prioritySkills: ["legal", "contract", "compliance", "legal writing", "case analysis", "civil_commercial_law", "company_law", "labor_law"],
+    projectOrder: [],
+    emphasis: ["法律文书与证据梳理", "合同与合规审查", "沟通、出庭与案件跟进"],
+    summary: "面向律所、法务、合规与知识产权岗位，强调法律功底、文书质量和实务交付。",
+  },
+  hr: {
+    label: "人力资源版",
+    roleFamily: "Human Resources",
+    prioritySkills: ["hr", "recruiting", "payroll", "performance", "communication", "analytics"],
+    projectOrder: [],
+    emphasis: ["招聘与人才筛选", "员工关系与制度建设", "数据、绩效与沟通"],
+    summary: "面向招聘、HRBP、人事与员工关系岗位，强调招聘交付、组织沟通与制度落地。",
+  },
+  finance: {
+    label: "财务与会计版",
+    roleFamily: "Finance and Accounting",
+    prioritySkills: ["finance", "accounting", "audit", "tax", "analytics", "excel"],
+    projectOrder: [],
+    emphasis: ["账务与报表处理", "成本、预算与财务分析", "审计、合规与严谨性"],
+    summary: "面向财务、会计、审计与税务岗位，强调专业准确、流程严谨与数据能力。",
+  },
+  admin: {
+    label: "行政与支持版",
+    roleFamily: "Administration and Support",
+    prioritySkills: ["admin", "procurement", "customer_service", "communication", "excel"],
+    projectOrder: [],
+    emphasis: ["行政事务与流程执行", "内外部沟通协调", "细心、服务与多任务处理"],
+    summary: "面向行政、采购、客服与综合支持岗位，强调执行可靠、沟通顺畅与服务意识。",
+  },
+  engineering: {
+    label: "工科工程版",
+    roleFamily: "Engineering and Manufacturing",
+    prioritySkills: ["mechanical", "electrical", "automation", "mechatronics", "electronic engineering", "manufacturing", "quality management", "energy"],
+    projectOrder: [],
+    emphasis: ["工程设计与工艺实现", "设备、产线与质量保障", "动手实践与现场问题解决"],
+    summary: "面向机械、电气、自动化、电子、通信、制造与能源等工科岗位，强调工程功底、工艺理解与现场能力。",
+  },
+  photo_video: {
+    label: "摄影与视频版",
+    roleFamily: "Photography and Video",
+    prioritySkills: ["photography", "videography", "editing", "retouching", "motion graphics", "audio production", "content creation"],
+    projectOrder: [],
+    emphasis: ["拍摄与视觉表达", "剪辑、调色与后期成片", "内容策划与交付"],
+    summary: "面向摄影、摄像、后期、短视频与内容创作岗位，强调作品质量、视觉审美与成片交付。",
+  },
+  live_streaming: {
+    label: "主播与直播版",
+    roleFamily: "Live Streaming and Hosting",
+    prioritySkills: ["live_streaming", "ecommerce live", "hosting", "content creation", "operations", "communication"],
+    projectOrder: [],
+    emphasis: ["直播表达与互动控场", "带货转化与选品", "脚本、节奏与数据复盘"],
+    summary: "面向主播、直播运营、带货与主持岗位，强调口播表达、镜头感、转化与数据能力。",
   },
 };
 
@@ -121,18 +160,11 @@ export const MCP_TOOL_DEFINITIONS = [
   },
 ];
 
-function normalized(value) {
-  return String(value ?? "").toLowerCase().replace(/[^\p{L}\p{N}+#.]+/gu, " ").replace(/\s+/g, " ").trim();
-}
-
-function tokenize(value) {
-  const text = normalized(value);
-  const tokens = new Set(text.split(" ").filter((item) => item.length > 1));
-  for (const [canonical, aliases] of Object.entries(SKILLS)) {
-    if (aliases.some((alias) => text.includes(alias))) tokens.add(canonical);
-  }
-  return tokens;
-}
+const normalized = _normalized;
+const tokenize = _tokenize;
+const intersect = _intersect;
+export const extractJobSkills = _extractJobSkills;
+const canonicalSkills = _canonicalSkills;
 
 function clamp(value, min = 0, max = 100) {
   return Math.max(min, Math.min(max, Math.round(Number(value) || 0)));
@@ -142,19 +174,8 @@ function percent(numerator, denominator, fallback = 0) {
   return denominator > 0 ? clamp((numerator / denominator) * 100) : fallback;
 }
 
-function intersect(left, right) {
-  return [...left].filter((item) => right.has(item));
-}
-
 function verifiedEvidence(evidence = []) {
   return evidence.filter((item) => item?.active !== false && (item?.verification_status ?? "verified") === "verified");
-}
-
-export function extractJobSkills(job) {
-  const text = normalized(`${job?.title ?? ""} ${job?.description ?? ""} ${job?.requirements ?? ""}`);
-  return Object.entries(SKILLS)
-    .filter(([, aliases]) => aliases.some((alias) => text.includes(alias)))
-    .map(([canonical]) => canonical);
 }
 
 export function buildJobCitation(job) {
@@ -325,21 +346,40 @@ export function recommendResumePersona(job) {
   const text = normalized(`${job?.title ?? ""} ${job?.description ?? ""} ${job?.requirements ?? ""}`);
   const productSignals = ["产品", "运营", "用户研究", "增长", "内容", "prd", "figma", "product", "operation"];
   const solutionSignals = ["解决方案", "实施", "咨询", "客户成功", "售前", "销售", "商务", "交付", "consulting", "sales"];
-  const engineeringSignals = ["开发", "研发", "工程", "算法", "数据", "测试", "后端", "前端", "全栈", "python", "java", "javascript", "typescript", "sql", "engineer"];
+  const engineeringITSignals = ["开发", "研发", "算法", "数据", "测试", "后端", "前端", "全栈", "python", "java", "javascript", "typescript", "sql", "engineer"];
+  const legalSignals = ["法律", "法务", "律师", "合规", "合同", "law", "legal", "attorney", "compliance", "诉讼", "仲裁", "知识产权", "专利", "商标"];
+  const hrSignals = ["人力资源", "人事", "hr", "human resources", "recruiting", "员工关系", "绩效", "薪酬", "猎头", "招聘专员", "招聘经理", "招聘顾问", "hrbp"];
+  const financeSignals = ["财务", "会计", "审计", "税务", "出纳", "finance", "accounting", "audit", "tax", "bookkeeping"];
+  const adminSignals = ["行政", "采购", "客服", "后勤", "前台", "admin", "procurement", "customer service", "support"];
+  const engineeringSignals = ["机械", "电气", "自动化", "机电", "电子", "嵌入式", "通信", "材料", "化工", "能源", "制造", "生产工艺", "设备", "plc", "mechanical", "electrical", "automation", "mechatronics", "electronic", "manufacturing", "工艺"];
+  const photoVideoSignals = ["摄影", "摄像", "剪辑", "后期", "修图", "调色", "短视频", "视频", "内容创作", "自媒体", "photography", "videography", "editing", "视频剪辑", "拍摄"];
+  const liveSignals = ["主播", "直播", "带货", "主持", "播音", "出镜", "口播", "直播间", "anchor", "live streaming", "livestream", "hosting"];
+  if (legalSignals.some((term) => title.includes(term) || text.includes(term))) return "legal";
+  if (liveSignals.some((term) => title.includes(term) || text.includes(term))) return "live_streaming";
+  if (photoVideoSignals.some((term) => title.includes(term) || text.includes(term))) return "photo_video";
+  if (engineeringSignals.some((term) => title.includes(term) || text.includes(term))) return "engineering";
+  if (financeSignals.some((term) => title.includes(term) || text.includes(term))) return "finance";
+  if (adminSignals.some((term) => title.includes(term) || text.includes(term))) return "admin";
+  if (hrSignals.some((term) => title.includes(term) || text.includes(term))) return "hr";
   if (productSignals.some((term) => title.includes(term) || text.includes(term))) return "ai_product";
   if (solutionSignals.some((term) => title.includes(term) || text.includes(term))) return "ai_solution";
-  if (engineeringSignals.some((term) => title.includes(term) || text.includes(term))) return "agent_engineer";
+  if (engineeringITSignals.some((term) => title.includes(term) || text.includes(term))) return "agent_engineer";
   return "local_transition";
 }
 
-function orderProjects(projects, order = []) {
+function orderProjects(projects, order = [], prioritySkills = []) {
   const position = new Map(order.map((name, index) => [normalized(name), index]));
+  const prioritySet = canonicalSkills(prioritySkills);
   return [...projects].sort((left, right) => {
     const leftName = normalized(left.project);
     const rightName = normalized(right.project);
-    const leftIndex = [...position.entries()].find(([name]) => leftName.includes(name))?.[1] ?? 999;
-    const rightIndex = [...position.entries()].find(([name]) => rightName.includes(name))?.[1] ?? 999;
-    return leftIndex - rightIndex || Number(right.confidence ?? 0) - Number(left.confidence ?? 0);
+    const leftOrder = [...position.entries()].find(([name]) => leftName.includes(name))?.[1] ?? 999;
+    const rightOrder = [...position.entries()].find(([name]) => rightName.includes(name))?.[1] ?? 999;
+    const leftSkill = [...canonicalSkills([left.skill ?? ""])].filter((skill) => prioritySet.has(skill)).length;
+    const rightSkill = [...canonicalSkills([right.skill ?? ""])].filter((skill) => prioritySet.has(skill)).length;
+    const leftScore = leftSkill * 10 + leftOrder;
+    const rightScore = rightSkill * 10 + rightOrder;
+    return rightScore - leftScore || Number(right.confidence ?? 0) - Number(left.confidence ?? 0);
   });
 }
 
@@ -352,6 +392,49 @@ export function buildRecruiterGreeting({ job, persona = null, matchedSkills = []
   const capability = keywords.length ? keywords.join("、") : config.prioritySkills.slice(0, 4).join("、");
   const projectText = proof.length ? `，并完成过${[...new Set(proof)].join("、")}等项目` : "";
   return `您好，我关注贵司的“${title}”。我具备${capability}相关实践${projectText}，希望进一步了解岗位的工作重点、能力要求和招聘流程，谢谢。`;
+}
+
+export function generateCoverLetter({ job, evidence = [], profile = {}, persona = null, matchedSkills = [], missingSkills = [] }) {
+  const selectedPersona = persona ?? recommendResumePersona(job);
+  const config = RESUME_PERSONAS[selectedPersona] ?? RESUME_PERSONAS.local_transition;
+  const company = job?.company_name ?? job?.company ?? "贵司";
+  const title = job?.title ?? "该岗位";
+  const details = (profile?.profile_details && typeof profile.profile_details === "object" ? profile.profile_details : profile?.details && typeof profile.details === "object" ? profile.details : {});
+  const name = details.display_name || profile?.name || "申请人";
+  const headline = details.headline || config.roleFamily || "";
+  const proof = verifiedEvidence(evidence).slice(0, 3);
+  const skills = (matchedSkills && matchedSkills.length ? matchedSkills : config.prioritySkills).slice(0, 4);
+  const capability = skills.join("、");
+  const projectBullets = proof.map((item) => `- ${item.project}：${item.evidence}（${item.confidence ?? 0}% 置信，来自已核验项目证据）`);
+
+  const paragraphs = [
+    `您好，我是${name}，${headline ? `${headline}方向，` : ""}关注到贵司正在招聘“${title}”，希望申请这一岗位。`,
+    `我在 ${capability} 方面有相关实践，以下是与我经历最相关的项目：`,
+    ...projectBullets,
+    `我对贵司在${company}的业务方向非常认同，期望能把上述经验应用到“${title}”的实际工作中，为团队带来可验证的价值。`,
+    missingSkills && missingSkills.length ? `我注意到岗位还要求 ${missingSkills.slice(0, 4).join("、")}，这与我目前的经历存在差距；我愿意在入职后快速补齐，并在面试中说明我的学习路径。` : "",
+    "期待与您进一步沟通。谢谢！",
+  ].filter(Boolean);
+
+  return {
+    persona: selectedPersona,
+    persona_label: config.label,
+    company,
+    title,
+    headline,
+    paragraphs,
+    text: paragraphs.join("\n\n"),
+    generation_contract: {
+      preserve_facts_only: true,
+      verified_evidence_only: true,
+      never_invent_company_or_metrics: true,
+    },
+    truth_check: {
+      passed: proof.length > 0,
+      automatic_submission: false,
+      final_confirmation_required: true,
+    },
+  };
 }
 
 export function buildPlaygroundResult({ job, evidence = [], applications = [] }) {
@@ -402,7 +485,7 @@ export function generateResumeDraft({ persona = "agent_engineer", job, evidence 
     evidence_id: String(item.id),
     source_url: item.source_url ?? null,
     confidence: Number(item.confidence ?? 0),
-  })), config.projectOrder ?? []);
+  })), config.projectOrder ?? [], config.prioritySkills);
   return {
     persona,
     persona_label: config.label,

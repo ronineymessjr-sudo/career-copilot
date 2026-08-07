@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, Home, LogOut, Radar, Send, UserRound } from "lucide-react";
+import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, FileSearch, Home, LogOut, Radar, Send, Settings, UserRound } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 const primaryNav = [
   ["/", "今日简报", Home],
   ["/jobs", "岗位发现", BriefcaseBusiness],
   ["/sources", "岗位来源", Radar],
+  ["/jd", "JD 深拆", FileSearch],
   ["/applications", "投递管理", Send],
   ["/analytics", "数据看板", BarChart3],
 ] as const;
@@ -18,6 +19,7 @@ const resourceNav = [
   ["/profile", "我的画像", UserRound],
   ["/resumes", "简历版本", FileText],
   ["/career-vault", "项目证据", BookOpenCheck],
+  ["/settings", "设置", Settings],
 ] as const;
 
 function isActive(pathname: string, href: string) {

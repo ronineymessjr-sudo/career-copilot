@@ -118,7 +118,7 @@ export function buildOnboardingChecklist(input = {}) {
   const steps = [
     { key: "profile", label: "完善求职画像", done: completeness >= 70, href: "/profile", detail: `当前 ${Math.max(0, Math.min(100, completeness))}%` },
     { key: "resume", label: "上传主简历", done: resumeCount > 0, href: "/resumes", detail: resumeCount ? `${resumeCount} 个版本` : "至少上传一份" },
-    { key: "source", label: "连接岗位来源", done: sourceCount > 0, href: "/sources", detail: sourceCount ? `${sourceCount} 个来源` : "可接 Greenhouse、Lever、Ashby" },
+    { key: "source", label: "导入岗位", done: sourceCount > 0, href: "/sources", detail: sourceCount ? `${sourceCount} 个来源` : "粘贴真实岗位链接和 JD" },
     { key: "pool", label: "生成岗位池", done: jobCount > 0, href: "/sources", detail: jobCount ? `${jobCount} 个岗位` : "运行一次聚合" },
     { key: "recommendation", label: "生成首次推荐", done: recommendationCount > 0, href: "/applications", detail: recommendationCount ? `${recommendationCount} 个推荐` : "完成前四步后生成" },
   ];

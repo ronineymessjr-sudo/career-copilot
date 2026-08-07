@@ -24,7 +24,7 @@ const greeting = buildGreetingDraft({ job: result.job, score: result.score });
 assert.equal(greeting.status, "waiting_for_confirmation");
 
 const smoke = {
-  version: "2.0.0",
+  version: "2.0.2",
   mode: "offline-milestone-08.1-smoke",
   public_playground_present: true,
   ai_internship_analysis_passed: true,

@@ -36,7 +36,12 @@
     "test:recommendation": "node --test apps/web/tests/recommendation-profile.test.mjs",
     "test:complete": "node --test apps/web/tests/*.test.mjs",
     "test:job-pool": "node --test apps/web/tests/job-user-view.test.mjs",
-    "test:daily": "node --test apps/web/tests/daily-recommendation-rules.test.mjs"
+    "test:daily": "node --test apps/web/tests/daily-recommendation-rules.test.mjs",
+    "cli": "node cli/index.mjs",
+    "cli:search": "node cli/index.mjs search",
+    "cli:rank": "node cli/index.mjs rank",
+    "cli:resume": "node cli/index.mjs resume",
+    "cli:pipeline": "node cli/index.mjs pipeline"
   },
-  "version": "2.0.0"
+  "version": "2.0.2"
 }

@@ -7,6 +7,7 @@ export type ProfilePreferences = {
   excluded_keywords: string[];
   internship_only: boolean;
 };
+export type ProfileDetails = Record<string, any>;
 export type NormalizedProfile = {
   id: string | null;
   graduation_year: number;
@@ -15,7 +16,7 @@ export type NormalizedProfile = {
   availability_days: number;
   availability_months: number;
   preferences: ProfilePreferences;
-  details: Record<string, any>;
+  details: ProfileDetails;
 };
 export const DEFAULT_PROFILE_PREFERENCES: Readonly<ProfilePreferences>;
 export const DEFAULT_PROFILE_DETAILS: Readonly<Record<string, any>>;

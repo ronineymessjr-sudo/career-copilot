@@ -1,4 +1,5 @@
 import { buildApplicationContentBundle } from "./application-kit.mjs";
+import { SKILLS as SKILL_ALIASES, matchAlias } from "./skills.mjs";
 
 const ROLE_KEYWORDS = [
   "开发", "工程", "产品", "设计", "运营", "市场", "销售", "财务", "法务", "人力",
@@ -6,35 +7,6 @@ const ROLE_KEYWORDS = [
   "agent", "智能体", "大模型", "llm", "全栈", "后端", "前端", "移动端", "算法",
 ];
 
-const SKILL_ALIASES = {
-  python: ["python"],
-  fastapi: ["fastapi"],
-  typescript: ["typescript", "ts"],
-  javascript: ["javascript", "js"],
-  react: ["react"],
-  "next.js": ["next.js", "nextjs"],
-  sql: ["sql", "postgresql", "postgres", "supabase"],
-  docker: ["docker", "容器"],
-  langchain: ["langchain"],
-  langgraph: ["langgraph"],
-  rag: ["rag", "检索增强", "知识库"],
-  prompt: ["prompt", "提示词"],
-  "tool calling": ["tool calling", "function calling", "工具调用"],
-  mcp: ["mcp"],
-  figma: ["figma", "原型"],
-  prd: ["prd", "需求文档"],
-  cloudflare: ["cloudflare", "worker", "workers"],
-  excel: ["excel", "电子表格"],
-  analytics: ["analytics", "数据分析", "指标分析"],
-  research: ["用户研究", "市场研究", "research"],
-  operations: ["运营", "operations"],
-  marketing: ["市场营销", "营销", "marketing"],
-  sales: ["销售", "商务拓展", "business development"],
-  finance: ["财务", "会计", "finance", "accounting"],
-  design: ["视觉设计", "交互设计", "ui", "ux", "photoshop", "illustrator"],
-  testing: ["测试", "qa", "quality assurance"],
-  communication: ["沟通", "协调", "communication"],
-};
 
 const LOCATION_SEGMENTS = [
   ["远程优先", 15],
@@ -199,7 +171,7 @@ function mentionedSkills(job) {
   const text = lower(`${job.title} ${job.description} ${job.requirements ?? ""}`);
   const found = [];
   for (const [canonical, aliases] of Object.entries(SKILL_ALIASES)) {
-    if (aliases.some((alias) => text.includes(alias))) found.push(canonical);
+    if (aliases.some((alias) => matchAlias(text, alias))) found.push(canonical);
   }
   return found;
 }
@@ -212,7 +184,7 @@ function verifiedSkillSet(evidence) {
     const text = lower(item.skill);
     set.add(text);
     for (const [canonical, aliases] of Object.entries(SKILL_ALIASES)) {
-      if (text === canonical || aliases.some((alias) => text.includes(alias))) set.add(canonical);
+      if (text === canonical || aliases.some((alias) => matchAlias(text, alias))) set.add(canonical);
     }
   }
   return set;

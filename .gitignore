@@ -11,6 +11,11 @@ __pycache__/
 .open-next/
 apps/web/.dev.vars
 apps/web/.env.local
+apps/web/.env.production
 apps/web/cloudflare-env.d.ts
 .wrangler/
 workers/scheduler/worker-configuration.d.ts
+career-data/
+apps/web/tsconfig.tsbuildinfo
+.career-copilot-patch-backups/
+supabase/.temp/

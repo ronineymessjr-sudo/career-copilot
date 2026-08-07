@@ -3,7 +3,7 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     service: "career-copilot-v2",
-    version: "2.0.0",
+    version: "2.0.2",
     runtime: "cloudflare-workers",
     mode: process.env.APP_MODE ?? "demo",
     controlPlane: "approval-first",
@@ -12,6 +12,14 @@ export async function GET() {
     automaticInterviewAcceptance: false,
     automaticOfferAcceptance: false,
     publicSourceDiscovery: true,
+    sourceUrlAutoDetection: true,
+    sourceConnectionTesting: true,
+    recruitmentPlatformSearch: true,
+    clickableSourceCards: true,
+    instantProfileAggregateSearch: true,
+    indexedRecruitmentPlatformSearch: true,
+    perPlatformSearchFeedback: true,
+    automaticSearchResultPreparation: true,
     gmailDraftOnly: true,
     interviewLearningLoop: true,
     conversionAnalytics: true,
@@ -56,7 +64,7 @@ export async function GET() {
     oneClickApplicationHandoff: true,
     automaticExternalSubmission: false,
     materialExports: ["markdown", "json", "html", "eml", "kit", "resume", "answers"],
-    supabaseConfigured: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY),
+    supabaseConfigured: Boolean((process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL) && (process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)),
     timestamp: new Date().toISOString(),
   });
 }

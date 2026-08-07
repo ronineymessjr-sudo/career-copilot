@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, BarChart3, BriefcaseBusiness, CheckCircle2, CircleAlert, Clock3, DatabaseZap, FileText, ListChecks, Radar, RefreshCw, Send, UserRound } from "lucide-react";
+import { ArrowRight, BarChart3, BriefcaseBusiness, CheckCircle2, CircleAlert, Clock3, DatabaseZap, FileText, ListChecks, Radar, RefreshCw, Send, Sparkles, UserRound } from "lucide-react";
 import { controlFetch } from "@/lib/control-client";
 import { buildOnboardingChecklist, groupDailyRecommendations } from "@/lib/recommendation-experience.mjs";
 
@@ -77,11 +77,23 @@ export function OverviewWorkspace() {
 
   const actions = [
     state.completeness.score < 80 ? { tone: "warn", title: "完善求职画像", copy: `当前完整度 ${state.completeness.score ?? 0}%，补齐后推荐会更准确。`, href: "/profile", label: "完善画像" } : null,
-    enabledSources.length === 0 ? { tone: "warn", title: "还没有自动岗位来源", copy: "连接 Greenhouse、Lever 或 Ashby 公司站点，岗位池才会持续增长。", href: "/sources", label: "连接来源" } : null,
-    state.jobs.length === 0 ? { tone: "warn", title: "岗位池还是空的", copy: "运行一次来源发现，或导入任意招聘平台的真实 JD。", href: "/sources", label: "开始聚合" } : null,
+    state.jobs.length === 0 ? { tone: "warn", title: "岗位池还是空的", copy: "导入任意招聘平台的真实岗位链接和 JD，系统会自动解析、匹配。", href: "/jobs#import-job", label: "导入岗位" } : null,
     ready.length ? { tone: "ok", title: `${ready.length} 个岗位已经可以投递`, copy: "简历和材料已匹配，等待你最后确认。", href: "/applications", label: "继续投递" } : null,
     blocked.length ? { tone: "neutral", title: `${blocked.length} 个投递需要补齐`, copy: "查看缺少的岗位条件、简历或项目证据。", href: "/applications", label: "查看缺口" } : null,
   ].filter(Boolean) as Array<Record<string, string>>;
+
+  async function refresh() {
+    setLoading(true);
+    setMessage("正在重新生成今日推荐与投递包…");
+    try {
+      await controlFetch("/api/control/automation", { method: "POST", body: JSON.stringify({ action: "run_now" }) });
+      await load();
+      setMessage("");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "重新生成失败");
+      setLoading(false);
+    }
+  }
 
   async function markNotificationsRead() {
     await controlFetch("/api/control/notifications", { method: "PATCH", body: JSON.stringify({}) });
@@ -89,14 +101,19 @@ export function OverviewWorkspace() {
   }
 
   return <section className="platform-workspace">
-    <header className="platform-page-head overview"><div><h1>今日简报</h1><p>先看岗位池、推荐结果和投递状态，再决定今天最值得做的事情。</p></div><button className="platform-refresh" onClick={() => void load()} disabled={loading}><RefreshCw size={16}/>{loading ? "加载中" : "刷新"}</button></header>
+    <header className="platform-page-head overview"><div><h1>今日简报</h1><p>先看岗位池、推荐结果和投递状态，再决定今天最值得做的事情。</p></div><button className="platform-refresh" onClick={() => void refresh()} disabled={loading}><RefreshCw size={16}/>{loading ? "生成中" : "重新生成推荐"}</button></header>
     {message ? <div className="platform-message">{message}</div> : null}
 
     {state.unread > 0 ? <section className="platform-notification-strip"><div><strong>{state.unread} 条新消息</strong><span>{state.notifications.filter((item) => !item.read_at).slice(0, 3).map((item) => item.title).join(" · ")}</span></div><button type="button" onClick={() => void markNotificationsRead()}>标记已读</button></section> : null}
 
+    {state.jobs.length === 0 ? <section className="platform-welcome">
+      <div className="platform-welcome-mark"><Sparkles size={22}/></div>
+      <div className="platform-welcome-copy"><h2>欢迎来到 Career Copilot</h2><p>你的 AI 求职助手：导入岗位 → 画像匹配 → 生成简历/求职信 → 投递跟踪，一条龙帮你找工作。</p><div className="platform-welcome-actions"><Link href="/profile" className="primary-button">先完善我的画像<ArrowRight size={15}/></Link><Link href="/jobs#import-job" className="ghost-button">直接导入岗位</Link></div></div>
+    </section> : null}
+
     {!onboarding.finished ? <section className="platform-panel platform-onboarding-panel">
-      <header className="platform-panel-head"><div><h2><ListChecks size={19}/>首次使用进度</h2><p>按顺序完成基础资料，系统才会给出可信的个性化推荐。</p></div><strong>{onboarding.score}%</strong></header>
-      <div className="platform-onboarding-steps">{onboarding.steps.map((step) => <Link key={step.key} href={step.href} className={step.done ? "done" : "pending"}><span>{step.done ? <CheckCircle2 size={16}/> : <CircleAlert size={16}/>}</span><strong>{step.label}</strong><small>{step.detail}</small><ArrowRight size={14}/></Link>)}</div>
+      <header className="platform-panel-head"><div><h2><ListChecks size={19}/>首次使用引导</h2><p>按顺序完成下面几步，系统就能给出可信的个性化推荐与投递包。下一步：<strong className="onboarding-next-label">{onboarding.steps.find((step) => !step.done)?.label ?? "完成全部"}</strong></p></div><strong>{onboarding.score}%</strong></header>
+      <div className="platform-onboarding-steps">{onboarding.steps.map((step) => <Link key={step.key} href={step.href} className={`${step.done ? "done" : "pending"}${!step.done && onboarding.steps.findIndex((s) => !s.done) === onboarding.steps.findIndex((s) => s.key === step.key) ? " next" : ""}`}><span>{step.done ? <CheckCircle2 size={16}/> : <CircleAlert size={16}/>}</span><strong>{step.label}</strong><small>{step.detail}</small><ArrowRight size={14}/></Link>)}</div>
     </section> : null}
 
     <section className="platform-metric-strip" aria-label="今日概览">
@@ -116,7 +133,7 @@ export function OverviewWorkspace() {
             <span className="platform-priority-copy"><small>{job.company_name || "待核验公司"}</small><strong>{job.title}</strong><em>{[job.city, job.workplace, job.source_name].filter(Boolean).join(" · ") || "岗位信息待完善"}</em></span>
             <span className="platform-priority-fit">{job.recommendation?.label ?? "待推荐"}</span>
           </Link>)}</div></section>)}
-          {!recommended.length ? <div className="platform-empty-state"><BriefcaseBusiness size={22}/><strong>还没有岗位</strong><p>完善画像并连接岗位来源后，每日推荐会出现在这里。</p><Link href="/sources">连接来源</Link></div> : null}
+          {!recommended.length ? <div className="platform-empty-state"><BriefcaseBusiness size={22}/><strong>还没有岗位</strong><p>完善画像并导入岗位后，每日推荐会出现在这里。</p><Link href="/jobs#import-job">导入岗位</Link></div> : null}
         </div>
       </section>
 

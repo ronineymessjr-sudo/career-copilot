@@ -22,11 +22,22 @@ required = [
     "apps/web/lib/daily-recommendation-rules.mjs",
     "apps/web/lib/recommendation-profile.mjs",
     "apps/web/lib/job-user-view.mjs",
+    "apps/web/app/api/control/sources/[id]/route.ts",
     "supabase/migrations/0011_daily_application_queue.sql",
     "supabase/migrations/0014_complete_platform_job_pool.sql",
     "supabase/migrations/0015_profile_resume_daily_recommendations.sql",
     "supabase/migrations/0016_rls_grants_shared_pool.sql",
     "supabase/migrations/0017_application_kits_one_click_handoff.sql",
+    "supabase/migrations/0018_recommendation_experience.sql",
+    "supabase/migrations/0019_material_versions_application_tracking.sql",
+    "supabase/migrations/0020_platform_scale_quality_analytics.sql",
+    "supabase/migrations/0021_source_connections_and_platform_search.sql",
+    "supabase/migrations/0022_instant_profile_aggregate_search.sql",
+    "apps/web/lib/instant-search.mjs",
+    "apps/web/lib/instant-search.d.mts",
+    "apps/web/lib/instant-search-service.ts",
+    "apps/web/app/api/control/search-runs/route.ts",
+    "apps/web/tests/instant-search.test.mjs",
     "apps/web/lib/application-kit.mjs",
     "apps/web/lib/application-export.mjs",
     "docs/COMPLETE_PLATFORM_ARCHITECTURE.md",
@@ -46,8 +57,13 @@ assert "internship_only: false" in profile
 assert "graduation_year: source.graduation_year == null" in profile
 
 sources = (ROOT / "apps/web/lib/job-sources.mjs").read_text(encoding="utf-8")
-for provider in ["greenhouse", "lever", "ashby"]:
+for provider in ["greenhouse", "lever", "ashby", "workday", "boss", "linkedin", "shixiseng", "nowcoder", "zhaopin", "job51", "liepin"]:
     assert provider in sources
+for token in ["normalizeSourceInput", "testSourceConnection", "portalSearchUrl"]:
+    assert token in sources
+source_ui = (ROOT / "apps/web/components/sources-workspace.tsx").read_text(encoding="utf-8")
+for token in ["怎么开始", "支持的招聘平台", "去导入岗位", "聚合我的来源", "链接 / JD 导入", "聚合边界"]:
+    assert token in source_ui
 
 migration = (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").read_text(encoding="utf-8")
 for token in ["job_user_overrides", "visibility", "scope", "jobs_pool_select", "evaluations_user_job_uidx", "applications_user_job_uidx"]:
@@ -68,6 +84,35 @@ for token in ["content_bundle", "tailored_resume", "submission_capability", "sub
     assert token in migration16
 assert "DROP TABLE" not in migration16.upper()
 assert "DROP SCHEMA" not in migration16.upper()
+
+
+migration21 = (ROOT / "supabase/migrations/0021_source_connections_and_platform_search.sql").read_text(encoding="utf-8")
+for token in ["connection_mode", "source_url", "connection_status", "last_verified_at", "connection_details"]:
+    assert token in migration21
+assert "DROP TABLE" not in migration21.upper()
+assert "DROP SCHEMA" not in migration21.upper()
+
+
+migration22 = (ROOT / "supabase/migrations/0022_instant_profile_aggregate_search.sql").read_text(encoding="utf-8")
+for token in ["profile_search_runs", "profile_search_results", "platform_statuses", "jobs_prepared", "profile_search_runs_owner_all", "profile_search_results_owner_all"]:
+    assert token in migration22
+assert "DROP TABLE" not in migration22.upper()
+assert "DROP SCHEMA" not in migration22.upper()
+
+instant_search = (ROOT / "apps/web/lib/instant-search.mjs").read_text(encoding="utf-8")
+for token in ["INSTANT_SEARCH_PLATFORMS", "buildProfileSearchSpec", "searchPublicJobIndex", "web_search", "allowed_domains", "json_schema", "normalizeIndexedJob"]:
+    assert token in instant_search
+instant_service = (ROOT / "apps/web/lib/instant-search-service.ts").read_text(encoding="utf-8")
+for token in ["runInstantProfileSearch", "searchPublicJobIndex", "prepareApplication", "profile_search_results"]:
+    assert token in instant_service
+instant_ui = (ROOT / "apps/web/components/jobs-workspace.tsx").read_text(encoding="utf-8")
+for token in ["即时聚合搜索", "开始聚合搜索", "本次搜索", "/api/control/search-runs", "材料已准备"]:
+    assert token in instant_ui
+
+root_package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+web_package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
+assert root_package["version"] == "2.0.2"
+assert web_package["version"] == "2.0.2"
 
 application_kit = (ROOT / "apps/web/lib/application-kit.mjs").read_text(encoding="utf-8")
 for token in ["buildApplicationContentBundle", "buildTailoredResume", "detectSubmissionCapability", "no_invented_metrics"]:
@@ -116,6 +161,12 @@ print(json.dumps({
     "required_files": len(required),
     "navigation_items": 8,
     "automatic_sources": ["greenhouse", "lever", "ashby"],
+    "search_sources": ["workday", "boss", "linkedin", "shixiseng", "nowcoder", "zhaopin", "job51", "liepin"],
+    "source_connection_testing": True,
+    "clickable_source_cards": True,
+    "instant_profile_aggregate_search": True,
+    "per_platform_search_feedback": True,
+    "automatic_search_result_preparation": True,
     "neutral_profile_defaults": True,
     "complete_profile": True,
     "private_multi_resume_library": True,

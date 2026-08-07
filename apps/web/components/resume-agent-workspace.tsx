@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Archive, CheckCircle2, Database, Download, FileCheck2, FilePlus2, RefreshCw, Save, Sparkles, Star, Trash2, Upload } from "lucide-react";
+import { Archive, CheckCircle2, Copy, Database, Download, FileCheck2, FilePlus2, Layers, LoaderCircle, RefreshCw, Save, Sparkles, Star, Trash2, Upload, X } from "lucide-react";
 import { authorizedFetch, controlDownload, controlFetch } from "@/lib/control-client";
 
 type Row = Record<string, any>;
@@ -19,7 +19,26 @@ function sourceLabel(source: string) {
   return ({ uploaded: "上传文件", manual: "手动建立", profile: "由画像建立", generated: "岗位定制", legacy: "历史版本" } as Record<string, string>)[source] || "历史版本";
 }
 
-function ResumeCard({ resume, busy, onReload }: { resume: Row; busy: string; onReload: () => Promise<void> }) {
+function ResumeCompare({ left, right, onClear }: { left: Row | null; right: Row | null; onClear: () => void }) {
+  if (!left || !right) return null;
+  function skills(value: Row) { return (value?.content?.skills ?? []).join("、") || "—"; }
+  function projects(value: Row) { return (value?.content?.projects ?? []).map((item: Row) => String(item?.project ?? item?.title ?? "")).filter(Boolean).join("；") || "—"; }
+  function sourceLabel(value: Row) { return value?.source_type === "generated" ? "岗位定制" : value?.source_type === "profile" ? "由画像建立" : value?.source_type === "manual" ? "手动建立" : value?.source_type === "uploaded" ? "上传文件" : "历史版本"; }
+  function diffStyle(a: string, b: string) { return a !== b ? { background: "#fff3cd", fontWeight: 700 } : undefined; }
+  const leftSummary = String(left.content?.summary ?? left.notes ?? "—");
+  const rightSummary = String(right.content?.summary ?? right.notes ?? "—");
+  const leftSkills = skills(left); const rightSkills = skills(right);
+  const leftProjects = projects(left); const rightProjects = projects(right);
+  return <div className="resume-compare">
+    <header><div><h2>版本对比</h2><p>差异项用黄色高亮标记。</p></div><button className="ghost-button compact" type="button" onClick={onClear}><X size={14}/>关闭对比</button></header>
+    <div className="resume-compare-grid">
+      <article><h3>{left.name}</h3><span>{sourceLabel(left)} · v{left.version_no ?? 1}</span><p><b>方向</b>{left.role_family || "—"}</p><p style={diffStyle(leftSummary, rightSummary)}><b>摘要</b>{leftSummary}</p><p style={diffStyle(leftSkills, rightSkills)}><b>技能</b>{leftSkills}</p><p style={diffStyle(leftProjects, rightProjects)}><b>项目</b>{leftProjects}</p></article>
+      <article><h3>{right.name}</h3><span>{sourceLabel(right)} · v{right.version_no ?? 1}</span><p><b>方向</b>{right.role_family || "—"}</p><p style={diffStyle(leftSummary, rightSummary)}><b>摘要</b>{rightSummary}</p><p style={diffStyle(leftSkills, rightSkills)}><b>技能</b>{rightSkills}</p><p style={diffStyle(leftProjects, rightProjects)}><b>项目</b>{rightProjects}</p></article>
+    </div>
+  </div>;
+}
+
+function ResumeCard({ resume, busy, onReload, compareSelected, onToggleCompare, onCopyCopy }: { resume: Row; busy: string; onReload: () => Promise<void>; compareSelected: boolean; onToggleCompare: () => void; onCopyCopy: (resume: Row) => Promise<void> }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({ name: String(resume.name ?? ""), role_family: String(resume.role_family ?? ""), summary: String(resume.content?.summary ?? ""), skills: (resume.content?.skills ?? []).join("、"), notes: String(resume.notes ?? "") });
 
@@ -63,6 +82,8 @@ function ResumeCard({ resume, busy, onReload }: { resume: Row; busy: string; onR
 
     <footer className="resume-library-actions">
       {resume.download_url ? <button className="ghost-button compact" type="button" onClick={() => void controlDownload(resume.download_url, resume.original_filename || `${resume.name}.pdf`)}><Download size={14}/>下载原文件</button> : null}
+      <button className="ghost-button compact" type="button" disabled={!resume.target_job || busy === `copy-${resume.id}`} onClick={() => void onCopyCopy(resume)}><Copy size={14}/>复制投递文案</button>
+      <button className={`ghost-button compact${compareSelected ? " active" : ""}`} type="button" onClick={onToggleCompare}><CheckCircle2 size={14}/>{compareSelected ? "已加入对比" : "加入对比"}</button>
       <button className="ghost-button compact" type="button" onClick={() => setEditing((value) => !value)}>编辑信息</button>
       {!resume.is_master && resume.status !== "archived" ? <button className="ghost-button compact" type="button" disabled={busy === resume.id} onClick={() => void patch({ is_master: true, status: "approved" }, "已设为主简历")}><Star size={14}/>设为主简历</button> : null}
       {resume.status === "draft" ? <button className="ghost-button compact" type="button" onClick={() => void patch({ status: "approved" }, "已批准")}>批准使用</button> : null}
@@ -81,6 +102,28 @@ export function ResumeAgentWorkspace() {
   const [busy, setBusy] = useState("");
   const [message, setMessage] = useState("");
   const [upload, setUpload] = useState({ name: "", role_family: "", summary: "", skills: "", notes: "", is_master: false, file: null as File | null });
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+
+  function toggleCompare(id: string) {
+    setCompareIds((current) => current.includes(id) ? current.filter((item) => item !== id) : current.length >= 2 ? [current[1], id] : [...current, id]);
+  }
+
+  async function copyCopy(resume: Row) {
+    const job = resume.target_job;
+    if (!job?.id) { setMessage("该版本还没有关联岗位，无法生成投递文案。请先用“生成岗位定制版本”关联岗位。"); return; }
+    setBusy(`copy-${resume.id}`);
+    try {
+      const plan = await controlFetch<{ plan: Record<string, any> }>(`/api/control/jobs/${job.id}/apply-plan`, { method: "POST" });
+      const greeting = String(plan.plan?.greeting ?? plan.plan?.recruiter_greeting ?? "");
+      const emailBody = String(plan.plan?.email_body ?? "");
+      const subject = String(plan.plan?.email_subject ?? "");
+      const text = [subject && `主题：${subject}`, greeting, emailBody].filter(Boolean).join("\n\n");
+      if (!text.trim()) { setMessage("没有可复制的投递文案（可能岗位缺少真实投递入口）。"); return; }
+      await navigator.clipboard.writeText(text);
+      setMessage(`已复制「${resume.name}」的投递文案到剪贴板。`);
+    } catch (error) { setMessage(error instanceof Error ? error.message : "生成投递文案失败"); }
+    finally { setBusy(""); }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -111,6 +154,27 @@ export function ResumeAgentWorkspace() {
       await load();
     } catch (error) { setMessage(error instanceof Error ? error.message : "生成失败"); }
     finally { setBusy(""); }
+  }
+
+  async function batchGenerate() {
+    const targets = jobs.filter((job) => job.id && job.company_name);
+    if (!targets.length) { setMessage("岗位池还没有岗位，先聚合或导入岗位后再批量生成。"); return; }
+    setBusy("batch");
+    setMessage(`正在用「${personaLabel(persona)}」为 ${targets.length} 个岗位批量生成简历版本，请稍候…`);
+    let ok = 0; let failed = 0;
+    for (const job of targets) {
+      try {
+        await controlFetch("/api/control/resumes", { method: "POST", body: JSON.stringify({ action: "generate", job_id: String(job.id), persona }) });
+        ok += 1;
+      } catch { failed += 1; }
+    }
+    setMessage(`批量生成完成：成功 ${ok} 个，失败 ${failed} 个。新版本已进入简历库，请检查后批准使用。`);
+    await load();
+    setBusy("");
+  }
+
+  function personaLabel(value: string) {
+    return ({ agent_engineer: "工程研发版", ai_product: "产品与运营版", ai_solution: "解决方案与商务版", local_transition: "通用岗位版", legal: "法律与法务版", hr: "人力资源版", finance: "财务与会计版", admin: "行政与支持版", engineering: "工科工程版", photo_video: "摄影与视频版", live_streaming: "主播与直播版" } as Record<string, string>)[value] || value;
   }
 
   async function createFromProfile() {
@@ -184,16 +248,20 @@ export function ResumeAgentWorkspace() {
       <header><Sparkles size={20}/><div><h2>生成岗位定制版本</h2><p>系统读取岗位、主简历和已核验项目证据，生成新的草稿版本，不覆盖原简历。</p></div></header>
       <form onSubmit={generate}>
         <label>目标岗位<select value={jobId} onChange={(event) => setJobId(event.target.value)} required><option value="">请选择岗位</option>{jobs.map((job) => <option value={job.id} key={job.id}>{job.company_name} · {job.title}</option>)}</select></label>
-        <label>版本方向<select value={persona} onChange={(event) => setPersona(event.target.value)}><option value="agent_engineer">工程研发版</option><option value="ai_product">产品与运营版</option><option value="ai_solution">解决方案与商务版</option><option value="local_transition">通用岗位版</option></select></label>
+        <label>版本方向<select value={persona} onChange={(event) => setPersona(event.target.value)}><option value="agent_engineer">工程研发版</option><option value="ai_product">产品与运营版</option><option value="ai_solution">解决方案与商务版</option><option value="engineering">工科工程版</option><option value="photo_video">摄影与视频版</option><option value="live_streaming">主播与直播版</option><option value="legal">法律与法务版</option><option value="hr">人力资源版</option><option value="finance">财务与会计版</option><option value="admin">行政与支持版</option><option value="local_transition">通用岗位版</option></select></label>
         <button className="primary-button" disabled={busy === "generate" || !jobId}><Sparkles size={14}/>{busy === "generate" ? "生成中…" : "生成新版本"}</button>
       </form>
+      <div className="resume-batch-actions">
+        <button className="ghost-button" type="button" disabled={busy === "batch" || jobs.length === 0} onClick={() => void batchGenerate()}>{busy === "batch" ? <LoaderCircle className="spin" size={14}/> : <Layers size={14}/>}用当前档位批量套用到全部岗位（{jobs.length}）</button>
+      </div>
     </section>
 
     <section className="platform-section"><header><h2>全部简历版本</h2><span>{activeResumes.length} 份可使用</span></header>
-      {activeResumes.length === 0 ? <div className="platform-empty-guide compact"><FileCheck2 size={25}/><h2>还没有简历版本</h2><p>上传现有简历，或先完善画像后建立主简历。</p></div> : <div className="resume-library-list">{activeResumes.map((resume) => <ResumeCard key={resume.id} resume={resume} busy={busy} onReload={load}/>)}</div>}
+      {activeResumes.length === 0 ? <div className="platform-empty-guide compact"><FileCheck2 size={25}/><h2>还没有简历版本</h2><p>上传现有简历，或先完善画像后建立主简历。</p></div> : <div className="resume-library-list">{activeResumes.map((resume) => <ResumeCard key={resume.id} resume={resume} busy={busy} onReload={load} compareSelected={compareIds.includes(String(resume.id))} onToggleCompare={() => toggleCompare(String(resume.id))} onCopyCopy={copyCopy}/>)}</div>}
+      {compareIds.length === 2 ? <ResumeCompare left={activeResumes.find((item) => String(item.id) === compareIds[0]) ?? null} right={activeResumes.find((item) => String(item.id) === compareIds[1]) ?? null} onClear={() => setCompareIds([])}/> : null}
     </section>
 
-    {archivedResumes.length ? <details className="platform-history resume-archive"><summary><Archive size={16}/>已归档版本 <span>{archivedResumes.length}</span></summary><div className="resume-library-list">{archivedResumes.map((resume) => <ResumeCard key={resume.id} resume={resume} busy={busy} onReload={load}/>)}</div></details> : null}
+    {archivedResumes.length ? <details className="platform-history resume-archive"><summary><Archive size={16}/>已归档版本 <span>{archivedResumes.length}</span></summary><div className="resume-library-list">{archivedResumes.map((resume) => <ResumeCard key={resume.id} resume={resume} busy={busy} onReload={load} compareSelected={compareIds.includes(String(resume.id))} onToggleCompare={() => toggleCompare(String(resume.id))} onCopyCopy={copyCopy}/>)}</div></details> : null}
     <p className="platform-safety">简历原始文件存放在 Supabase 私有存储桶中；数据库只保存当前账号可见的版本元数据和结构化内容。岗位定制版本永远以新版本保存，不会覆盖主简历。</p>
   </section>;
 }

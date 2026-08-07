@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Bookmark, CheckCircle2, ChevronDown, ExternalLink, FileText, Filter, Heart, Plus, RefreshCw, Search, SearchCheck, Send, SlidersHorizontal, ThumbsDown, X } from "lucide-react";
+import { AlertTriangle, Bookmark, CheckCircle2, ChevronDown, Copy, ExternalLink, FileText, Filter, Heart, LoaderCircle, Plus, RefreshCw, Search, SearchCheck, Send, SlidersHorizontal, Sparkles, ThumbsDown, X } from "lucide-react";
 import { controlFetch } from "@/lib/control-client";
 import type { ApplicationPlan } from "@/lib/application-plan.mjs";
 
@@ -18,9 +18,9 @@ type Job = Record<string, any> & {
   hidden_by_preference?: boolean;
 };
 
-type PlanResponse = { plan: ApplicationPlan; application_package: Record<string, any> | null };
+type PlanResponse = { plan: ApplicationPlan; application_package: Record<string, any> | null; cover_letter?: { text?: string; paragraphs?: string[]; persona_label?: string } | null };
 type PlanState = PlanResponse & { error?: string };
-type FilterKey = "all" | "recommended" | "saved" | "ready" | "verify" | "submitted";
+type FilterKey = "all" | "search" | "recommended" | "saved" | "ready" | "verify" | "submitted";
 type HandoffResponse = {
   target_url: string;
   channel: string;
@@ -35,6 +35,15 @@ type HandoffResponse = {
   next_step: string;
 };
 type VerificationPatch = { accepts_2028: boolean | null; accepts_students: boolean | null; days_per_week: number | null; minimum_months: number | null };
+type InstantSearchStatus = { platform: string; label: string; mode: string; status: string; result_count: number; searched_sources: number; note: string; queries?: string[] };
+type InstantSearchResponse = {
+  run: Record<string, any>;
+  job_ids: string[];
+  prepared_application_ids: string[];
+  platform_statuses: InstantSearchStatus[];
+  query: Record<string, any>;
+};
+
 
 function eligibility(job: Job) {
   const evaluation = job.evaluation ?? {};
@@ -91,6 +100,7 @@ function PlanPanel({ job, state, busyId, onVerify, onConfirm }: { job: Job; stat
   return <div className="platform-plan ok">
     <div><CheckCircle2 size={17}/><strong>定制简历和全部投递文案已生成</strong></div>
     <div className="platform-plan-summary three"><span><small>推荐简历</small><strong>{plan.resume?.name ?? "推荐简历"}</strong></span><span><small>匹配度</small><strong>{plan.resume?.alignment_score ?? 0}%</strong></span><span><small>投递方式</small><strong>{plan.submission_mode === "email_assisted" ? "邮件已预填" : "真实申请页面"}</strong></span></div>
+    {state.cover_letter?.text ? <details className="platform-plan-letter"><summary><FileText size={14}/>查看求职信 · 一键复制</summary><pre>{state.cover_letter.text}</pre><button className="ghost-button compact" type="button" onClick={() => void navigator.clipboard.writeText(state.cover_letter?.text ?? "")}><Copy size={13}/>复制求职信</button></details> : null}
     <button className="primary-button" type="button" onClick={() => void onConfirm(job, state)} disabled={busyId === `submit-${job.id}`}><Send size={16}/>{busyId === `submit-${job.id}` ? "准备中…" : "确认并去投递"}</button>
   </div>;
 }
@@ -117,7 +127,7 @@ function JobRow({ job, planState, busyId, onPlan, onVerify, onConfirm, onFeedbac
       <details className="platform-job-details"><summary><ChevronDown size={14}/>岗位详情与推荐解释</summary><div><p>{job.requirements || job.description || "暂无完整岗位说明"}</p>{recommendation.gaps?.length ? <section><strong>需要注意</strong><ul>{recommendation.gaps.slice(0, 4).map((gap: string) => <li key={gap}>{gap}</li>)}</ul></section> : null}{job.source_url ? <a href={job.source_url} target="_blank" rel="noreferrer">查看原岗位<ExternalLink size={14}/></a> : null}</div></details>
     </div>
     <span className={`platform-status ${state.tone}`}>{state.label}</span>
-    <div className="platform-job-action">{applicationStatus === "submitted" ? <span className="platform-complete"><CheckCircle2 size={15}/>已完成</span> : applicationStatus === "ready_to_submit" ? <Link className="primary-button" href="/applications">继续投递</Link> : <button className="primary-button" type="button" onClick={() => void onPlan(job)} disabled={planning || Boolean(busyId)}><Send size={15}/>{planning ? "匹配中…" : "投这个"}</button>}</div>
+    <div className="platform-job-action">{applicationStatus === "submitted" ? <span className="platform-complete"><CheckCircle2 size={15}/>已完成</span> : ["prepared", "needs_information", "ready_to_submit"].includes(applicationStatus) && job.application_package ? <Link className="primary-button" href="/applications">材料已准备</Link> : <button className="primary-button" type="button" onClick={() => void onPlan(job)} disabled={planning || Boolean(busyId)}><Send size={15}/>{planning ? "匹配中…" : "投这个"}</button>}</div>
     {planState ? <div className="platform-job-result"><PlanPanel job={job} state={planState} busyId={busyId} onVerify={onVerify} onConfirm={onConfirm}/></div> : null}
   </article>;
 }
@@ -135,14 +145,26 @@ export function JobsWorkspace() {
   const [source, setSource] = useState("");
   const [workplace, setWorkplace] = useState("");
   const [sort, setSort] = useState("recommendation");
+  const [instantQuery, setInstantQuery] = useState("");
+  const [lastSearch, setLastSearch] = useState<Record<string, any> | null>(null);
+  const [searchStatuses, setSearchStatuses] = useState<InstantSearchStatus[]>([]);
+  const [searchResultIds, setSearchResultIds] = useState<Set<string>>(new Set());
   const [form, setForm] = useState({ company: "", title: "", source_url: "", source_reliability: 3, raw_text: "" });
 
   const load = useCallback(async () => {
     try {
-      const result = await controlFetch<{ jobs: Job[]; pool: Record<string, any>; profile_completeness: { score: number } }>("/api/control/jobs");
+      const [result, recentSearch] = await Promise.all([
+        controlFetch<{ jobs: Job[]; pool: Record<string, any>; profile_completeness: { score: number } }>("/api/control/jobs"),
+        controlFetch<{ latest?: Record<string, any> | null; job_ids?: string[] }>("/api/control/search-runs").catch(() => ({ latest: null, job_ids: [] })),
+      ]);
       setJobs(result.jobs ?? []);
       setPool(result.pool ?? {});
       setProfileCompleteness(result.profile_completeness?.score ?? 0);
+      if (recentSearch.latest) {
+        setLastSearch(recentSearch.latest);
+        setSearchStatuses(Array.isArray(recentSearch.latest.platform_statuses) ? recentSearch.latest.platform_statuses : []);
+        setSearchResultIds(new Set(recentSearch.job_ids ?? []));
+      }
       setMessage("");
     } catch (error) { setMessage(error instanceof Error ? error.message : "加载岗位失败"); }
   }, []);
@@ -163,9 +185,10 @@ export function JobsWorkspace() {
   const visibleJobs = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const rows = openJobs.filter((job) => {
+      if (filter === "search" && !searchResultIds.has(String(job.id))) return false;
       if (filter === "recommended" && (job.hidden_by_preference || Number(job.recommendation?.score ?? 0) < 60)) return false;
       if (filter === "saved" && job.feedback?.feedback_type !== "saved") return false;
-      if (!["all", "recommended"].includes(filter) && eligibility(job).key !== filter) return false;
+      if (!["all", "search", "recommended"].includes(filter) && eligibility(job).key !== filter) return false;
       if (needle && !`${job.company_name} ${job.title} ${job.description} ${job.requirements}`.toLowerCase().includes(needle)) return false;
       if (location && !`${job.city} ${job.district} ${job.address}`.includes(location)) return false;
       if (source && String(job.source_name || job.channel || "手动导入") !== source) return false;
@@ -177,7 +200,29 @@ export function JobsWorkspace() {
       if (sort === "company") return String(left.company_name).localeCompare(String(right.company_name), "zh-CN");
       return Number(right.recommendation?.score ?? 0) - Number(left.recommendation?.score ?? 0);
     });
-  }, [filter, location, openJobs, query, sort, source, workplace]);
+  }, [filter, location, openJobs, query, searchResultIds, sort, source, workplace]);
+
+  async function runInstantSearch() {
+    setBusyId("instant-search");
+    setMessage("正在按画像同时搜索多个招聘平台，并筛选可用岗位…");
+    try {
+      const result = await controlFetch<InstantSearchResponse>("/api/control/search-runs", {
+        method: "POST",
+        body: JSON.stringify({ query: instantQuery, result_limit: 15, prepare_limit: 2 }),
+      });
+      await load();
+      setLastSearch(result.run);
+      setSearchStatuses(result.platform_statuses ?? []);
+      setSearchResultIds(new Set(result.job_ids ?? []));
+      setFilter("search");
+      setSort("recommendation");
+      setMessage(`本次聚合搜索完成：筛选出 ${result.job_ids?.length ?? 0} 个可查看岗位，已为 ${result.prepared_application_ids?.length ?? 0} 个高匹配岗位准备简历和投递文案。可再次点击「开始聚合搜索」继续收集更多岗位（去重后累积）。`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "画像聚合搜索失败");
+    } finally {
+      setBusyId("");
+    }
+  }
 
   async function importJob(event: FormEvent) {
     event.preventDefault(); setBusyId("import");
@@ -220,7 +265,7 @@ export function JobsWorkspace() {
   async function confirmAndApply(job: Job, state: PlanState) {
     const pack = state.application_package;
     if (!pack?.id || state.plan.status !== "ready") return;
-    if (!window.confirm(`使用“${state.plan.resume?.name ?? "推荐简历"}”投递：\n\n${job.company_name} · ${job.title}\n\n确认继续？`)) return;
+    if (!window.confirm(`使用“${state.plan.resume?.name ?? "推荐简历"}”投递：\n\n${job.company_name} · ${job.title}\n\n打开真实投递页前，请先确认已在 ${job.source_name || "该招聘平台"} 登录你的账号（BOSS/牛客等平台需登录才能提交）。\n\n确认继续？`)) return;
     const popup = window.open("about:blank", "_blank");
     if (popup) { popup.opener = null; popup.document.title = "正在连接投递入口…"; popup.document.body.textContent = "Career Copilot 正在验证材料与投递入口…"; }
     setBusyId(`submit-${job.id}`);
@@ -239,7 +284,7 @@ export function JobsWorkspace() {
     finally { setBusyId(""); }
   }
 
-  const filters: Array<[FilterKey, string, number]> = [["all", "全部岗位", counts.all], ["recommended", "为我推荐", counts.recommended], ["saved", "已收藏", counts.saved], ["ready", "条件可投", counts.ready], ["verify", "需确认", counts.verify], ["submitted", "已投递", counts.submitted]];
+  const filters: Array<[FilterKey, string, number]> = [["all", "全部岗位", counts.all], ["search", "本次搜索", searchResultIds.size], ["recommended", "为我推荐", counts.recommended], ["saved", "已收藏", counts.saved], ["ready", "条件可投", counts.ready], ["verify", "需确认", counts.verify], ["submitted", "已投递", counts.submitted]];
   const hasActiveFilters = Boolean(query || location || source || workplace || filter !== "all");
   function resetFilters() { setFilter("all"); setQuery(""); setLocation(""); setSource(""); setWorkplace(""); setSort("recommendation"); }
 
@@ -250,6 +295,14 @@ export function JobsWorkspace() {
 
     {profileCompleteness < 70 ? <div className="platform-notice warn"><AlertTriangle size={18}/><span><strong>推荐画像还不完整</strong><small>完整岗位池仍然可浏览，但推荐排序可能不够准确。</small></span><Link href="/profile">完善画像</Link></div> : null}
     {message ? <div className="platform-message" role="status">{message}</div> : null}
+
+    <section className="platform-panel instant-profile-search">
+      <header><div><Sparkles size={20}/><span><h2>即时聚合搜索</h2><p>点击一次，同时搜索各招聘平台的公开岗位索引（LinkedIn、实习僧、智联、猎聘、前程无忧、Workday 等）；结果统一去重、画像筛选和排序，高匹配岗位自动准备简历与投递文案。</p></span></div><button className="primary-button" type="button" onClick={() => void runInstantSearch()} disabled={busyId === "instant-search"}>{busyId === "instant-search" ? <><LoaderCircle className="spin" size={16}/>正在搜索各平台…</> : <><SearchCheck size={16}/>开始聚合搜索</>}</button></header>
+      <label><span>本次补充关键词（可选）</span><input value={instantQuery} onChange={(event) => setInstantQuery(event.target.value)} placeholder="例如：AI 产品实习、上海、Agent；留空则完全按画像搜索"/></label>
+      {lastSearch ? <div className="instant-search-summary"><strong>{Number(lastSearch.jobs_found ?? searchResultIds.size)} 个结果</strong><span>新增 {Number(lastSearch.jobs_imported ?? 0)} 个</span><span>材料已准备 {Number(lastSearch.jobs_prepared ?? 0)} 个</span><time>{lastSearch.completed_at ? new Date(lastSearch.completed_at).toLocaleString("zh-CN") : "搜索处理中"}</time></div> : null}
+      {searchStatuses.length ? <div className="instant-search-platforms">{searchStatuses.map((item) => <article key={item.platform} className={`status-${item.status}${["boss", "nowcoder"].includes(item.platform) ? " login-wall" : ""}`}><div><strong>{item.label}</strong><span>{item.status === "success" ? "已找到" : item.status === "no_results" ? "暂无合适结果" : item.status === "failed" ? "搜索失败" : "当前不可用"}</span></div><b>{item.result_count ?? 0}</b><small>{item.note || `已检查 ${item.searched_sources ?? 0} 个来源`}</small></article>)}</div> : null}
+      <p className="instant-search-note">多数平台可直接聚合真实岗位。BOSS直聘、牛客需登录才能查看（搜索引擎收录不到），请在浏览器登录该平台后搜索并复制链接/JD 导入。投递前系统会提示你先登录对应平台。</p>
+    </section>
 
     <section className="platform-job-controls">
       <div className="platform-filter-tabs" role="tablist">{filters.map(([key, label, count]) => <button key={key} role="tab" aria-selected={filter === key} className={filter === key ? "active" : ""} onClick={() => setFilter(key)}><span>{label}</span><strong>{count}</strong></button>)}</div>
@@ -266,7 +319,7 @@ export function JobsWorkspace() {
     <section className="platform-data-panel" aria-label="完整岗位池">
       <div className="platform-table-head platform-job-table-head"><span>推荐度</span><span>岗位与来源</span><span>资格状态</span><span>操作</span></div>
       <div className="platform-job-list">
-        {visibleJobs.length ? visibleJobs.map((job) => <JobRow key={job.id} job={job} planState={plans[job.id]} busyId={busyId} onPlan={plan} onVerify={verify} onConfirm={confirmAndApply} onFeedback={feedback}/>) : openJobs.length ? <div className="platform-empty-state"><Filter size={22}/><strong>当前筛选没有结果</strong><p>岗位没有被删除，清除筛选即可查看完整岗位池。</p><button onClick={resetFilters}>查看全部岗位</button></div> : <div className="platform-empty-state"><SearchCheck size={22}/><strong>岗位池还是空的</strong><p>连接自动岗位来源，或者导入任意招聘平台的真实 JD。</p><div><Link href="/sources">连接岗位来源</Link></div></div>}
+        {visibleJobs.length ? visibleJobs.map((job) => <JobRow key={job.id} job={job} planState={plans[job.id]} busyId={busyId} onPlan={plan} onVerify={verify} onConfirm={confirmAndApply} onFeedback={feedback}/>) : openJobs.length ? <div className="platform-empty-state"><Filter size={22}/><strong>当前筛选没有结果</strong><p>岗位没有被删除，清除筛选即可查看完整岗位池。</p><button onClick={resetFilters}>查看全部岗位</button></div> : <div className="platform-empty-state"><SearchCheck size={22}/><strong>岗位池还是空的</strong><p>导入任意招聘平台的真实岗位链接和 JD，系统会自动解析、去重和画像匹配。</p><div><Link href="/sources">查看岗位来源</Link></div></div>}
       </div>
     </section>
 
