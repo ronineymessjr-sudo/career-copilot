@@ -169,7 +169,7 @@ export function FeedbackWidget() {
                 <p className="feedback-form__footer">
                   反馈将发送到我们的 Supabase 数据库，也可能同步到{" "}
                   <a
-                    href="https://github.com/ronineymessjr-sudo/public-apis-resource/issues/new/choose"
+                    href="https://github.com/ronineymessjr-sudo/career-copilot/issues/new/choose"
                     target="_blank"
                     rel="noopener noreferrer"
                   >

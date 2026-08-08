@@ -7,5 +7,5 @@
   "mode": "production",
   "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
   "verified_at": "2026-08-07T07:18:00Z",
-  "verification_run": "https://github.com/ronineymessjr-sudo/public-apis-resource/actions/runs/31153675034"
+  "verification_run": "https://github.com/ronineymessjr-sudo/career-copilot/actions/runs/31153675034"
 }

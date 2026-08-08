@@ -282,7 +282,7 @@ export default function FeedbackPage() {
 
               <div className="feedback-page__links">
                 <a
-                  href="https://github.com/ronineymessjr-sudo/public-apis-resource/issues/new/choose"
+                  href="https://github.com/ronineymessjr-sudo/career-copilot/issues/new/choose"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="feedback-page__link-btn"
@@ -292,7 +292,7 @@ export default function FeedbackPage() {
                   <ExternalLink size={12} />
                 </a>
                 <a
-                  href="https://github.com/ronineymessjr-sudo/public-apis-resource"
+                  href="https://github.com/ronineymessjr-sudo/career-copilot"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="feedback-page__link-btn"

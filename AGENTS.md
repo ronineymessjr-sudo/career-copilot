@@ -4,7 +4,7 @@
 
 ## 环境
 
-- 工作目录:`C:\Users\user\Documents\public-apis-resource`
+- 工作目录:`C:\Users\user\Documents\career-copilot`
 - CLI 入口:`npm run cli -- <命令>`(等价 `node cli/index.mjs <命令>`)
 - 数据全在本地 `career-data/` 目录,不连任何云端
 

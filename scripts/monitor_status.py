@@ -74,7 +74,7 @@ def check_github_stats(cwd):
 
     try:
         result = subprocess.run(
-            ["gh", "api", "repos/ronineymessjr-sudo/public-apis-resource/traffic/clones"],
+            ["gh", "api", "repos/ronineymessjr-sudo/career-copilot/traffic/clones"],
             capture_output=True, text=True, cwd=cwd, timeout=10
         )
         if result.returncode == 0:
