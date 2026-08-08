@@ -21,3 +21,39 @@ apps/web/tsconfig.tsbuildinfo
 supabase/.temp/
 ci-artifact/
 apps/web/ci-build/
+
+# ===== 内部架构文档保护 (不公开) =====
+# 这些文件包含 Web 端核心架构、Supabase Schema、部署配置等敏感信息
+# 仅保留在本地和私有备份，不进入公开 GitHub 仓库
+docs/COMPLETE_PLATFORM_ARCHITECTURE.md
+docs/MILESTONE_02.md
+docs/MILESTONE_03.md
+docs/MILESTONE_04.md
+docs/MILESTONE_04_1.md
+docs/MILESTONE_05.md
+docs/MILESTONE_06.md
+docs/MILESTONE_07.md
+docs/MILESTONE_08.md
+docs/MILESTONE_08_1.md
+docs/R3_APPLICATION_KIT_ARCHITECTURE.md
+docs/deployment/
+docs/history/legacy-releases/CLOUDFLARE_DEPLOY.md
+docs/history/legacy-releases/CODEX_DEPLOY_NOW.md
+docs/history/legacy-releases/DEPLOYMENT_HANDOFF*.md
+docs/history/legacy-releases/ONLINE_STATUS*.md
+docs/history/legacy-releases/RELEASE_EVIDENCE_*.json
+docs/history/legacy-releases/RELEASE_MANIFEST.json
+
+# 根目录遗留的内部文档 (不公开)
+CLOUDFLARE_DEPLOY.md
+CODEX_DEPLOY_NOW.md
+DEPLOYMENT_HANDOFF*.md
+DEPLOY_CHECKLIST.md
+DEPLOY_WITH_DEEPSPEED.md
+DATABASE_DEPLOYMENT_NOTE.md
+INTEGRATION_RUNTIME.md
+ONLINE_STATUS*.md
+SECRETS_REQUIRED.md
+R3_VALIDATION.md
+RELEASE_COMPLETE_PLATFORM.md
+START_HERE.md
