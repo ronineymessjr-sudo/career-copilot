@@ -1,8 +1,9 @@
 # Career Copilot V2 — 项目记忆
 
 ## 仓库与路径
-- **主仓库**: `C:\Users\user\Documents\public-apis-resource`
-- **GitHub**: git@github.com:ronineymessjr-sudo/public-apis-resource.git (branch: main)
+- **主仓库**: `C:\Users\user\Documents\public-apis-resource` (本地目录名；GitHub 仓库已改名为 career-copilot)
+- **GitHub**: git@github.com:ronineymessjr-sudo/career-copilot.git (branch: main)
+- **旧名**: public-apis-resource → 2026-08-08 重命名为 career-copilot
 - **当前版本**: 2.0.2 (R4.0.2)
 - **部署状态**: production live @ https://career-copilot-v2.photomagic.workers.dev
 - **WorkBuddy 专家包**: career-copilot (Agent 型, 09-OperationsHR) — 已注册，专家中心可见
@@ -41,6 +42,11 @@ public-apis-resource/
 - **Git packed-refs 缓存**: `origin/main` ref 可能陈旧，需手动更新 `.git/refs/remotes/origin/main`
 - **项目技能**: `.workbuddy/skills/cf-worker-deploy/` — Cloudflare Workers 部署技能（CI artifact + wrangler OAuth），项目级共享，clone 即用
 - **validate_cloudflare.py Windows junction**: `node_modules/.bin/tsc` junction 导致 `is_file()` OSError。修复：in_ignored_tree 提到最前面 + IGNORED_SCAN_PARTS 加 `.bin`
+
+## 公开 README 安全策略 (2026-08-08)
+- GitHub README 不再暴露 Web 应用内部架构（Next.js App Router、Agent Runtime、异步队列、Feedback API 实现、Supabase schema、详细项目结构）
+- 公开内容限于：产品定位、功能列表、CLI/MCP/Expert 使用方式、简化多入口架构图
+- 技术实现细节保留在私有/内部文档（docs/、MEMORY.md）和代码仓库中，防止竞品直接复制核心平台
 
 ## Queue 架构 (2026-08-07, commit 7134e7a)
 - **双路径消费**: fast-path (用户 poll + try_process=true) + slow-path (Scheduler cron */5)
