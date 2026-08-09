@@ -10,6 +10,8 @@ type DiscoveryOptions = {
   triggerType: "manual" | "cron";
   data: Gateway;
   sourceIds?: string[];
+  maxSources?: number;
+  maxJobsPerSource?: number;
   fetcher?: typeof fetch;
 };
 
@@ -62,7 +64,10 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
     }]),
   });
   const runId = runs[0]?.id ? String(runs[0].id) : null;
-  const sources = await data<JobSourceRecord[]>(sourceQuery(userId, sourceIds));
+  const loadedSources = await data<JobSourceRecord[]>(sourceQuery(userId, sourceIds));
+  const sources = Number.isFinite(options.maxSources) && Number(options.maxSources) > 0
+    ? loadedSources.slice(0, Number(options.maxSources))
+    : loadedSources;
   const [profiles, currentJobs] = await Promise.all([
     data<Array<Record<string, any>>>(`profiles?select=*&user_id=eq.${encode(userId)}&limit=1`),
     data<Array<Record<string, any>>>(`jobs?select=*&user_id=eq.${encode(userId)}`),
@@ -96,7 +101,10 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
       let skipped = Math.max(0, result.seen - result.jobs.length);
       const seenSourceIds = new Set<string>();
 
-      for (const discovered of result.jobs) {
+      const discoveredJobs = Number.isFinite(options.maxJobsPerSource) && Number(options.maxJobsPerSource) > 0
+        ? result.jobs.slice(0, Number(options.maxJobsPerSource))
+        : result.jobs;
+      for (const discovered of discoveredJobs) {
         const sourceId = await stableSourceId([source.provider, source.identifier, discovered.externalId]);
         seenSourceIds.add(sourceId);
         const parsed = parseJobIntake({
@@ -210,7 +218,10 @@ export async function runDiscovery(options: DiscoveryOptions): Promise<Discovery
         });
       }
 
-      const existingForSource = currentJobs.filter((job) => String(job.raw_payload?.discovery_source_id ?? "") === String(source.id));
+      // A bounded cron pass avoids reconciling every historical job for a source.
+      const existingForSource = options.maxJobsPerSource
+        ? []
+        : currentJobs.filter((job) => String(job.raw_payload?.discovery_source_id ?? "") === String(source.id));
       for (const existing of existingForSource) {
         if (seenSourceIds.has(String(existing.source_id))) continue;
         const lifecycle = nextLifecycleState(existing, false, { closeAfterMisses: 3 });
