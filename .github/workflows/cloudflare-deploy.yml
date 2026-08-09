@@ -185,7 +185,7 @@ jobs:
           WEB_URL="${WEB_URL:-https://career-copilot-v2.photomagic.workers.dev}"
           export WEB_URL
           if [ -n "$CAREER_COPILOT_TEST_EMAIL" ] && [ -n "$CAREER_COPILOT_TEST_PASSWORD" ]; then
-            node scripts/production_e2e_m08_1.mjs
+            node scripts/production_e2e_m08.mjs
           else
             echo '{"skipped":true,"reason":"test credentials are not configured"}' > PRODUCTION_E2E_M08.json
           fi
