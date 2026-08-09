@@ -127,7 +127,7 @@ jobs:
           CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
         run: |
           WEB_URL="${WEB_URL:-https://career-copilot-v2.photomagic.workers.dev}"
-          curl --fail --silent --show-error "$WEB_URL/api/runtime" > runtime.json
+          runtime_status="$(curl --silent --show-error --output runtime.json --write-out '%{http_code}' "$WEB_URL/api/runtime")"`n          echo "runtime_status=$runtime_status"`n          test "$runtime_status" = "200"
           python - <<'PY'
           import json
           data = json.load(open("runtime.json", encoding="utf-8"))
