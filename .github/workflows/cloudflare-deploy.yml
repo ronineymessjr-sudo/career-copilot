@@ -67,15 +67,6 @@ jobs:
         name: Build Cloudflare output
         run: npm --workspace apps/web run cf:build
       - if: steps.auth.outputs.ready == 'true'
-        name: Deploy web Worker
-        working-directory: apps/web
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-        run: npx opennextjs-cloudflare deploy
-      - if: steps.auth.outputs.ready == 'true'
         name: Apply web Worker secrets
         working-directory: apps/web
         env:
@@ -95,12 +86,14 @@ jobs:
           printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
           if [ -n "$OPENAI_API_KEY" ]; then printf '%s' "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY; fi
       - if: steps.auth.outputs.ready == 'true'
-        name: Deploy scheduler Worker
-        working-directory: workers/scheduler
+        name: Deploy web Worker
+        working-directory: apps/web
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler deploy
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+        run: npx opennextjs-cloudflare deploy
       - if: steps.auth.outputs.ready == 'true'
         name: Apply scheduler secret
         working-directory: workers/scheduler
@@ -109,6 +102,13 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
         run: printf '%s' "$CRON_SHARED_SECRET" | npx wrangler secret put CRON_SHARED_SECRET
+      - if: steps.auth.outputs.ready == 'true'
+        name: Deploy scheduler Worker
+        working-directory: workers/scheduler
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler deploy
       - if: steps.auth.outputs.ready == 'true'
         name: Post-deploy production smoke
         env:
