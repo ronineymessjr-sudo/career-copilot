@@ -49,7 +49,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
         run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CRON_SHARED_SECRET" ] && [ -n "$SUPABASE_SECRET_KEY" ] && [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
+          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CRON_SHARED_SECRET" ] && [ -n "$SUPABASE_SECRET_KEY" ] && [ -n "$OWNER_USER_ID" ] && [ -n "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -n "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
@@ -60,23 +60,6 @@ jobs:
       - if: steps.auth.outputs.ready == 'true'
         name: Restore Linux native OpenNext dependency
         run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
-      - if: steps.auth.outputs.ready == 'true'
-        name: Build web app
-        run: npm --workspace apps/web run build
-      - if: steps.auth.outputs.ready == 'true'
-        name: Build Cloudflare output
-        run: npm --workspace apps/web run cf:build
-      - if: steps.auth.outputs.ready == 'true'
-        name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: worker-build
-          path: |
-            apps/web/.open-next/**
-            apps/web/.next/**
-            apps/web/wrangler.jsonc
-          include-hidden-files: true
-          retention-days: 1
       - if: steps.auth.outputs.ready == 'true'
         name: Deploy web Worker
         working-directory: apps/web
@@ -101,7 +84,7 @@ jobs:
         run: |
           printf '%s' "$CRON_SHARED_SECRET" | npx wrangler secret put CRON_SHARED_SECRET
           printf '%s' "$SUPABASE_SECRET_KEY" | npx wrangler secret put SUPABASE_SECRET_KEY
-          if [ -n "$OWNER_USER_ID" ]; then printf '%s' "$OWNER_USER_ID" | npx wrangler secret put OWNER_USER_ID; fi
+          printf '%s' "$OWNER_USER_ID" | npx wrangler secret put OWNER_USER_ID
           printf '%s' "$NEXT_PUBLIC_SUPABASE_URL" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_URL
           printf '%s' "$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY" | npx wrangler secret put NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
           if [ -n "$OPENAI_API_KEY" ]; then printf '%s' "$OPENAI_API_KEY" | npx wrangler secret put OPENAI_API_KEY; fi
@@ -127,7 +110,9 @@ jobs:
           CRON_SHARED_SECRET: ${{ secrets.CRON_SHARED_SECRET }}
         run: |
           WEB_URL="${WEB_URL:-https://career-copilot-v2.photomagic.workers.dev}"
-          runtime_status="$(curl --silent --show-error --output runtime.json --write-out '%{http_code}' "$WEB_URL/api/runtime")"`n          echo "runtime_status=$runtime_status"`n          test "$runtime_status" = "200"
+          runtime_status="$(curl --silent --show-error --output runtime.json --write-out '%{http_code}' "$WEB_URL/api/runtime")"
+          echo "runtime_status=$runtime_status"
+          test "$runtime_status" = "200"
           python - <<'PY'
           import json
           data = json.load(open("runtime.json", encoding="utf-8"))
@@ -159,18 +144,22 @@ jobs:
           PY
           status="$(curl --silent --output anonymous-control.json --write-out '%{http_code}' "$WEB_URL/api/control/knowledge/documents")"
           test "$status" = "401"
-          curl --fail --silent --show-error \
+          daily_status="$(curl --silent --show-error --output cron-smoke.json --write-out '%{http_code}' \
             -X POST \
             -H "Authorization: Bearer $CRON_SHARED_SECRET" \
             -H "Content-Type: application/json" \
             --data '{"source":"github-actions-post-deploy"}' \
-            "$WEB_URL/api/cron/daily" > cron-smoke.json
-          curl --fail --silent --show-error \
+            "$WEB_URL/api/cron/daily")"
+          echo "daily_status=$daily_status"
+          test "$daily_status" -ge 200 -a "$daily_status" -lt 300
+          weekly_status="$(curl --silent --show-error --output weekly-cron-smoke.json --write-out '%{http_code}' \
             -X POST \
             -H "Authorization: Bearer $CRON_SHARED_SECRET" \
             -H "Content-Type: application/json" \
             --data '{"source":"github-actions-post-deploy"}' \
-            "$WEB_URL/api/cron/weekly" > weekly-cron-smoke.json
+            "$WEB_URL/api/cron/weekly")"
+          echo "weekly_status=$weekly_status"
+          test "$weekly_status" -ge 200 -a "$weekly_status" -lt 300
           cat > DEPLOYED_URLS.json <<JSON
           {
             "web_url": "$WEB_URL",
