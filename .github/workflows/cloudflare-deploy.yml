@@ -157,7 +157,7 @@ jobs:
             --data '{"source":"github-actions-post-deploy"}' \
             "$WEB_URL/api/cron/daily")"
           echo "daily_status=$daily_status"
-          test "$daily_status" -ge 200 -a "$daily_status" -lt 300
+          if ! test "$daily_status" -ge 200 -a "$daily_status" -lt 300; then cat cron-smoke.json; exit 1; fi
           weekly_status="$(curl --silent --show-error --output weekly-cron-smoke.json --write-out '%{http_code}' \
             -X POST \
             -H "Authorization: Bearer $CRON_SHARED_SECRET" \
@@ -165,7 +165,7 @@ jobs:
             --data '{"source":"github-actions-post-deploy"}' \
             "$WEB_URL/api/cron/weekly")"
           echo "weekly_status=$weekly_status"
-          test "$weekly_status" -ge 200 -a "$weekly_status" -lt 300
+          if ! test "$weekly_status" -ge 200 -a "$weekly_status" -lt 300; then cat weekly-cron-smoke.json; exit 1; fi
           cat > DEPLOYED_URLS.json <<JSON
           {
             "web_url": "$WEB_URL",
