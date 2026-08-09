@@ -23,6 +23,9 @@
     "OPENAI_EMBEDDING_MODEL": "text-embedding-3-small",
     "OPENAI_SEARCH_MODEL": "gpt-5-mini"
   },
+  "limits": {
+    "subrequests": 1000
+  },
   "observability": {
     "enabled": true,
     "head_sampling_rate": 1
