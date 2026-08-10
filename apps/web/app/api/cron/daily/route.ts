@@ -20,8 +20,17 @@ export async function POST(request: NextRequest) {
 
     const data = <T>(resource: string, init?: RequestInit) => adminDataRequest<T>(resource, init);
     const ownerId = backgroundOwnerId();
-    const discovery = await runDiscovery({ userId: ownerId, triggerType: "cron", data });
-    const profiles = await data<Array<{ user_id: string }>>("profiles?select=user_id&order=created_at.asc");
+    const discovery = await runDiscovery({
+      userId: ownerId,
+      triggerType: "cron",
+      data,
+      // Keep the scheduled pass within the 50-subrequest Free-plan budget;
+      // manual discovery remains unbounded and can process the full catalog.
+      maxSources: 1,
+      maxJobsPerSource: 3,
+    });
+    // The scheduled job is single-operator; do not fan out over duplicate or seed profiles.
+    const profiles = await data<Array<{ user_id: string }>>(`profiles?select=user_id&user_id=eq.${encodeURIComponent(ownerId)}&limit=1`);
     const userIds = [...new Set(profiles.map((item) => String(item.user_id)).filter(Boolean))];
     const results: Array<Record<string, unknown>> = [];
     for (const userId of userIds) {
