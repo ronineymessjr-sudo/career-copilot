@@ -18,7 +18,9 @@ jobs:
           set -euo pipefail
           urls=(
             "https://career-copilot-v2.photomagic.workers.dev/"
+            "https://career-copilot-v2.photomagic.workers.dev/playground"
             "https://career-copilot-v2.photomagic.workers.dev/api/runtime"
+            "https://career-copilot-v2.photomagic.workers.dev/api/mcp"
             "https://career-copilot-scheduler.photomagic.workers.dev/health"
           )
           for url in "${urls[@]}"; do
@@ -54,3 +56,12 @@ jobs:
             "https://career-copilot-scheduler.photomagic.workers.dev/health" \
             | jq --exit-status \
               '.configured == true and .transport == "cloudflare-service-binding"'
+
+          control_status="$(curl --silent --output /tmp/control-body --write-out "%{http_code}" \
+            "https://career-copilot-v2.photomagic.workers.dev/api/control/agents/run")"
+          test "$control_status" = "401"
+
+          queue_status="$(curl --silent --output /tmp/queue-body --write-out "%{http_code}" \
+            -X POST -H "Content-Type: application/json" --data '{}' \
+            "https://career-copilot-v2.photomagic.workers.dev/api/queue/submit")"
+          test "$queue_status" = "401"

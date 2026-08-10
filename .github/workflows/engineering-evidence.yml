@@ -19,6 +19,8 @@ jobs:
       CAREER_COPILOT_DB: ${{ github.workspace }}/apps/api/data/ci_evidence.db
       MODEL_PROVIDER: mock
       CAREER_COPILOT_ADMIN_TOKEN: ci-local-only
+      CAREER_COPILOT_EVIDENCE_ENDPOINT: ${{ secrets.CAREER_COPILOT_EVIDENCE_ENDPOINT }}
+      CAREER_COPILOT_EVIDENCE_ADMIN_TOKEN: ${{ secrets.CAREER_COPILOT_ADMIN_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -71,10 +73,10 @@ jobs:
           retention-days: 30
 
       - name: Push evidence to deployed Career Copilot
-        if: ${{ secrets.CAREER_COPILOT_EVIDENCE_ENDPOINT != '' && secrets.CAREER_COPILOT_ADMIN_TOKEN != '' }}
+        if: ${{ env.CAREER_COPILOT_EVIDENCE_ENDPOINT != '' && env.CAREER_COPILOT_EVIDENCE_ADMIN_TOKEN != '' }}
         env:
-          ENDPOINT: ${{ secrets.CAREER_COPILOT_EVIDENCE_ENDPOINT }}
-          ADMIN_TOKEN: ${{ secrets.CAREER_COPILOT_ADMIN_TOKEN }}
+          ENDPOINT: ${{ env.CAREER_COPILOT_EVIDENCE_ENDPOINT }}
+          ADMIN_TOKEN: ${{ env.CAREER_COPILOT_EVIDENCE_ADMIN_TOKEN }}
         run: |
           python - <<'PY'
           import json

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { MCP_TOOL_DEFINITIONS } from "@/lib/agent-runtime.mjs";
 import { createAgentServices, loadAgentContext } from "@/lib/agent-service";
+import { RELEASE } from "@/lib/release";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 function rpcResult(id: unknown, result: unknown) {
@@ -33,9 +34,9 @@ export async function POST(request: NextRequest) {
     if (payload?.jsonrpc !== "2.0") return rpcError(id, -32600, "Invalid Request");
     if (method === "initialize") {
       return rpcResult(id, {
-        protocolVersion: "2025-06-18",
+        protocolVersion: RELEASE.mcpProtocolVersion,
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: "career-copilot-mcp", version: "2.0.0" },
+        serverInfo: { name: "career-copilot-mcp", version: RELEASE.version },
         instructions: "All data is user-scoped. Draft tools never submit. Consequential tools return approval_required and are not executed.",
       });
     }

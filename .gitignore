@@ -57,3 +57,11 @@ SECRETS_REQUIRED.md
 R3_VALIDATION.md
 RELEASE_COMPLETE_PLATFORM.md
 START_HERE.md
+
+
+# 项目状态总览 (内部文档，不公开)
+docs/PROJECT_STATUS.md
+
+# Local browser session data used only by the posting helper; never commit.
+twitter-poster/browser-data/
+supabase/.temp/

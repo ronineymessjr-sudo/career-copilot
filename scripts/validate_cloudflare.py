@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-IGNORED_SCAN_PARTS = {".git", ".career-copilot-patch-backups", ".career-copilot-backups", "node_modules", ".next", ".open-next", ".pytest_cache", "__pycache__", ".wrangler", ".bin"}
+IGNORED_SCAN_PARTS = {".git", ".career-copilot-patch-backups", ".career-copilot-backups", "node_modules", ".next", ".open-next", ".pytest_cache", "__pycache__", ".wrangler", ".bin", "browser-data"}
 
 def in_ignored_tree(path: Path) -> bool:
     return any(part in IGNORED_SCAN_PARTS for part in path.parts)
@@ -13,6 +14,8 @@ REQUIRED = [
     ROOT / "apps/web/wrangler.jsonc",
     ROOT / "apps/web/open-next.config.ts",
     ROOT / "apps/web/app/api/runtime/route.ts",
+    ROOT / "apps/web/lib/release.ts",
+    ROOT / "release.json",
     ROOT / "apps/web/app/api/cron/daily/route.ts",
     ROOT / "workers/scheduler/wrangler.jsonc",
     ROOT / "workers/scheduler/src/index.ts",
@@ -90,6 +93,7 @@ REQUIRED = [
     ROOT / "supabase/migrations/0020_platform_scale_quality_analytics.sql",
     ROOT / "supabase/migrations/0021_source_connections_and_platform_search.sql",
     ROOT / "supabase/migrations/0022_instant_profile_aggregate_search.sql",
+    ROOT / "supabase/migrations/0027_career_copilot_schema_guard.sql",
     ROOT / "apps/web/lib/instant-search.mjs",
     ROOT / "apps/web/lib/instant-search.d.mts",
     ROOT / "apps/web/lib/instant-search-service.ts",
@@ -134,9 +138,21 @@ for required in ["job_sources", "discovery_runs", "gmail_draft_id", "hr_verified
     assert required in migration
 assert "provider in ('greenhouse','lever')" in migration
 
+schema_guard = (ROOT / "supabase/migrations/0027_career_copilot_schema_guard.sql").read_text(encoding="utf-8")
+schema_bootstrap = (ROOT / "supabase/migrations/0009_vector_extension_schema.sql").read_text(encoding="utf-8")
+assert "create schema if not exists career_copilot" in schema_bootstrap.lower()
+assert "create schema if not exists career_copilot" in schema_guard.lower()
+assert "raise exception 'Career Copilot schema is incomplete" in schema_guard
+
 runtime = (ROOT / "apps/web/app/api/runtime/route.ts").read_text(encoding="utf-8")
-assert 'version: "2.0.2"' in runtime
-assert "automaticSubmission: false" in runtime
+release = (ROOT / "apps/web/lib/release.ts").read_text(encoding="utf-8")
+release_json = json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
+assert 'version: RELEASE.version' in runtime
+assert 'import { RELEASE }' in runtime
+assert 'version: "2.0.2"' in release
+assert release_json["version"] == "2.0.2"
+assert release_json["mcp_protocol_version"] == "2025-06-18"
+assert "automaticSubmission: RELEASE.safety.automaticSubmission" in runtime
 assert "gmailDraftOnly: true" in runtime
 assert "publicSourceDiscovery: true" in runtime
 for flag in ["sourceUrlAutoDetection: true", "sourceConnectionTesting: true", "recruitmentPlatformSearch: true", "clickableSourceCards: true"]:
@@ -147,8 +163,8 @@ assert "interviewLearningLoop: true" in runtime
 assert "conversionAnalytics: true" in runtime
 assert "weeklyReviews: true" in runtime
 assert "operationalObservability: true" in runtime
-assert "automaticInterviewAcceptance: false" in runtime
-assert "automaticOfferAcceptance: false" in runtime
+assert "automaticInterviewAcceptance: RELEASE.safety.automaticInterviewAcceptance" in runtime
+assert "automaticOfferAcceptance: RELEASE.safety.automaticOfferAcceptance" in runtime
 
 source_lib = (ROOT / "apps/web/lib/job-sources.mjs").read_text(encoding="utf-8")
 assert "boards-api.greenhouse.io" in source_lib
@@ -354,8 +370,8 @@ assert "SUPABASE_SECRET_KEY" not in client_text_m07
 
 
 api_main = (ROOT / "apps/api/app/main.py").read_text(encoding="utf-8")
-assert 'version="2.0.0"' in api_main
-assert '"version":"2.0.0"' in api_main
+assert 'version="2.0.2"' in api_main
+assert '"version":"2.0.2"' in api_main
 
 auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text(encoding="utf-8")
 assert "包内全部迁移（按文件名顺序）" in auth_gate
@@ -383,6 +399,7 @@ root_package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
 web_package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
 assert root_package["version"] == "2.0.2"
 assert web_package["version"] == "2.0.2"
+assert json.loads((ROOT / "workers/scheduler/package.json").read_text(encoding="utf-8"))["version"] == "2.0.2"
 assert web_package["dependencies"]["@langchain/core"] == "1.2.3"
 assert web_package["dependencies"]["@langchain/langgraph"] == "1.4.8"
 assert web_package["dependencies"]["@langchain/langgraph-checkpoint"] == "1.0.3"
@@ -480,7 +497,7 @@ login_page = (ROOT / "apps/web/app/login/page.tsx").read_text(encoding="utf-8")
 for required in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
     assert required in login_page
 
-for flag in ["completeUserProfiles: true", "privateMultiResumeLibrary: true", "perUserDailyRecommendations: true", "automaticApplicationPreparation: true", "completeApplicationKits: true", "tailoredResumePrintExport: true", "emailComposeHandoff: true", "oneClickApplicationHandoff: true", "automaticExternalSubmission: false"]:
+for flag in ["completeUserProfiles: true", "privateMultiResumeLibrary: true", "perUserDailyRecommendations: true", "automaticApplicationPreparation: true", "completeApplicationKits: true", "tailoredResumePrintExport: true", "emailComposeHandoff: true", "oneClickApplicationHandoff: true", "automaticExternalSubmission: RELEASE.safety.automaticSubmission"]:
     assert flag in runtime
 
 migration8 = (ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql").read_text(encoding="utf-8")
@@ -505,12 +522,12 @@ for required in ["StateGraph", "supervisor", "job_ranker", "resume_agent", "eval
     assert required in agent_graph
 
 mcp_route = (ROOT / "apps/web/app/api/mcp/route.ts").read_text(encoding="utf-8")
-assert 'protocolVersion: "2025-06-18"' in mcp_route
+assert 'protocolVersion: RELEASE.mcpProtocolVersion' in mcp_route
 assert 'method === "tools/list"' in mcp_route
 assert 'method === "tools/call"' in mcp_route
 assert "approval_required" in agent_runtime
 
-for flag in ["agentRuntime: true", "hybridJobRanking: true", "mcpServer: true", "agentEvaluation: true", "publicPortfolioPlayground: true", "deterministicAgentDemoApi: true", "dockerDemoStack: true", "automaticEmailSend: false"]:
+for flag in ["agentRuntime: true", "hybridJobRanking: true", "mcpServer: true", "agentEvaluation: true", "publicPortfolioPlayground: true", "deterministicAgentDemoApi: true", "dockerDemoStack: true", "automaticEmailSend: RELEASE.safety.automaticEmailSend"]:
     assert flag in runtime
 assert "local_transition" in runtime
 

@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-TARGET_REPO_URL="${TARGET_REPO_URL:-https://github.com/ronineymessjr-sudo/public-apis-resource.git}"
+TARGET_REPO_URL="${TARGET_REPO_URL:-https://github.com/ronineymessjr-sudo/career-copilot.git}"
 TARGET_BRANCH="${TARGET_BRANCH:-main}"
 PUSH_GITHUB="${PUSH_GITHUB:-1}"
 REQUIRE_GITHUB_PUSH="${REQUIRE_GITHUB_PUSH:-0}"
@@ -48,9 +48,11 @@ export CRON_SHARED_SECRET
 npm install --no-audit --no-fund
 npm --workspace apps/web run cf-typegen
 npm --workspace workers/scheduler run cf-typegen
-npm run test:m08
-npm run smoke:m08
+npm run test:complete
+npm run test:m08.1
+npm run smoke:m08.1
 npm run check
+python scripts/validate_supabase_migrations.py
 python scripts/validate_cloudflare.py
 python -m compileall -q apps/api/app apps/api/scripts
 npm --workspace apps/web run build

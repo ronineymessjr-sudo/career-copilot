@@ -29,6 +29,8 @@ supabase_control = read("apps/web/lib/supabase-control.ts")
 check("01 career_copilot schema constant", 'const DATA_SCHEMA = "career_copilot"' in supabase_control)
 check("01 data/admin Accept-Profile headers", supabase_control.count('headers.set("Accept-Profile", DATA_SCHEMA)') >= 2)
 check("01 data/admin Content-Profile headers", supabase_control.count('headers.set("Content-Profile", DATA_SCHEMA)') >= 2)
+check("01 canonical schema bootstrap", "create schema if not exists career_copilot" in read("supabase/migrations/0009_vector_extension_schema.sql").lower())
+check("01 existing database schema guard", "0027_career_copilot_schema_guard.sql" in {p.name for p in (ROOT / "supabase/migrations").glob("*.sql")})
 
 # 2-3. Runtime public configuration.
 layout = read("apps/web/app/layout.tsx")
@@ -82,6 +84,10 @@ for name, content in [("13 cloudflare validator", validator), ("14 package verif
 # 15. CI native dependency restoration.
 workflow = read(".github/workflows/cloudflare-deploy.yml")
 check("15 Linux OpenNext native dependency in both jobs", workflow.count("@ast-grep/napi-linux-x64-gnu@0.40.5") >= 2)
+check("15 complete test suite in validation", "npm run test:complete" in workflow)
+check("15 Supabase migration validation in CI", "python scripts/validate_supabase_migrations.py" in workflow)
+evidence_workflow = read(".github/workflows/engineering-evidence.yml")
+check("15 evidence workflow does not use secrets in if", "if: ${{ secrets." not in evidence_workflow)
 
 # 16-19. Windows cleanup, export and Gmail security.
 check("16 Windows SQLite cleanup", "_force_remove_db" in read("apps/api/tests/conftest.py"))
@@ -105,6 +111,7 @@ check("26 resume item type", ".map((item: string)" in read("apps/web/components/
 web_package = json_file("apps/web/package.json")
 check("27 web check is tsc", web_package["scripts"].get("check") == "tsc --noEmit")
 check("28 valid Radix Dialog version", web_package["dependencies"].get("@radix-ui/react-dialog") == "^1.1.14")
+check("28 unified release metadata", json_file("release.json")["version"] == "2.0.2" and 'version: "2.0.2"' in read("apps/web/lib/release.ts"))
 
 # 29-33. Migration identities; later releases must not reuse these numbers.
 expected_migrations = {

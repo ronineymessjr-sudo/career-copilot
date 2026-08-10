@@ -1,0 +1,12 @@
+{
+  "product": "career-copilot",
+  "version": "2.0.2",
+  "mcp_protocol_version": "2025-06-18",
+  "release_line": "M08.1+",
+  "safety": {
+    "automatic_submission": false,
+    "automatic_email_send": false,
+    "automatic_interview_acceptance": false,
+    "automatic_offer_acceptance": false
+  }
+}

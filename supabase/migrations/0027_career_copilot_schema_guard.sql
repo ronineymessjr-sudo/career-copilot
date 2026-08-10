@@ -1,10 +1,7 @@
--- Keep the shared pgvector extension in Supabase's extension schema.  Career
--- Copilot tables remain the only application-owned objects in its schema.
---
--- The first M01-M08 migrations historically created their tables in `public`.
--- Before M09 can run, make the application schema explicit and move only the
--- known Career Copilot tables.  The operation is idempotent and deliberately
--- leaves any unrelated public tables untouched.
+-- Career Copilot schema repair for databases that already recorded the
+-- historical M01-M08 migrations before schema isolation was introduced.
+-- This migration is safe to replay: it moves only known Career Copilot
+-- objects when the isolated copy does not already exist.
 create schema if not exists career_copilot;
 
 do $$
@@ -46,4 +43,19 @@ $$;
 
 grant usage on schema career_copilot to anon, authenticated, service_role;
 
-alter extension vector set schema extensions;
+do $$
+declare
+  missing text[] := array[]::text[];
+  item text;
+begin
+  foreach item in array array['profiles','jobs','applications','career_evidence','resume_versions','agent_runs'] loop
+    if to_regclass(format('career_copilot.%I', item)) is null then
+      missing := array_append(missing, item);
+    end if;
+  end loop;
+  if cardinality(missing) > 0 then
+    raise exception 'Career Copilot schema is incomplete; missing tables: %', array_to_string(missing, ', ');
+  end if;
+end
+$$;
+

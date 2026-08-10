@@ -41,11 +41,11 @@ def check_queue_endpoints():
                 req = urllib.request.Request(
                     url,
                     method="POST",
-                    headers={"Content-Type": "application/json"},
+                    headers={"Content-Type": "application/json", "User-Agent": "career-copilot-monitor"},
                     data=json.dumps({}).encode(),
                 )
             else:
-                req = urllib.request.Request(url)
+                req = urllib.request.Request(url, headers={"User-Agent": "career-copilot-monitor"})
             try:
                 urllib.request.urlopen(req, timeout=5)
                 results[ep] = 200
@@ -62,7 +62,7 @@ def check_github_stats(cwd):
     try:
         result = subprocess.run(
             ["gh", "repo", "view", "--json", "stargazerCount,forkCount,description,url"],
-            capture_output=True, text=True, cwd=cwd, timeout=10
+            capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=cwd, timeout=10
         )
         if result.returncode == 0:
             data = json.loads(result.stdout)
@@ -75,7 +75,7 @@ def check_github_stats(cwd):
     try:
         result = subprocess.run(
             ["gh", "api", "repos/ronineymessjr-sudo/career-copilot/traffic/clones"],
-            capture_output=True, text=True, cwd=cwd, timeout=10
+            capture_output=True, text=True, encoding="utf-8", errors="replace", cwd=cwd, timeout=10
         )
         if result.returncode == 0:
             data = json.loads(result.stdout)
