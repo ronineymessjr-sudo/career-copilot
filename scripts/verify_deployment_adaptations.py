@@ -88,7 +88,7 @@ check("15 complete test suite in validation", "npm run test:complete" in workflo
 check("15 Supabase migration validation in CI", "python scripts/validate_supabase_migrations.py" in workflow)
 evidence_workflow = read(".github/workflows/engineering-evidence.yml")
 check("15 evidence workflow does not use secrets in if", "if: ${{ secrets." not in evidence_workflow)
-check("15 evidence workflow keeps repo path inside checkout", "--repo .. \\\n" in evidence_workflow and "git -C .." in evidence_workflow)
+check("15 evidence workflow keeps repo path inside checkout", "--repo . \\\n" in evidence_workflow and "git -C ." in evidence_workflow)
 check("15 API project root resolves to repository", "parents[3]" in read("apps/api/app/config.py"))
 
 # 16-19. Windows cleanup, export and Gmail security.

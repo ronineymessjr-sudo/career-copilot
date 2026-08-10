@@ -45,15 +45,15 @@ jobs:
           BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_REF: ${{ github.sha }}
         run: |
-          if ! git -C .. cat-file -e "${BASE_REF}^{commit}" 2>/dev/null; then
-            if git -C .. rev-parse HEAD~1 >/dev/null 2>&1; then
-              BASE_REF="$(git -C .. rev-parse HEAD~1)"
+          if ! git -C . cat-file -e "${BASE_REF}^{commit}" 2>/dev/null; then
+            if git -C . rev-parse HEAD~1 >/dev/null 2>&1; then
+              BASE_REF="$(git -C . rev-parse HEAD~1)"
             else
               BASE_REF="4b825dc642cb6eb9a060e54bf8d69288fbee4904"
             fi
           fi
           python scripts/collect_git_evidence.py \
-            --repo .. \
+            --repo . \
             --base "${BASE_REF}" \
             --head "${HEAD_REF}" \
             --junit junit.xml \
