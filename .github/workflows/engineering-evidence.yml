@@ -19,6 +19,7 @@ jobs:
       CAREER_COPILOT_DB: ${{ github.workspace }}/apps/api/data/ci_evidence.db
       MODEL_PROVIDER: mock
       CAREER_COPILOT_ADMIN_TOKEN: ci-local-only
+      PYTHONPATH: .
       CAREER_COPILOT_EVIDENCE_ENDPOINT: ${{ secrets.CAREER_COPILOT_EVIDENCE_ENDPOINT }}
       CAREER_COPILOT_EVIDENCE_ADMIN_TOKEN: ${{ secrets.CAREER_COPILOT_ADMIN_TOKEN }}
     steps:
