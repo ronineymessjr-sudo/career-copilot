@@ -71,7 +71,7 @@ Career Copilot 适配所有主流 AI 编码平台，选你顺手的方式：
 | **CLI** | 命令行快速搜索、生成简历 | 任意终端 — Claude Code CLI · Codex CLI · OpenCode · 普通终端 |
 | **MCP 工具** | 接入任意支持 MCP 的 Agent | ✨ 全平台通用：WorkBuddy · Claude Code · Codex · OpenCode · 自定义 Agent |
 | **WorkBuddy Expert** | 对话式求职顾问 | WorkBuddy 专家中心一键安装 |
-| **GitHub Action** | CI/CD 流水线中自动求职操作 | GitHub Actions 任意 Runner |
+| **GitHub Actions** | 构建、部署、Smoke 与工程证据 | GitHub Actions 任意 Runner（不自动投递） |
 
 ---
 ## 支持的 AI 编码平台

@@ -21,10 +21,12 @@ jobs:
         run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
       - run: npm --workspace apps/web run cf-typegen
       - run: npm --workspace workers/scheduler run cf-typegen
+      - run: npm run test:complete
       - run: npm run test:m08.1
       - run: npm run evaluation:m08.1
       - run: npm run smoke:m08.1
       - run: npm run check
+      - run: python scripts/validate_supabase_migrations.py
       - run: python scripts/validate_cloudflare.py
       - run: npm --workspace apps/web run build
       - run: npm --workspace apps/web run cf:build
@@ -159,6 +161,11 @@ jobs:
           PY
           status="$(curl --silent --output anonymous-control.json --write-out '%{http_code}' "$WEB_URL/api/control/knowledge/documents")"
           test "$status" = "401"
+          curl --fail --silent --show-error "$WEB_URL/playground" > playground.html
+          curl --fail --silent --show-error "$WEB_URL/api/mcp" > mcp.json
+          queue_status="$(curl --silent --output queue.json --write-out '%{http_code}' \
+            -X POST -H 'Content-Type: application/json' --data '{}' "$WEB_URL/api/queue/submit")"
+          test "$queue_status" = "401"
           curl --fail --silent --show-error \
             -X POST \
             -H "Authorization: Bearer $CRON_SHARED_SECRET" \
@@ -190,7 +197,7 @@ jobs:
           WEB_URL="${WEB_URL:-https://career-copilot-v2.photomagic.workers.dev}"
           export WEB_URL
           if [ -n "$CAREER_COPILOT_TEST_EMAIL" ] && [ -n "$CAREER_COPILOT_TEST_PASSWORD" ]; then
-            node scripts/production_e2e_m08_1.mjs
+            node scripts/production_e2e_m08.mjs
           else
             echo '{"skipped":true,"reason":"test credentials are not configured"}' > PRODUCTION_E2E_M08.json
           fi
@@ -202,6 +209,9 @@ jobs:
           path: |
             runtime.json
             anonymous-control.json
+            playground.html
+            mcp.json
+            queue.json
             cron-smoke.json
             weekly-cron-smoke.json
             PRODUCTION_E2E_M08.json

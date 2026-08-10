@@ -35,7 +35,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="Career Copilot V2 API",
-    version="2.0.0",
+    version="2.0.2",
     description="Evidence-driven AI internship discovery and application operating system.",
     lifespan=lifespan,
 )
@@ -53,7 +53,7 @@ def require_admin(x_admin_token: str | None = Header(default=None)) -> None:
 
 @app.get("/health")
 def health() -> dict:
-    return {"status":"ok","mode":"approval-first","version":"2.0.0","data_backend":settings.data_backend}
+    return {"status":"ok","mode":"approval-first","version":"2.0.2","data_backend":settings.data_backend}
 
 
 @app.get("/", response_class=HTMLResponse)

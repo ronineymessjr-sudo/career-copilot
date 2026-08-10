@@ -64,13 +64,14 @@
 
 ## Phase 8 — Next priorities
 
-- production migration, build and authenticated E2E evidence for version 1.0.0
+- reproducible Supabase migration replay and schema/RLS drift checks for version 2.0.2
 - additional official job-source adapters with source-quality scoring
 - statistically cautious resume experiment cohorts
 - source freshness, evidence expiry and stale-score invalidation policies
 - MCP client registration and revocable scoped tokens
 - queue-backed long-running Agent jobs and retry/dead-letter handling
 - deployment SLOs, alert routing and backup/restore drills
+- unified release metadata, tags and deployed commit visibility
 
 ## Permanent safety boundary
 
