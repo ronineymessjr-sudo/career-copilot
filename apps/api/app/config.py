@@ -7,17 +7,17 @@ import os
 
 @dataclass(frozen=True)
 class Settings:
-    # config.py lives at <project>/apps/api/app/config.py; parents[2] is the
+    # config.py lives at <project>/apps/api/app/config.py; parents[3] is the
     # repository root in both the checkout and the API Docker image.
-    project_root: Path = Path(__file__).resolve().parents[2]
+    project_root: Path = Path(__file__).resolve().parents[3]
     database_path: Path = Path(
         os.getenv(
             "CAREER_COPILOT_DB",
             Path(__file__).resolve().parents[1] / "data" / "career_copilot.db",
         )
     )
-    prototype_dir: Path = Path(__file__).resolve().parents[2] / "prototype"
-    resume_dir: Path = Path(__file__).resolve().parents[2] / "assets" / "resumes"
+    prototype_dir: Path = Path(__file__).resolve().parents[3] / "prototype"
+    resume_dir: Path = Path(__file__).resolve().parents[3] / "assets" / "resumes"
     approval_first: bool = os.getenv("APPROVAL_FIRST", "true").lower() == "true"
 
     # Supabase Data API bridge. SQLite remains the safe local source of truth;

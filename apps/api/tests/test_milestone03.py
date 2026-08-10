@@ -66,7 +66,7 @@ def test_mock_benchmark_is_marked_non_comparable(client):
 
 
 def test_git_evidence_collects_diff_without_ai_attribution(client):
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     repo = project_root / "apps" / "api" / "data" / "test_git_evidence_repo"
     if repo.exists():
         _rmtree_force(repo)
