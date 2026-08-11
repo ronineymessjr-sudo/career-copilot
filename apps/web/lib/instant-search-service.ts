@@ -1,6 +1,6 @@
 import { buildApplicationPlan } from "@/lib/application-plan.mjs";
 import { buildApplicationPackage, evaluateJob, parseJobIntake, preserveVerifiedJobFields } from "@/lib/control-rules.mjs";
-import { buildProfileSearchSpec, INSTANT_SEARCH_PLATFORMS, platformLabel, searchPublicJobIndex, searchPublicJobIndexWithTavily, WEB_SEARCH_PLATFORMS } from "@/lib/instant-search.mjs";
+import { buildProfileSearchSpec, INSTANT_SEARCH_PLATFORMS, jobFreshnessStatus, platformLabel, searchPublicJobIndex, searchPublicJobIndexWithTavily, WEB_SEARCH_PLATFORMS } from "@/lib/instant-search.mjs";
 import { jobFingerprint } from "@/lib/platform-scale.mjs";
 import { personalizeJob, profileCompleteness } from "@/lib/recommendation-profile.mjs";
 import { AuthContext, ControlApiError, dataRequest, stableSourceId } from "@/lib/supabase-control";
@@ -337,6 +337,7 @@ export async function runInstantProfileSearch(auth: AuthContext, options: Instan
         workplace: indexed.workplace,
         salary: indexed.salary,
         publishedAt: indexed.publishedAt,
+        deadline: indexed.deadline,
         sourcePayload: indexed.sourcePayload,
         sourceRecord: null,
         runId,
@@ -371,7 +372,8 @@ export async function runInstantProfileSearch(auth: AuthContext, options: Instan
   let prepared = 0;
   for (const item of ranked) {
     if (prepared >= prepareLimit) break;
-    if (item.plan.status !== "ready" || item.evaluation.eligible !== true || item.evaluation.needs_confirmation === true) continue;
+    const freshness = jobFreshnessStatus(item.job, new Date());
+    if (freshness === "stale" || item.plan.status !== "ready" || item.evaluation.eligible !== true || item.evaluation.needs_confirmation === true) continue;
     if (Number(item.recommendation.score ?? 0) < 60) continue;
     try {
       item.application = await prepareApplication(auth, item.job, profile, evidence, resumes, item.evaluation, item.plan);
@@ -393,10 +395,12 @@ export async function runInstantProfileSearch(auth: AuthContext, options: Instan
     preparation_status: item.application?.id ? "prepared" : item.plan.status,
     application_id: item.application?.id ?? null,
     result_snapshot: {
-      company_name: item.job.company_name,
-      title: item.job.title,
-      source_name: item.job.source_name,
-      source_url: item.job.source_url,
+        company_name: item.job.company_name,
+        title: item.job.title,
+        source_name: item.job.source_name,
+        source_url: item.job.source_url,
+        freshness_status: jobFreshnessStatus(item.job, new Date()),
+        freshness_recheck_required: jobFreshnessStatus(item.job, new Date()) !== "fresh",
       recommendation: item.recommendation,
       plan: {
         status: item.plan.status,

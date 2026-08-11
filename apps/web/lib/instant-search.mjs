@@ -160,11 +160,36 @@ export function normalizeIndexedJob(input = {}, expectedPlatform = "") {
     workplace: ["remote", "hybrid", "onsite", "unknown"].includes(text(input.workplace).toLowerCase()) ? text(input.workplace).toLowerCase() : "unknown",
     salary: text(input.salary).slice(0, 240),
     publishedAt: text(input.published_at).slice(0, 40) || null,
+    deadline: text(input.deadline).slice(0, 40) || null,
     sourceUrl: sourceUrl.toString(),
     applyUrl,
     rawText,
     sourcePayload: input,
   };
+}
+
+function parseFreshnessDate(value, endOfDay = false) {
+  const raw = text(value);
+  if (!raw) return null;
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(raw);
+  const parsed = Date.parse(dateOnly && endOfDay ? `${raw}T23:59:59.999Z` : raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/**
+ * Deterministic freshness guard for indexed jobs. Unknown dates remain visible
+ * but are marked for re-check instead of being treated as current.
+ */
+export function jobFreshnessStatus(job = {}, now = new Date()) {
+  const current = now instanceof Date ? now.getTime() : Date.parse(String(now));
+  const checkedAt = Number.isFinite(current) ? current : Date.now();
+  const deadline = parseFreshnessDate(job.deadline ?? job.deadline_at, true);
+  if (deadline != null) return deadline < checkedAt ? "stale" : "fresh";
+  const published = parseFreshnessDate(job.publishedAt ?? job.published_at);
+  if (published == null) return "unknown";
+  const ageDays = (checkedAt - published) / 86400000;
+  if (ageDays > 45) return "stale";
+  return ageDays >= -1 ? "fresh" : "unknown";
 }
 
 function identity(job) {
@@ -232,6 +257,7 @@ function responseSchema(platforms) {
             workplace: { type: "string", enum: ["remote", "hybrid", "onsite", "unknown"] },
             salary: { type: "string" },
             published_at: { type: "string" },
+            deadline: { type: "string" },
             description: { type: "string" },
             source_url: { type: "string" },
             apply_url: { type: "string" },

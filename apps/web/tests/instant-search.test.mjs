@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   INSTANT_SEARCH_PLATFORMS,
   buildProfileSearchSpec,
+  jobFreshnessStatus,
   normalizeIndexedJob,
   searchDomains,
   searchPublicJobIndex,
@@ -62,6 +63,15 @@ test("indexed search accepts real job-detail pages and rejects search-result pag
     apply_url: "https://www.linkedin.com/jobs/search/?keywords=AI",
   }, "linkedin");
   assert.equal(searchPage, null);
+});
+
+test("indexed jobs expose a deterministic freshness status", () => {
+  const now = new Date("2026-08-11T12:00:00Z");
+  assert.equal(jobFreshnessStatus({ deadline: "2026-08-10" }, now), "stale");
+  assert.equal(jobFreshnessStatus({ deadline: "2026-08-20" }, now), "fresh");
+  assert.equal(jobFreshnessStatus({ published_at: "2026-06-01" }, now), "stale");
+  assert.equal(jobFreshnessStatus({ published_at: "2026-08-01" }, now), "fresh");
+  assert.equal(jobFreshnessStatus({}, now), "unknown");
 });
 
 test("public indexed search requests web search with domain filters and returns normalized jobs", async () => {
