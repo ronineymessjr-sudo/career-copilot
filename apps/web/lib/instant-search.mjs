@@ -192,6 +192,29 @@ export function jobFreshnessStatus(job = {}, now = new Date()) {
   return ageDays >= -1 ? "fresh" : "unknown";
 }
 
+export function buildSearchReviewNotification(results = [], runId = "") {
+  const reviewRows = (Array.isArray(results) ? results : []).filter((row) => {
+    const snapshot = row?.result_snapshot && typeof row.result_snapshot === "object" ? row.result_snapshot : {};
+    return snapshot.freshness_status === "unknown" || row?.needs_confirmation === true;
+  });
+  if (!reviewRows.length) return null;
+  const sample = reviewRows.slice(0, 3).map((row) => {
+    const snapshot = row.result_snapshot && typeof row.result_snapshot === "object" ? row.result_snapshot : {};
+    return [snapshot.company_name, snapshot.title].filter(Boolean).join(" · ");
+  }).filter(Boolean).join("；");
+  return {
+    type: "profile_search_review",
+    title: `搜索完成：${reviewRows.length} 个岗位需要复核`,
+    body: `系统已完成岗位匹配与资格初筛，但仍有岗位缺少可验证的发布时间或关键条件。请打开岗位报告复核后再决定是否投递。${sample ? ` 示例：${sample}` : ""}`,
+    action_url: "/jobs",
+    metadata: {
+      search_run_id: runId || null,
+      review_required_count: reviewRows.length,
+      job_ids: reviewRows.map((row) => String(row.job_id ?? "")).filter(Boolean).slice(0, 20),
+    },
+  };
+}
+
 function identity(job) {
   const url = safeUrl(job?.sourceUrl ?? job?.source_url)?.toString().replace(/\/$/, "").toLowerCase();
   if (url) return url;

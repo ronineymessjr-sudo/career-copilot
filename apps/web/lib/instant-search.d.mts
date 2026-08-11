@@ -10,6 +10,7 @@ export function platformLabel(platform: string): string;
 export function platformDefinition(platform: string): { id: string; label: string; domains: string[] } | null;
 export function normalizeIndexedJob(input?: Record<string, any>, expectedPlatform?: string): IndexedJob | null;
 export function jobFreshnessStatus(job?: Record<string, any>, now?: Date | string): "fresh" | "stale" | "unknown";
+export function buildSearchReviewNotification(results?: Array<Record<string, any>>, runId?: string): { type: string; title: string; body: string; action_url: string; metadata: Record<string, any> } | null;
 export function deduplicateIndexedJobs(jobs?: IndexedJob[]): IndexedJob[];
 export function extractResponseText(payload: Record<string, any>): string;
 export function searchPublicJobIndex(input: { profile: Record<string, any>; extraQuery?: string; platforms?: readonly string[]; apiKey?: string; model?: string; maxResults?: number; fetcher?: typeof fetch }): Promise<{ jobs: IndexedJob[]; platformReports: Array<Record<string, any>>; querySpec: ProfileSearchSpec; provider: string; responseId?: string | null }>;

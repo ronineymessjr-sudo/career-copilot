@@ -104,7 +104,7 @@ export function OverviewWorkspace() {
     <header className="platform-page-head overview"><div><h1>今日简报</h1><p>先看岗位池、推荐结果和投递状态，再决定今天最值得做的事情。</p></div><button className="platform-refresh" onClick={() => void refresh()} disabled={loading}><RefreshCw size={16}/>{loading ? "生成中" : "重新生成推荐"}</button></header>
     {message ? <div className="platform-message">{message}</div> : null}
 
-    {state.unread > 0 ? <section className="platform-notification-strip"><div><strong>{state.unread} 条新消息</strong><span>{state.notifications.filter((item) => !item.read_at).slice(0, 3).map((item) => item.title).join(" · ")}</span></div><button type="button" onClick={() => void markNotificationsRead()}>标记已读</button></section> : null}
+    {state.unread > 0 ? <section className="platform-notification-strip"><div><strong>{state.unread} 条新消息</strong><span>{state.notifications.filter((item) => !item.read_at).slice(0, 3).map((item) => item.body || item.title).join(" · ")}</span>{state.notifications.find((item) => !item.read_at && item.type === "profile_search_review")?.action_url ? <Link href={state.notifications.find((item) => !item.read_at && item.type === "profile_search_review")?.action_url}>查看岗位复核报告</Link> : null}</div><button type="button" onClick={() => void markNotificationsRead()}>标记已读</button></section> : null}
 
     {state.jobs.length === 0 ? <section className="platform-welcome">
       <div className="platform-welcome-mark"><Sparkles size={22}/></div>

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   INSTANT_SEARCH_PLATFORMS,
   buildProfileSearchSpec,
+  buildSearchReviewNotification,
   jobFreshnessStatus,
   normalizeIndexedJob,
   searchDomains,
@@ -72,6 +73,17 @@ test("indexed jobs expose a deterministic freshness status", () => {
   assert.equal(jobFreshnessStatus({ published_at: "2026-06-01" }, now), "stale");
   assert.equal(jobFreshnessStatus({ published_at: "2026-08-01" }, now), "fresh");
   assert.equal(jobFreshnessStatus({}, now), "unknown");
+});
+
+test("search review notifications are created only for unresolved verification", () => {
+  const notification = buildSearchReviewNotification([
+    { job_id: "job-1", needs_confirmation: false, result_snapshot: { company_name: "Example AI", title: "AI Intern", freshness_status: "unknown" } },
+    { job_id: "job-2", needs_confirmation: false, result_snapshot: { company_name: "Fresh AI", title: "Product Intern", freshness_status: "fresh" } },
+  ], "run-1");
+  assert.equal(notification?.type, "profile_search_review");
+  assert.equal(notification?.metadata.search_run_id, "run-1");
+  assert.deepEqual(notification?.metadata.job_ids, ["job-1"]);
+  assert.equal(buildSearchReviewNotification([{ needs_confirmation: false, result_snapshot: { freshness_status: "stale" } }], "run-2"), null);
 });
 
 test("public indexed search requests web search with domain filters and returns normalized jobs", async () => {

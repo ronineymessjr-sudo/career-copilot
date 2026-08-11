@@ -1,6 +1,6 @@
 import { buildApplicationPlan } from "@/lib/application-plan.mjs";
 import { buildApplicationPackage, evaluateJob, parseJobIntake, preserveVerifiedJobFields } from "@/lib/control-rules.mjs";
-import { buildProfileSearchSpec, INSTANT_SEARCH_PLATFORMS, jobFreshnessStatus, platformLabel, searchPublicJobIndex, searchPublicJobIndexWithTavily, WEB_SEARCH_PLATFORMS } from "@/lib/instant-search.mjs";
+import { buildProfileSearchSpec, buildSearchReviewNotification, INSTANT_SEARCH_PLATFORMS, jobFreshnessStatus, platformLabel, searchPublicJobIndex, searchPublicJobIndexWithTavily, WEB_SEARCH_PLATFORMS } from "@/lib/instant-search.mjs";
 import { jobFingerprint } from "@/lib/platform-scale.mjs";
 import { personalizeJob, profileCompleteness } from "@/lib/recommendation-profile.mjs";
 import { AuthContext, ControlApiError, dataRequest, stableSourceId } from "@/lib/supabase-control";
@@ -400,7 +400,7 @@ export async function runInstantProfileSearch(auth: AuthContext, options: Instan
         source_name: item.job.source_name,
         source_url: item.job.source_url,
         freshness_status: jobFreshnessStatus(item.job, new Date()),
-        freshness_recheck_required: jobFreshnessStatus(item.job, new Date()) !== "fresh",
+        freshness_recheck_required: jobFreshnessStatus(item.job, new Date()) === "unknown",
       recommendation: item.recommendation,
       plan: {
         status: item.plan.status,
@@ -416,6 +416,15 @@ export async function runInstantProfileSearch(auth: AuthContext, options: Instan
       headers: { Prefer: "return=minimal" },
       body: JSON.stringify(resultRows),
     });
+  }
+
+  const reviewNotification = buildSearchReviewNotification(resultRows, runId);
+  if (reviewNotification) {
+    await dataRequest(auth, "user_notifications", {
+      method: "POST",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify([{ user_id: auth.userId, ...reviewNotification }]),
+    }).catch(() => null);
   }
 
   const platformReports = combineReports(webSearch.platformReports);
@@ -438,6 +447,7 @@ export async function runInstantProfileSearch(auth: AuthContext, options: Instan
     run: updatedRuns[0] ?? { ...run, status, platform_statuses: platformReports, jobs_found: ranked.length, jobs_imported: newlyImported, jobs_prepared: prepared, completed_at: completedAt },
     job_ids: ranked.map((item) => String(item.job.id)),
     prepared_application_ids: ranked.map((item) => item.application?.id).filter(Boolean).map(String),
+    review_required_count: reviewNotification?.metadata?.review_required_count ?? 0,
     results: resultRows,
     platform_statuses: platformReports,
     query: searchSpec,
