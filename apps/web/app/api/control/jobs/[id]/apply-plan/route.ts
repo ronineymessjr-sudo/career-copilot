@@ -37,11 +37,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   try {
     const auth = await authenticate(request);
     const { id } = await params;
-    const [jobs, profiles, resumes, overrides] = await Promise.all([
+    const [jobs, profiles, resumes, overrides, applications] = await Promise.all([
       dataRequest<Array<Record<string, any>>>(auth, `jobs?select=*&id=eq.${encodeURIComponent(id)}&limit=1`),
       dataRequest<Array<Record<string, any>>>(auth, "profiles?select=*&limit=1"),
       dataRequest<Array<Record<string, any>>>(auth, "resume_versions?select=*&order=updated_at.desc"),
       dataRequest<Array<Record<string, any>>>(auth, `job_user_overrides?select=*&job_id=eq.${encodeURIComponent(id)}&limit=1`).catch(() => []),
+      dataRequest<Array<Record<string, any>>>(auth, `applications?select=id,job_id,status,submitted_at&user_id=eq.${encodeURIComponent(auth.userId)}&job_id=eq.${encodeURIComponent(id)}&limit=10`).catch(() => []),
     ]);
     const job = jobs[0] ? mergeJobOverride(jobs[0], overrides[0] ?? null) : null;
     if (!job) return NextResponse.json({ ok: false, error: "岗位不存在" }, { status: 404 });
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       : [];
     const normalizedJob = { ...job, company: job.company_name, company_tier: job.company_tier_text };
     const evaluation = evaluateJob(normalizedJob, evidence, new Date(), profile) as Record<string, any>;
-    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes, profile, evidence }) as Record<string, any>;
+    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes, profile, evidence, applications }) as Record<string, any>;
 
     await dataRequest(auth, "job_evaluations?on_conflict=user_id,job_id", {
       method: "POST",

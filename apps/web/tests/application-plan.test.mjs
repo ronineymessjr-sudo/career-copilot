@@ -50,6 +50,19 @@ test("blocks jobs without a verified submission URL", () => {
   assert.ok(plan.hard_blockers.some((item) => item.includes("真实投递入口")));
 });
 
+test("blocks duplicate preparation when an active submission already exists", () => {
+  const plan = buildApplicationPlan({
+    job: { ...job, requirements: "接受在校生" },
+    evaluation,
+    resumes: [{ id: "b", name: "AI Agent 研发版", persona: "agent_engineer", status: "approved", file_path: "resumes/agent.pdf", content: { skills: ["python", "langgraph", "rag"] } }],
+    applications: [{ id: "application-1", job_id: "job-1", status: "submitted", submitted_at: "2026-08-20T00:00:00.000Z" }],
+  });
+  assert.equal(plan.status, "blocked");
+  assert.equal(plan.duplicate_submission, true);
+  assert.equal(plan.existing_application.status, "submitted");
+  assert.ok(plan.hard_blockers.some((item) => item.includes("重复投递")));
+});
+
 
 test("uploaded private resume text and filename participate in automatic matching", () => {
   const uploaded = {

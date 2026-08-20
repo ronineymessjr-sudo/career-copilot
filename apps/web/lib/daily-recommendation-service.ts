@@ -54,7 +54,7 @@ async function autoPrepareApplications(data: AgentData, userId: string, jobIds: 
     const normalizedJob = { ...job, company: job.company_name, company_tier: job.company_tier_text };
     const evaluation = evaluateJob(normalizedJob, evidence, new Date(), profile) as Row;
     if (evaluation.eligible !== true || evaluation.needs_confirmation === true || Number(evaluation.total_score ?? 0) < Number(preferences.minimum_score ?? 70)) continue;
-    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes, profile, evidence }) as Row;
+    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes, profile, evidence, applications: existingApplications }) as Row;
     if (plan.status !== "ready") continue;
 
     await data("job_evaluations?on_conflict=user_id,job_id", {

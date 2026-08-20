@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { NextRequest, NextResponse } from "next/server";
-import { answersMarkdown, fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message, tailoredResumeHtml } from "@/lib/application-export.mjs";
+import { answersMarkdown, fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message, tailoredResumeHtmlWithLayout } from "@/lib/application-export.mjs";
 import { currentApplicationSafety } from "@/lib/application-safety";
 import { tailoredResumeDocx } from "@/lib/docx-export.mjs";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       contentType = "text/html; charset=utf-8";
       extension = "html";
     } else if (format === "resume") {
-      body = tailoredResumeHtml(application, job, applicationPackage);
+      body = tailoredResumeHtmlWithLayout(application, job, applicationPackage, request.nextUrl.searchParams.get("layout") ?? "standard");
       contentType = "text/html; charset=utf-8";
       extension = "html";
     } else if (format === "answers") {

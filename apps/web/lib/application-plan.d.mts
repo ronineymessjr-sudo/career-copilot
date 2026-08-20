@@ -10,7 +10,9 @@ export type ApplicationPlan = {
   missing_skills: string[];
   required_materials: string[];
   submission_mode: "email_assisted" | "browser_assisted";
+  duplicate_submission: boolean;
+  existing_application: null | { id: string; status: string; submitted_at: string | null };
   requires_final_confirmation: true;
 };
 export function scoreResumeForJob(input: { job: Record<string, unknown>; evaluation?: Record<string, unknown>; resume: Record<string, unknown> }): number;
-export function buildApplicationPlan(input: { job: Record<string, unknown>; evaluation?: Record<string, unknown>; resumes?: Array<Record<string, unknown>>; profile?: Record<string, unknown>; evidence?: Array<Record<string, unknown>> }): ApplicationPlan;
+export function buildApplicationPlan(input: { job: Record<string, unknown>; evaluation?: Record<string, unknown>; resumes?: Array<Record<string, unknown>>; profile?: Record<string, unknown>; evidence?: Array<Record<string, unknown>>; applications?: Array<Record<string, unknown>> }): ApplicationPlan;

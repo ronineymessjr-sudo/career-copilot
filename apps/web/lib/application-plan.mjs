@@ -66,11 +66,21 @@ function detectRequiredMaterials(job) {
   return materials;
 }
 
-export function buildApplicationPlan({ job, evaluation = {}, resumes = [], profile = {}, evidence = [] }) {
+const ACTIVE_SUBMISSION_STATUSES = new Set(["submitted", "read", "contacting", "test", "interview", "offer"]);
+
+function findActiveSubmission(job, applications = []) {
+  const jobId = String(job?.id ?? "");
+  if (!jobId) return null;
+  return applications.find((item) => String(item?.job_id ?? "") === jobId && ACTIVE_SUBMISSION_STATUSES.has(String(item?.status ?? "").toLowerCase())) ?? null;
+}
+
+export function buildApplicationPlan({ job, evaluation = {}, resumes = [], profile = {}, evidence = [], applications = [] }) {
+  const existingSubmission = findActiveSubmission(job, applications);
   const hardBlockers = [...new Set([
     ...(evaluation.hard_filter_reasons ?? evaluation.blockers ?? []),
     ...(evaluation.eligible === false && !(evaluation.hard_filter_reasons ?? evaluation.blockers ?? []).length ? ["岗位未通过硬性资格检查"] : []),
   ])];
+  if (existingSubmission) hardBlockers.push("该岗位已有有效投递记录，已阻止重复投递");
   const preparationItems = [...new Set(evaluation.confirmation_questions ?? [])];
   const sourceUrl = httpUrl(job?.source_url);
   const submissionCapability = detectSubmissionCapability(job);
@@ -137,6 +147,12 @@ export function buildApplicationPlan({ job, evaluation = {}, resumes = [], profi
     missing_skills: missingSkills,
     required_materials: requiredMaterials,
     submission_mode: submissionCapability.mode,
+    duplicate_submission: Boolean(existingSubmission),
+    existing_application: existingSubmission ? {
+      id: String(existingSubmission.id ?? ""),
+      status: String(existingSubmission.status ?? ""),
+      submitted_at: existingSubmission.submitted_at ?? null,
+    } : null,
     requires_final_confirmation: true,
   };
 }

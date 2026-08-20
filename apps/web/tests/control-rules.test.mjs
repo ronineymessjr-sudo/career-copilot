@@ -23,6 +23,24 @@ test("parser keeps 2028 eligibility unknown when JD only says internship", () =>
   assert.equal(job.workplace, "remote");
 });
 
+test("evaluation surfaces work-condition risks from the JD", () => {
+  const job = parseJobIntake({
+    raw_text: "接受2028届在校生实习，每周3天，至少3个月，大小周，项目节点可能加班。Python",
+    company: "Workload Check",
+    title: "AI 实习生",
+  });
+  const result = evaluateJob(job, [], new Date("2026-07-24T00:00:00Z"), {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { internship_only: true, target_roles: ["AI"], locations: [], work_modes: [], keywords: ["Python"] },
+  });
+  assert.ok(result.interview_risks.some((item) => item.includes("单双休")));
+  assert.ok(result.interview_risks.some((item) => item.includes("加班")));
+});
+
 test("explicit 2028 and verified evidence can produce a high-grade evaluation", () => {
   const job = parseJobIntake({
     raw_text: "2028届在校生 AI Agent 实习，每周3天，至少3个月，可远程。Python FastAPI LangGraph RAG Docker",

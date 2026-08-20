@@ -411,6 +411,8 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
   if (missing_skills.length) risks.push(`能力缺口：${missing_skills.slice(0, 5).join("、")}`);
   if (needs_confirmation) risks.push("画像或岗位条件不完整，不能直接提交");
   if (job.company_tier === "small") risks.push("小团队可能要求完整交付，需要确认导师、评审机制和任务边界");
+  if (/单休|大小周|单双休/.test(text)) risks.push("JD 提到单休、大小周或单双休，投递前确认每周休息安排");
+  if (/加班|晚间在线|高强度|长期出差/.test(text)) risks.push("JD 提到加班、晚间在线、高强度或长期出差，投递前确认实际工作节奏");
 
   return {
     eligible,

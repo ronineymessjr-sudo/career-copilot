@@ -219,10 +219,11 @@ export async function runInstantProfileSearch(auth: AuthContext, options: Instan
   const extraQuery = String(options.extraQuery ?? "").trim().slice(0, 300);
   const resultLimit = clamp(options.resultLimit, 15, 3, 40);
   const prepareLimit = clamp(options.prepareLimit, 2, 0, 6);
-  const [profiles, resumes, userKeys] = await Promise.all([
+  const [profiles, resumes, userKeys, applications] = await Promise.all([
     dataRequest<Row[]>(auth, `profiles?select=*&user_id=eq.${enc(auth.userId)}&limit=1`),
     dataRequest<Row[]>(auth, "resume_versions?select=*&order=is_master.desc,updated_at.desc").catch(() => []),
     dataRequest<Row[]>(auth, `user_openai_keys?select=api_key&user_id=eq.${enc(auth.userId)}&limit=1`).catch(() => []),
+    dataRequest<Row[]>(auth, `applications?select=id,job_id,status,submitted_at&user_id=eq.${enc(auth.userId)}`).catch(() => []),
   ]);
   const userOpenAiKey = String(userKeys[0]?.api_key ?? "").trim();
   const fallbackOpenAiKey = String(process.env.OPENAI_FALLBACK_API_KEY ?? "").trim();
@@ -357,7 +358,7 @@ export async function runInstantProfileSearch(auth: AuthContext, options: Instan
     const evaluation = evaluateJob(normalizedJob, evidence, new Date(), profile) as Row;
     const recommendation = personalizeJob(rawJob, evaluation, profile) as Row;
     evaluationRows.push(evaluationRow(auth, String(rawJob.id), evaluation));
-    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes, profile, evidence }) as Row;
+    const plan = buildApplicationPlan({ job: normalizedJob, evaluation, resumes, profile, evidence, applications }) as Row;
     ranked.push({ job: rawJob, evaluation, recommendation, plan, application: null });
   }
   if (evaluationRows.length) {

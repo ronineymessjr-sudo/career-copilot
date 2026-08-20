@@ -113,9 +113,13 @@ function ApplicationMaterials({ item, onOpenExport, onSaved }: { item: Applicati
   const answers = Array.isArray(bundle.common_answers) ? bundle.common_answers : [];
   const attachments = Array.isArray(bundle.attachments) ? bundle.attachments : [];
   const basename = safeFilename(`${job.company_name || "公司"}-${job.title || "岗位"}`, "application");
+  const [layout, setLayout] = useState("standard");
+  const layoutLabel = ({ standard: "标准单页", compact: "紧凑单页", portfolio: "作品集风格" } as Record<string, string>)[layout] || "标准单页";
+  const openResume = () => void onOpenExport(`/api/control/applications/${item.id}/export?format=resume&layout=${layout}`, `${basename}-${layoutLabel}.html`, true);
   return <div className="application-kit-panel">
     <div className="application-kit-actions">
-      <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=resume`, `${basename}-定制简历.html`, true)}><FileText size={14}/>定制简历 / 保存 PDF</button>
+      <label className="kit-layout-picker">简历排版<select value={layout} onChange={(event) => setLayout(event.target.value)}><option value="standard">标准单页</option><option value="compact">紧凑单页</option><option value="portfolio">作品集风格</option></select></label>
+      <button type="button" onClick={openResume}><FileText size={14}/>打开排版简历 / 保存 PDF</button>
       <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=docx`, `${basename}-定制简历.docx`, false)}><Download size={14}/>下载 DOCX</button>
       {pack.resume_version_id ? <button type="button" onClick={() => void onOpenExport(`/api/control/resumes/${pack.resume_version_id}/file`, pack.resume_filename || `${basename}-原始简历`, false)}><Download size={14}/>下载原始简历</button> : null}
       <button type="button" onClick={() => void onOpenExport(`/api/control/applications/${item.id}/export?format=kit`, `${basename}-投递材料.html`, true)}><ClipboardCheck size={14}/>打开完整材料包</button>
