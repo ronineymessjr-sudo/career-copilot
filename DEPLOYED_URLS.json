@@ -3,13 +3,13 @@
   "scheduler_url": "https://career-copilot-scheduler.photomagic.workers.dev",
   "runtime_check": "https://career-copilot-v2.photomagic.workers.dev/api/runtime",
   "scheduler_health_check": "https://career-copilot-scheduler.photomagic.workers.dev/health",
-  "application_commit": "local-release-2026-08-20",
+  "application_commit": "f71a0a9",
   "mode": "production",
   "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
-  "verified_at": "2026-08-20T15:18:52Z",
-  "verification_run": "local:104 tests + TypeScript + Next.js build",
+  "verified_at": "2026-08-21T14:02:00Z",
+  "verification_run": "local:106 tests + TypeScript + Next.js build + OpenNext build",
   "control_plane_deployments": {
-    "web": "ad4f6ae1-638c-46de-a5e1-d03523b15020",
+    "web": "5623c241-3ada-493e-83c5-f1827662a6b7",
     "scheduler": "08d3856b-e2b5-4071-bb69-e3ff54272452"
   },
   "public_smoke": "blocked_by_execution_environment_network",
