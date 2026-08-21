@@ -104,6 +104,46 @@ test("configured salary preference asks for confirmation when salary is not publ
   assert.ok(result.confirmation_questions.includes("岗位薪资或薪资周期无法核验"));
 });
 
+test("salary parser accepts compact day and K-per-month formats", () => {
+  const dayJob = parseJobIntake({ raw_text: "2028届在校生实习，每周3天，至少3个月，250/天", company: "Compact Day", title: "AI 实习生", salary: "250/天" });
+  const dayResult = evaluateJob(dayJob, [], new Date("2026-08-05T00:00:00Z"), {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { target_roles: ["AI"], salary_min: 200, salary_max: 300, salary_period: "day" },
+  });
+  assert.equal(dayResult.needs_confirmation, false);
+  assert.equal(dayResult.eligible, true);
+
+  const monthlyJob = parseJobIntake({ raw_text: "2028届在校生实习，每周3天，至少3个月，10K-15K/月", company: "K Monthly", title: "AI 实习生", salary: "10K-15K/月" });
+  const monthlyResult = evaluateJob(monthlyJob, [], new Date("2026-08-05T00:00:00Z"), {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { target_roles: ["AI"], salary_min: 12000, salary_max: 18000, salary_period: "month" },
+  });
+  assert.equal(monthlyResult.needs_confirmation, false);
+  assert.equal(monthlyResult.eligible, true);
+});
+
+test("invalid optional ranges require correction instead of silently filtering", () => {
+  const job = parseJobIntake({ raw_text: "2028届实习，每周3天，至少3个月，200-300元/天。", company: "Invalid Range", title: "AI 实习生", salary: "200-300元/天" });
+  const result = evaluateJob(job, [], new Date("2026-08-05T00:00:00Z"), {
+    graduation_year: 2028,
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { salary_min: 500, salary_max: 200, company_founded_from: 2025, company_founded_to: 2020 },
+  });
+  assert.equal(result.eligible, true);
+  assert.equal(result.needs_confirmation, true);
+  assert.ok(result.confirmation_questions.includes("薪资最低值不能高于最高值"));
+  assert.ok(result.confirmation_questions.includes("公司成立年份下限不能晚于上限"));
+});
+
 test("explicit 2028 and verified evidence can produce a high-grade evaluation", () => {
   const job = parseJobIntake({
     raw_text: "2028届在校生 AI Agent 实习，每周3天，至少3个月，可远程。Python FastAPI LangGraph RAG Docker",

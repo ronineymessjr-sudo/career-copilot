@@ -76,8 +76,11 @@ function extractLocation(text) {
 function extractSalary(text) {
   const match = matchFirst(text, [
     /(\d{2,4})\s*[-~至]\s*(\d{2,4})\s*元\s*[/／]?\s*(天|日)/i,
+    /(\d{2,4})\s*[-~至]\s*(\d{2,4})\s*(?:元|￥|¥)?\s*[/／·每]?\s*(天|日|月)/i,
     /(\d{2,5})\s*[-~至]\s*(\d{2,5})\s*元\s*[/／]?\s*月/i,
+    /(\d+(?:\.\d+)?)\s*[kK]?\s*[-~至]\s*(\d+(?:\.\d+)?)\s*[kK]\s*(?:[/／·每]?\s*(月|月薪))?/i,
     /(\d{2,4})\s*元\s*[/／]?\s*(天|日)/i,
+    /(\d{2,4})\s*(?:元|￥|¥)?\s*[/／·每]\s*(天|日|月)/i,
   ]);
   return match?.[0] ?? "";
 }
@@ -85,14 +88,16 @@ function extractSalary(text) {
 function parseSalaryRange(value) {
   const text = normalize(value);
   if (!text || /面议|未公开|保密|待定/i.test(text)) return null;
-  const kMatch = text.match(/(\d+(?:\.\d+)?)\s*[-~至]\s*(\d+(?:\.\d+)?)\s*[kK]/);
+  const kMatch = text.match(/(\d+(?:\.\d+)?)\s*[kK]?\s*[-~至]\s*(\d+(?:\.\d+)?)\s*[kK](?:\s*[/／·每]?\s*(月|月薪))?/i);
   if (kMatch) return { min: Number(kMatch[1]) * 1000, max: Number(kMatch[2]) * 1000, period: "month" };
+  const singleKMatch = text.match(/(\d+(?:\.\d+)?)\s*[kK](?:\s*[/／·每]?\s*(月|月薪))?/i);
+  if (singleKMatch) return { min: Number(singleKMatch[1]) * 1000, max: Number(singleKMatch[1]) * 1000, period: "month" };
   const range = text.match(/(\d{2,6})\s*[-~至]\s*(\d{2,6})\s*(?:元|￥|¥)?\s*(?:[/／每]\s*)?(天|日|月)?/i);
   if (range) {
     const period = range[3] === "天" || range[3] === "日" ? "day" : range[3] === "月" ? "month" : null;
     return { min: Number(range[1]), max: Number(range[2]), period };
   }
-  const single = text.match(/(\d{2,6})\s*(?:元|￥|¥)\s*(?:[/／每]\s*)?(天|日|月)/i);
+  const single = text.match(/(\d{2,6})\s*(?:元|￥|¥)?\s*(?:[/／·每]\s*)?(天|日|月)/i);
   if (single) return { min: Number(single[1]), max: Number(single[1]), period: single[2] === "月" ? "month" : "day" };
   return null;
 }
@@ -190,7 +195,7 @@ export function parseJobIntake(input) {
     raw_payload: {
       raw_text: rawText,
       parser: "deterministic-v1",
-      ...(Number.isFinite(Number(foundedYear)) ? { company_founded_year: Number(foundedYear) } : {}),
+      ...(foundedYear != null && Number.isFinite(Number(foundedYear)) ? { company_founded_year: Number(foundedYear) } : {}),
     },
     status: normalize(input?.status) || "open",
   };
@@ -327,6 +332,17 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
   const foundedFrom = preferences.company_founded_from == null || preferences.company_founded_from === "" ? null : Number(preferences.company_founded_from);
   const foundedTo = preferences.company_founded_to == null || preferences.company_founded_to === "" ? null : Number(preferences.company_founded_to);
   const foundedConfigured = Number.isFinite(foundedFrom) || Number.isFinite(foundedTo);
+  const salaryRangeInvalid = Number.isFinite(salaryMin) && Number.isFinite(salaryMax) && salaryMin > salaryMax;
+  const foundedRangeInvalid = Number.isFinite(foundedFrom) && Number.isFinite(foundedTo) && foundedFrom > foundedTo;
+
+  if (salaryRangeInvalid) {
+    needs_confirmation = true;
+    confirmation_questions.push("薪资最低值不能高于最高值");
+  }
+  if (foundedRangeInvalid) {
+    needs_confirmation = true;
+    confirmation_questions.push("公司成立年份下限不能晚于上限");
+  }
 
   if (internshipOnly && !isInternship) {
     eligible = false;
@@ -397,7 +413,7 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
     hard_filter_reasons.push("投递已截止");
   }
 
-  if (salaryConfigured) {
+  if (salaryConfigured && !salaryRangeInvalid) {
     const salary = parseSalaryRange(job.salary);
     if (!salary || (salaryPeriod !== "any" && salary.period && salary.period !== salaryPeriod) || (salaryPeriod !== "any" && !salary.period)) {
       needs_confirmation = true;
@@ -415,7 +431,7 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
     }
   }
 
-  if (foundedConfigured) {
+  if (foundedConfigured && !foundedRangeInvalid) {
     const rawPayload = job.raw_payload && typeof job.raw_payload === "object" ? job.raw_payload : {};
     const foundedYear = Number(job.company_founded_year ?? rawPayload.company_founded_year ?? parseFoundedYear(`${job.company_name ?? job.company ?? ""} ${job.description ?? ""}`));
     if (!Number.isFinite(foundedYear)) {
