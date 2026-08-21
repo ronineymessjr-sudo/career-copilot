@@ -4,6 +4,8 @@ import {
   MCP_TOOL_DEFINITIONS,
   RESUME_PERSONAS,
   buildDailyAgentReport,
+  buildTrainingSignalReport,
+  calibrateRankingWeights,
   calculateHistoryScore,
   calculateRuleScore,
   calculateSemanticScore,
@@ -51,6 +53,36 @@ test("history score uses neutral baseline without samples", () => {
   const result = calculateHistoryScore(job, []);
   assert.equal(result.score, 50);
   assert.equal(result.sample_count, 0);
+});
+
+test("training calibration stays neutral before the sample gate", () => {
+  const report = calibrateRankingWeights([{ status: "offer" }], [{ feedback_type: "saved" }]);
+  assert.equal(report.status, "cold_start");
+  assert.deepEqual(report.weights, { rule: 0.4, semantic: 0.4, history: 0.2 });
+  assert.equal(report.calibration_version, "feedback-calibration-v1");
+});
+
+test("training calibration makes bounded changes after enough positive outcomes", () => {
+  const report = buildTrainingSignalReport({
+    applications: Array.from({ length: 10 }, () => ({ status: "interview" })),
+    feedbackRows: [{ feedback_type: "saved" }, { feedback_type: "interested" }],
+  });
+  assert.equal(report.status, "calibrated");
+  assert.ok(report.weights.history > 0.2);
+  assert.ok(report.weights.history <= 0.3);
+  assert.equal(Number((report.weights.rule + report.weights.semantic + report.weights.history).toFixed(3)), 1);
+});
+
+test("negative calibration increases hard-rule weight without changing eligibility", () => {
+  const training = calibrateRankingWeights(
+    Array.from({ length: 10 }, () => ({ status: "rejected" })),
+    [{ feedback_type: "not_interested" }, { feedback_type: "applied_elsewhere" }],
+  );
+  const result = rankJobHybrid(job, evidence, [], training);
+  assert.equal(training.status, "calibrated");
+  assert.ok(training.weights.rule > 0.4);
+  assert.equal(result.eligible, true);
+  assert.equal(result.calibration_sample_count, 12);
 });
 
 test("hybrid score returns citations and safety metadata", () => {

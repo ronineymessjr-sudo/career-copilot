@@ -315,6 +315,70 @@ export function calculateHistoryScore(job, applications = []) {
   };
 }
 
+const DEFAULT_CALIBRATION_WEIGHTS = Object.freeze({ rule: 0.4, semantic: 0.4, history: 0.2 });
+const CALIBRATION_VERSION = "feedback-calibration-v1";
+
+function normalizedFeedbackType(row) {
+  return String(row?.feedback_type ?? row?.feedback ?? "").toLowerCase();
+}
+
+/**
+ * Build a conservative ranking calibration from observed outcomes.
+ * This is a bounded feedback loop, not model fine-tuning: it never changes
+ * eligibility rules and stays at the neutral prior until enough samples exist.
+ */
+export function calibrateRankingWeights(applications = [], feedbackRows = [], options = {}) {
+  const minSamples = Math.max(1, Number(options.minSamples ?? 8));
+  const maxAdjustment = Math.max(0, Math.min(0.1, Number(options.maxAdjustment ?? 0.1)));
+  const applicationRows = (applications ?? []).filter((row) => [
+    "submitted", "read", "contacting", "test", "interview", "offer", "rejected",
+  ].includes(String(row?.status ?? "").toLowerCase()));
+  const positiveApplications = applicationRows.filter((row) => ["read", "contacting", "test", "interview", "offer"].includes(String(row?.status ?? "").toLowerCase())).length;
+  const positiveFeedback = (feedbackRows ?? []).filter((row) => ["interested", "saved"].includes(normalizedFeedbackType(row))).length;
+  const negativeFeedback = (feedbackRows ?? []).filter((row) => ["not_interested", "applied_elsewhere"].includes(normalizedFeedbackType(row))).length;
+  const negativeApplications = applicationRows.filter((row) => String(row?.status ?? "").toLowerCase() === "rejected").length;
+  const positive = positiveApplications + positiveFeedback;
+  const negative = negativeApplications + negativeFeedback;
+  const sampleCount = positive + negative;
+  const priorStrength = 8;
+  const smoothedPositiveRate = (positive + priorStrength / 2) / Math.max(1, sampleCount + priorStrength);
+  const ready = sampleCount >= minSamples;
+  const strength = ready ? Math.min(1, (sampleCount - minSamples + 1) / 16) : 0;
+  const direction = smoothedPositiveRate >= 0.58 ? 1 : smoothedPositiveRate <= 0.42 ? -1 : 0;
+  const adjustment = Number((maxAdjustment * strength * direction).toFixed(3));
+  const rawWeights = direction === 1
+    ? { rule: Number((0.4 - adjustment * 0.5).toFixed(3)), semantic: Number((0.4 - adjustment * 0.5).toFixed(3)), history: Number((0.2 + adjustment).toFixed(3)) }
+    : direction === -1
+      ? { rule: Number((0.4 + adjustment * -0.5).toFixed(3)), semantic: Number((0.4 + adjustment * -0.5).toFixed(3)), history: Number((0.2 + adjustment).toFixed(3)) }
+      : { ...DEFAULT_CALIBRATION_WEIGHTS };
+  const weights = direction
+    ? { ...rawWeights, history: Number((1 - rawWeights.rule - rawWeights.semantic).toFixed(3)) }
+    : rawWeights;
+  return {
+    calibration_version: CALIBRATION_VERSION,
+    status: ready ? (direction ? "calibrated" : "neutral") : "cold_start",
+    sample_count: sampleCount,
+    minimum_samples: minSamples,
+    positive_count: positive,
+    negative_count: negative,
+    smoothed_positive_rate: Number(smoothedPositiveRate.toFixed(3)),
+    adjustment,
+    weights,
+    evidence: {
+      application_samples: applicationRows.length,
+      feedback_samples: (feedbackRows ?? []).length,
+      positive_applications: positiveApplications,
+      negative_applications: negativeApplications,
+      positive_feedback: positiveFeedback,
+      negative_feedback: negativeFeedback,
+    },
+  };
+}
+
+export function buildTrainingSignalReport({ applications = [], feedbackRows = [], options = {} } = {}) {
+  return calibrateRankingWeights(applications, feedbackRows, options);
+}
+
 function gradeFor(score) {
   if (score >= 85) return "S";
   if (score >= 75) return "A";
@@ -322,11 +386,13 @@ function gradeFor(score) {
   return "C";
 }
 
-export function rankJobHybrid(job, evidence = [], applications = []) {
+export function rankJobHybrid(job, evidence = [], applications = [], training = null) {
   const rule = calculateRuleScore(job, evidence);
   const semantic = calculateSemanticScore(job, evidence);
   const history = calculateHistoryScore(job, applications);
-  let finalScore = clamp(rule.score * 0.4 + semantic.score * 0.4 + history.score * 0.2);
+  const calibration = training?.weights ? training : calibrateRankingWeights(applications, []);
+  const weights = calibration.weights ?? DEFAULT_CALIBRATION_WEIGHTS;
+  let finalScore = clamp(rule.score * weights.rule + semantic.score * weights.semantic + history.score * weights.history);
   if (rule.blockers.length) finalScore = Math.min(finalScore, 49);
   const citations = [buildJobCitation(job), ...semantic.evidence_refs];
   const reasoning = [
@@ -349,11 +415,15 @@ export function rankJobHybrid(job, evidence = [], applications = []) {
     reasoning,
     citations,
     model_version: "hybrid-v1",
+    calibration_version: calibration.calibration_version,
+    calibration_status: calibration.status,
+    calibration_sample_count: calibration.sample_count,
+    calibration_weights: weights,
   };
 }
 
-export function rankJobsHybrid(jobs = [], evidence = [], applications = []) {
-  return jobs.map((job) => ({ job, score: rankJobHybrid(job, evidence, applications) }))
+export function rankJobsHybrid(jobs = [], evidence = [], applications = [], training = null) {
+  return jobs.map((job) => ({ job, score: rankJobHybrid(job, evidence, applications, training) }))
     .sort((a, b) => b.score.final_score - a.score.final_score || String(a.job.title).localeCompare(String(b.job.title)));
 }
 
@@ -594,7 +664,7 @@ export function evaluateRetrieval({ relevantIds = [], resultIds = [], k = 5 }) {
   };
 }
 
-export function buildDailyAgentReport(ranked = [], skillGaps = [], reportDate = new Date().toISOString().slice(0, 10)) {
+export function buildDailyAgentReport(ranked = [], skillGaps = [], reportDate = new Date().toISOString().slice(0, 10), training = null) {
   const scores = ranked.map((item) => item.score ?? item);
   const gradeCounts = Object.fromEntries(["S", "A", "B", "C"].map((grade) => [grade, scores.filter((item) => item.grade === grade).length]));
   const recommended = scores.filter((item) => ["S", "A"].includes(item.grade) && item.eligible).slice(0, 8);
@@ -608,6 +678,14 @@ export function buildDailyAgentReport(ranked = [], skillGaps = [], reportDate = 
     recommended_count: recommended.length,
     recommended_job_ids: recommended.map((item) => item.job_id),
     top_skill_gaps: [...missing.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([skill, count]) => ({ skill, count })),
+    training: training ? {
+      calibration_version: training.calibration_version,
+      status: training.status,
+      sample_count: training.sample_count,
+      minimum_samples: training.minimum_samples,
+      weights: training.weights,
+      evidence: training.evidence,
+    } : null,
     automatic_submission: false,
     final_confirmation_required: true,
   };

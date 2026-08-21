@@ -3,6 +3,7 @@ import { embedTexts } from "@/lib/embedding-service";
 import {
   MCP_TOOL_DEFINITIONS,
   buildDailyAgentReport,
+  buildTrainingSignalReport,
   buildJobCitation,
   calculateRuleScore,
   extractJobSkills,
@@ -20,17 +21,18 @@ function userQuery(userId: string) { return `user_id=eq.${enc(userId)}`; }
 export async function loadAgentContext(data: AgentData, userId: string) {
   const profiles = await data<Row[]>(`profiles?select=*&${userQuery(userId)}&limit=1`);
   const profile = profiles[0] ?? null;
-  const [jobs, applications, skillGaps, jobScores] = await Promise.all([
+  const [jobs, applications, skillGaps, jobScores, userJobFeedback] = await Promise.all([
     data<Row[]>(`jobs?select=*&or=(user_id.eq.${enc(userId)},visibility.eq.public)&status=neq.archived&order=updated_at.desc`),
     data<Row[]>(`applications?select=*&${userQuery(userId)}&order=updated_at.desc`),
     data<Row[]>(`skill_gaps?select=*&${userQuery(userId)}&order=severity.desc,updated_at.desc`),
     data<Row[]>(`job_scores?select=*&${userQuery(userId)}&order=final_score.desc`).catch(() => [] as Row[]),
+    data<Row[]>(`user_job_feedback?select=*&${userQuery(userId)}&order=updated_at.desc`).catch(() => [] as Row[]),
   ]);
   const [evidence, resumes] = profile ? await Promise.all([
     data<Row[]>(`career_evidence?select=*&profile_id=eq.${enc(profile.id)}&active=eq.true&verification_status=eq.verified&order=confidence.desc`),
     data<Row[]>(`resume_versions?select=*&profile_id=eq.${enc(profile.id)}&order=updated_at.desc`),
   ]) : [[], []];
-  return { jobs, profile, evidence, applications, skillGaps, resumes, jobScores };
+  return { jobs, profile, evidence, applications, skillGaps, resumes, jobScores, userJobFeedback };
 }
 
 function cosine(left: number[], right: number[]) {
@@ -54,8 +56,9 @@ function grade(score: number) {
   return "C";
 }
 
-async function rankWithOptionalVectors(jobs: Row[], evidence: Row[], applications: Row[]) {
-  const base = rankJobsHybrid(jobs, evidence, applications);
+async function rankWithOptionalVectors(jobs: Row[], evidence: Row[], applications: Row[], feedbackRows: Row[] = []) {
+  const training = buildTrainingSignalReport({ applications, feedbackRows });
+  const base = rankJobsHybrid(jobs, evidence, applications, training);
   const portfolio = evidence
     .map((item) => `${item.skill}\n${item.project}\n${item.evidence}`)
     .join("\n\n")
@@ -77,7 +80,8 @@ async function rankWithOptionalVectors(jobs: Row[], evidence: Row[], application
       const jobVector = vectors[index + 1]?.embedding;
       if (!current || !jobVector) return null;
       const semanticScore = Math.max(0, Math.min(100, Math.round(cosine(portfolioVector, jobVector) * 100)));
-      let finalScore = Math.round(current.score.rule_score * 0.4 + semanticScore * 0.4 + current.score.history_score * 0.2);
+      const weights = current.score.calibration_weights ?? training.weights;
+      let finalScore = Math.round(current.score.rule_score * weights.rule + semanticScore * weights.semantic + current.score.history_score * weights.history);
       if (current.score.blockers?.length) finalScore = Math.min(finalScore, 49);
       return {
         job,
@@ -91,6 +95,10 @@ async function rankWithOptionalVectors(jobs: Row[], evidence: Row[], application
             `OpenAI Embedding 语义相似度 ${semanticScore}`,
           ],
           model_version: "hybrid-vector-v1",
+          calibration_version: training.calibration_version,
+          calibration_status: training.status,
+          calibration_sample_count: training.sample_count,
+          calibration_weights: weights,
         },
       };
     }).filter(Boolean) as Array<{ job: Row; score: Row }>;
@@ -109,7 +117,7 @@ export function createAgentServices() {
       const candidates = input?.job_id
         ? (context.jobs ?? []).filter((job: Row) => String(job.id) === String(input.job_id))
         : (context.jobs ?? []);
-      const rankedResult = await rankWithOptionalVectors(candidates, context.evidence ?? [], context.applications ?? []);
+      const rankedResult = await rankWithOptionalVectors(candidates, context.evidence ?? [], context.applications ?? [], context.userJobFeedback ?? []);
       const ranked = rankedResult.ranked.slice(0, limit);
       return {
         ranked: ranked.map((item) => ({ ...item.score, job: item.job })),
@@ -140,8 +148,8 @@ export function createAgentServices() {
       return generateResumeDraft({ persona: input.persona, job, evidence: context.evidence ?? [], score });
     },
     async dailyReport(_input: Row, context: Row) {
-      const rankedResult = await rankWithOptionalVectors(context.jobs ?? [], context.evidence ?? [], context.applications ?? []);
-      const report = buildDailyAgentReport(rankedResult.ranked, context.skillGaps ?? []);
+      const rankedResult = await rankWithOptionalVectors(context.jobs ?? [], context.evidence ?? [], context.applications ?? [], context.userJobFeedback ?? []);
+      const report = buildDailyAgentReport(rankedResult.ranked, context.skillGaps ?? [], undefined, buildTrainingSignalReport({ applications: context.applications ?? [], feedbackRows: context.userJobFeedback ?? [] }));
       return {
         ...report,
         semantic_mode: rankedResult.mode,
@@ -166,7 +174,7 @@ export function createAgentServices() {
         return { job_id: String(job.id), skills: extractJobSkills(job), hard_blockers: rule.blockers, confirmation_required: rule.needs_confirmation, matched_skills: rule.matched_skills, missing_skills: rule.missing_skills, citations: [buildJobCitation(job)], automatic_submission: false };
       }
       if (tool.name === "rank_jobs") {
-        const rankedResult = await rankWithOptionalVectors(context.jobs ?? [], context.evidence ?? [], context.applications ?? []);
+        const rankedResult = await rankWithOptionalVectors(context.jobs ?? [], context.evidence ?? [], context.applications ?? [], context.userJobFeedback ?? []);
         const ranked = rankedResult.ranked.slice(0, Math.max(1, Math.min(50, Number(input.arguments?.limit ?? 50))));
         return { tool: tool.name, ranked: ranked.map((item) => ({ ...item.score, job: item.job })), semantic_mode: rankedResult.mode, citations: ranked.flatMap((item) => item.score.citations).slice(0, 30), automatic_submission: false };
       }
@@ -267,10 +275,13 @@ export async function runDailyAgentCycle({ data, userId }: { data: AgentData; us
   });
   const run = runs[0];
   try {
-    const rankedResult = await rankWithOptionalVectors(context.jobs, context.evidence, context.applications);
+    const rankedResult = await rankWithOptionalVectors(context.jobs, context.evidence, context.applications, context.userJobFeedback ?? []);
     const ranked = rankedResult.ranked;
     await persistRankings(data, userId, run.id, ranked);
-    const report: Record<string, any> = { ...buildDailyAgentReport(ranked, context.skillGaps), semantic_mode: rankedResult.mode };
+    const report: Record<string, any> = {
+      ...buildDailyAgentReport(ranked, context.skillGaps, undefined, buildTrainingSignalReport({ applications: context.applications, feedbackRows: context.userJobFeedback ?? [] })),
+      semantic_mode: rankedResult.mode,
+    };
     await data("daily_agent_reports?on_conflict=user_id,report_date", {
       method: "POST",
       headers: { Prefer: "resolution=merge-duplicates,return=representation" },
