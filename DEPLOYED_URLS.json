@@ -6,7 +6,7 @@
   "application_commit": "a4dd34a",
   "mode": "production",
   "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
-  "verified_at": "2026-08-21T15:02:00Z",
+  "verified_at": "2026-08-21T15:12:32Z",
   "verification_run": "local:111 tests + TypeScript + Next.js build + OpenNext build + Cloudflare deploy",
   "control_plane_deployments": {
     "web": "90eabe7f-51bf-4daa-ac71-d3506d576e86",
