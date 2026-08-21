@@ -42,4 +42,8 @@ test("new accounts start with a neutral profile instead of a fixed AI internship
   assert.equal(profile.major, "");
   assert.equal(profile.degree, "");
   assert.equal(profile.graduation_year, null);
+  assert.equal(profile.preferences.salary_min, null);
+  assert.equal(profile.preferences.salary_period, "any");
+  assert.equal(profile.preferences.salary_match_mode, "overlap");
+  assert.equal(profile.preferences.company_founded_from, null);
 });

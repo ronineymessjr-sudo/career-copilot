@@ -29,6 +29,12 @@ export const DEFAULT_PROFILE_PREFERENCES = Object.freeze({
   keywords: [],
   excluded_keywords: [],
   internship_only: false,
+  salary_min: null,
+  salary_max: null,
+  salary_period: "any",
+  salary_match_mode: "overlap",
+  company_founded_from: null,
+  company_founded_to: null,
 });
 
 export const DEFAULT_PROFILE_DETAILS = Object.freeze({
@@ -87,6 +93,12 @@ export function normalizeProfile(profile = {}) {
       keywords: list(preferences.keywords ?? DEFAULT_PROFILE_PREFERENCES.keywords),
       excluded_keywords: list(preferences.excluded_keywords ?? DEFAULT_PROFILE_PREFERENCES.excluded_keywords),
       internship_only: preferences.internship_only === true,
+      salary_min: preferences.salary_min == null || preferences.salary_min === "" ? null : Number(preferences.salary_min),
+      salary_max: preferences.salary_max == null || preferences.salary_max === "" ? null : Number(preferences.salary_max),
+      salary_period: ["day", "month", "any"].includes(String(preferences.salary_period)) ? String(preferences.salary_period) : "any",
+      salary_match_mode: ["overlap", "contained"].includes(String(preferences.salary_match_mode)) ? String(preferences.salary_match_mode) : "overlap",
+      company_founded_from: preferences.company_founded_from == null || preferences.company_founded_from === "" ? null : Number(preferences.company_founded_from),
+      company_founded_to: preferences.company_founded_to == null || preferences.company_founded_to === "" ? null : Number(preferences.company_founded_to),
     },
   };
 }

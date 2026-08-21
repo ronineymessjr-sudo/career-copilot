@@ -6,6 +6,12 @@ export type ProfilePreferences = {
   keywords: string[];
   excluded_keywords: string[];
   internship_only: boolean;
+  salary_min: number | null;
+  salary_max: number | null;
+  salary_period: "day" | "month" | "any";
+  salary_match_mode: "overlap" | "contained";
+  company_founded_from: number | null;
+  company_founded_to: number | null;
 };
 export type ProfileDetails = Record<string, any>;
 export type NormalizedProfile = {

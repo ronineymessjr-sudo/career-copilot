@@ -35,6 +35,12 @@ type Profile = {
     keywords: string[];
     excluded_keywords: string[];
     internship_only: boolean;
+    salary_min: number | null;
+    salary_max: number | null;
+    salary_period: "day" | "month" | "any";
+    salary_match_mode: "overlap" | "contained";
+    company_founded_from: number | null;
+    company_founded_to: number | null;
   };
 };
 
@@ -175,6 +181,12 @@ export function ProfileWorkspace() {
           <label>推荐关键词<textarea rows={3} value={profile.preferences.keywords.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, keywords: csv(event.target.value) } })} placeholder="Agent，RAG，平台工程"/></label>
           <label>排除关键词<textarea rows={3} value={profile.preferences.excluded_keywords.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, excluded_keywords: csv(event.target.value) } })} placeholder="销售，纯线下（可留空）"/></label>
           <label>偏好行业<input value={profile.preferences.industries.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, industries: csv(event.target.value) } })} placeholder="人工智能，SaaS，医疗科技"/></label>
+          <label>最低薪资（可选）<input type="number" min="0" value={profile.preferences.salary_min ?? ""} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, salary_min: event.target.value ? Number(event.target.value) : null } })} placeholder="例如 200"/></label>
+          <label>最高薪资（可选）<input type="number" min="0" value={profile.preferences.salary_max ?? ""} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, salary_max: event.target.value ? Number(event.target.value) : null } })} placeholder="例如 400"/></label>
+          <label>薪资周期<select value={profile.preferences.salary_period} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, salary_period: event.target.value as Profile["preferences"]["salary_period"] } })}><option value="any">不限</option><option value="day">元/天</option><option value="month">元/月</option></select></label>
+          <label>薪资匹配<select value={profile.preferences.salary_match_mode} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, salary_match_mode: event.target.value as Profile["preferences"]["salary_match_mode"] } })}><option value="overlap">范围有交集</option><option value="contained">岗位完全落入范围</option></select></label>
+          <label>公司成立年份下限（可选）<input type="number" min="1900" max="2100" value={profile.preferences.company_founded_from ?? ""} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, company_founded_from: event.target.value ? Number(event.target.value) : null } })} placeholder="例如 2018"/></label>
+          <label>公司成立年份上限（可选）<input type="number" min="1900" max="2100" value={profile.preferences.company_founded_to ?? ""} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, company_founded_to: event.target.value ? Number(event.target.value) : null } })} placeholder="例如 2026"/></label>
           <fieldset className="platform-work-modes"><legend>办公方式</legend>{[["remote", "远程"], ["hybrid", "混合"], ["onsite", "现场"]].map(([value, label]) => <label key={value}><input type="checkbox" checked={profile.preferences.work_modes.includes(value)} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, work_modes: event.target.checked ? [...new Set([...profile.preferences.work_modes, value])] : profile.preferences.work_modes.filter((item) => item !== value) } })}/>{label}</label>)}</fieldset>
           <label className="platform-checkbox full"><input type="checkbox" checked={profile.preferences.internship_only} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, internship_only: event.target.checked } })}/>只把实习岗位视为优先推荐；关闭后也推荐校招和全职岗位</label>
         </div>

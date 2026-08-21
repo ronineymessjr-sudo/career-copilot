@@ -41,6 +41,69 @@ test("evaluation surfaces work-condition risks from the JD", () => {
   assert.ok(result.interview_risks.some((item) => item.includes("加班")));
 });
 
+test("optional salary and company-age preferences filter only when configured", () => {
+  const job = parseJobIntake({
+    raw_text: "公司成立于2020年，接受2028届在校生实习，每周3天，至少3个月。200-300元/天。",
+    company: "Range Check",
+    title: "AI 实习生",
+    salary: "200-300元/天",
+  });
+  assert.equal(job.raw_payload.company_founded_year, 2020);
+  const matching = evaluateJob(job, [], new Date("2026-08-05T00:00:00Z"), {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: {
+      internship_only: true,
+      salary_min: 250,
+      salary_max: 350,
+      salary_period: "day",
+      salary_match_mode: "overlap",
+      company_founded_from: 2018,
+      company_founded_to: 2022,
+    },
+  });
+  assert.equal(matching.eligible, true);
+  assert.equal(matching.needs_confirmation, false);
+
+  const rejected = evaluateJob(job, [], new Date("2026-08-05T00:00:00Z"), {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: {
+      internship_only: true,
+      salary_min: 400,
+      salary_max: 500,
+      salary_period: "day",
+      salary_match_mode: "contained",
+      company_founded_from: 2021,
+      company_founded_to: 2024,
+    },
+  });
+  assert.equal(rejected.eligible, false);
+  assert.ok(rejected.hard_filter_reasons.some((item) => item.includes("薪资")));
+  assert.ok(rejected.hard_filter_reasons.some((item) => item.includes("成立年份")));
+});
+
+test("configured salary preference asks for confirmation when salary is not published", () => {
+  const job = parseJobIntake({ raw_text: "2028届在校生实习，每周3天，至少3个月，薪资面议。", company: "Unknown Pay", title: "AI 实习生" });
+  const result = evaluateJob(job, [], new Date("2026-08-05T00:00:00Z"), {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { internship_only: true, salary_min: 200, salary_period: "day" },
+  });
+  assert.equal(result.eligible, true);
+  assert.equal(result.needs_confirmation, true);
+  assert.ok(result.confirmation_questions.includes("岗位薪资或薪资周期无法核验"));
+});
+
 test("explicit 2028 and verified evidence can produce a high-grade evaluation", () => {
   const job = parseJobIntake({
     raw_text: "2028届在校生 AI Agent 实习，每周3天，至少3个月，可远程。Python FastAPI LangGraph RAG Docker",

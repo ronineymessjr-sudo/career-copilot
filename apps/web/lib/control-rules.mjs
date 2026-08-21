@@ -82,6 +82,30 @@ function extractSalary(text) {
   return match?.[0] ?? "";
 }
 
+function parseSalaryRange(value) {
+  const text = normalize(value);
+  if (!text || /面议|未公开|保密|待定/i.test(text)) return null;
+  const kMatch = text.match(/(\d+(?:\.\d+)?)\s*[-~至]\s*(\d+(?:\.\d+)?)\s*[kK]/);
+  if (kMatch) return { min: Number(kMatch[1]) * 1000, max: Number(kMatch[2]) * 1000, period: "month" };
+  const range = text.match(/(\d{2,6})\s*[-~至]\s*(\d{2,6})\s*(?:元|￥|¥)?\s*(?:[/／每]\s*)?(天|日|月)?/i);
+  if (range) {
+    const period = range[3] === "天" || range[3] === "日" ? "day" : range[3] === "月" ? "month" : null;
+    return { min: Number(range[1]), max: Number(range[2]), period };
+  }
+  const single = text.match(/(\d{2,6})\s*(?:元|￥|¥)\s*(?:[/／每]\s*)?(天|日|月)/i);
+  if (single) return { min: Number(single[1]), max: Number(single[1]), period: single[2] === "月" ? "month" : "day" };
+  return null;
+}
+
+function parseFoundedYear(text) {
+  const match = matchFirst(normalize(text), [
+    /成立于\s*(20\d{2})/,
+    /(20\d{2})\s*年成立/,
+    /成立年份[：:]?\s*(20\d{2})/,
+  ]);
+  return parseInteger(match);
+}
+
 function inferCompanyTier(text) {
   if (includesAny(text, ["0-20人", "少于20人", "初创", "创业团队", "早期团队"])) return "small";
   if (includesAny(text, ["20-99人", "100-499人", "中型", "成长型"])) return "medium";
@@ -135,6 +159,7 @@ export function parseJobIntake(input) {
   const company = normalize(input?.company) || normalize(lines[0]) || "待核验公司";
   const title = normalize(input?.title) || normalize(lines.find((line) => /实习|intern|agent|产品|开发|工程/.test(lower(line)))) || "待核验岗位";
   const sourceUrl = normalize(input?.source_url ?? input?.sourceUrl);
+  const foundedYear = input?.company_founded_year ?? input?.companyFoundedYear ?? parseFoundedYear(rawText);
   return {
     source_id: normalize(input?.source_id ?? input?.sourceId),
     company,
@@ -162,7 +187,11 @@ export function parseJobIntake(input) {
     source_reliability: Number(input?.source_reliability ?? input?.sourceReliability ?? 3),
     channel: input?.channel ?? inferChannel(text, sourceUrl, recruiterEmail),
     recruiter_email: recruiterEmail,
-    raw_payload: { raw_text: rawText, parser: "deterministic-v1" },
+    raw_payload: {
+      raw_text: rawText,
+      parser: "deterministic-v1",
+      ...(Number.isFinite(Number(foundedYear)) ? { company_founded_year: Number(foundedYear) } : {}),
+    },
     status: normalize(input?.status) || "open",
   };
 }
@@ -290,6 +319,14 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
   );
   const internshipOnly = preferences.internship_only === true;
   const isInternship = job.is_internship === true;
+  const salaryMin = preferences.salary_min == null || preferences.salary_min === "" ? null : Number(preferences.salary_min);
+  const salaryMax = preferences.salary_max == null || preferences.salary_max === "" ? null : Number(preferences.salary_max);
+  const salaryConfigured = Number.isFinite(salaryMin) || Number.isFinite(salaryMax);
+  const salaryPeriod = ["day", "month", "any"].includes(String(preferences.salary_period)) ? String(preferences.salary_period) : "any";
+  const salaryMatchMode = preferences.salary_match_mode === "contained" ? "contained" : "overlap";
+  const foundedFrom = preferences.company_founded_from == null || preferences.company_founded_from === "" ? null : Number(preferences.company_founded_from);
+  const foundedTo = preferences.company_founded_to == null || preferences.company_founded_to === "" ? null : Number(preferences.company_founded_to);
+  const foundedConfigured = Number.isFinite(foundedFrom) || Number.isFinite(foundedTo);
 
   if (internshipOnly && !isInternship) {
     eligible = false;
@@ -360,6 +397,36 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
     hard_filter_reasons.push("投递已截止");
   }
 
+  if (salaryConfigured) {
+    const salary = parseSalaryRange(job.salary);
+    if (!salary || (salaryPeriod !== "any" && salary.period && salary.period !== salaryPeriod) || (salaryPeriod !== "any" && !salary.period)) {
+      needs_confirmation = true;
+      confirmation_questions.push("岗位薪资或薪资周期无法核验");
+    } else {
+      const lowerBound = Number.isFinite(salaryMin) ? salaryMin : Number.NEGATIVE_INFINITY;
+      const upperBound = Number.isFinite(salaryMax) ? salaryMax : Number.POSITIVE_INFINITY;
+      const matches = salaryMatchMode === "contained"
+        ? salary.min >= lowerBound && salary.max <= upperBound
+        : salary.max >= lowerBound && salary.min <= upperBound;
+      if (!matches) {
+        eligible = false;
+        hard_filter_reasons.push(`岗位薪资 ${job.salary || "未公开"} 不符合当前薪资范围`);
+      }
+    }
+  }
+
+  if (foundedConfigured) {
+    const rawPayload = job.raw_payload && typeof job.raw_payload === "object" ? job.raw_payload : {};
+    const foundedYear = Number(job.company_founded_year ?? rawPayload.company_founded_year ?? parseFoundedYear(`${job.company_name ?? job.company ?? ""} ${job.description ?? ""}`));
+    if (!Number.isFinite(foundedYear)) {
+      needs_confirmation = true;
+      confirmation_questions.push("公司成立年份无法核验");
+    } else if ((Number.isFinite(foundedFrom) && foundedYear < foundedFrom) || (Number.isFinite(foundedTo) && foundedYear > foundedTo)) {
+      eligible = false;
+      hard_filter_reasons.push(`公司成立年份 ${foundedYear} 不在当前范围内`);
+    }
+  }
+
   const text = lower(`${job.title} ${job.description} ${job.requirements ?? ""}`);
   const genericRoleHits = ROLE_KEYWORDS.filter((keyword) => text.includes(keyword)).length;
   const targetRoleHits = targetRoles.filter((keyword) => text.includes(keyword));
@@ -411,6 +478,8 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
   if (missing_skills.length) risks.push(`能力缺口：${missing_skills.slice(0, 5).join("、")}`);
   if (needs_confirmation) risks.push("画像或岗位条件不完整，不能直接提交");
   if (job.company_tier === "small") risks.push("小团队可能要求完整交付，需要确认导师、评审机制和任务边界");
+  if (salaryConfigured && !job.salary) risks.push("岗位未公开可核验薪资，投递前确认薪资周期与范围");
+  if (foundedConfigured && !Number.isFinite(Number(job.company_founded_year ?? job.raw_payload?.company_founded_year))) risks.push("公司成立年份未从岗位来源核验");
   if (/单休|大小周|单双休/.test(text)) risks.push("JD 提到单休、大小周或单双休，投递前确认每周休息安排");
   if (/加班|晚间在线|高强度|长期出差/.test(text)) risks.push("JD 提到加班、晚间在线、高强度或长期出差，投递前确认实际工作节奏");
 

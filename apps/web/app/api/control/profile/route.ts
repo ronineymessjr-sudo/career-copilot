@@ -21,6 +21,13 @@ function nullableYear(value: unknown, fallback: number | null): number | null {
   return Math.max(2024, Math.min(2040, Math.trunc(parsed)));
 }
 
+function nullableBoundedNumber(value: unknown, fallback: number | null, min: number, max: number): number | null {
+  if (value == null || value === "") return null;
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, Math.trunc(parsed)));
+}
+
 function recordList(value: unknown, limit = 20): Array<Record<string, string>> {
   if (!Array.isArray(value)) return [];
   return value
@@ -75,6 +82,14 @@ export async function PATCH(request: NextRequest) {
       keywords: stringList(preferences.keywords ?? currentNormalized.preferences.keywords, 50),
       excluded_keywords: stringList(preferences.excluded_keywords ?? currentNormalized.preferences.excluded_keywords, 30),
       internship_only: preferences.internship_only === true,
+      salary_min: nullableBoundedNumber(preferences.salary_min, currentNormalized.preferences.salary_min, 0, 1_000_000),
+      salary_max: nullableBoundedNumber(preferences.salary_max, currentNormalized.preferences.salary_max, 0, 1_000_000),
+      salary_period: ["day", "month", "any"].includes(String(preferences.salary_period ?? currentNormalized.preferences.salary_period))
+        ? String(preferences.salary_period ?? currentNormalized.preferences.salary_period) : "any",
+      salary_match_mode: ["overlap", "contained"].includes(String(preferences.salary_match_mode ?? currentNormalized.preferences.salary_match_mode))
+        ? String(preferences.salary_match_mode ?? currentNormalized.preferences.salary_match_mode) : "overlap",
+      company_founded_from: nullableBoundedNumber(preferences.company_founded_from, currentNormalized.preferences.company_founded_from, 1900, 2100),
+      company_founded_to: nullableBoundedNumber(preferences.company_founded_to, currentNormalized.preferences.company_founded_to, 1900, 2100),
     };
     const nextDetails = {
       display_name: String(details.display_name ?? currentNormalized.details.display_name).trim().slice(0, 100),
