@@ -1,6 +1,6 @@
 # Agent Evaluation Report
 
-Generated: `2026-07-26T02:18:27.159Z`  
+Generated: `2026-08-12T13:55:05.959Z`  
 Dataset: `portfolio-fixture-v1`  
 Samples: `1`
 
