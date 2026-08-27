@@ -7,10 +7,10 @@
   "deployment_source_note": "Web Worker was rebuilt with Node 20 + OpenNext and deployed directly from this verified local commit; Scheduler remains on the previously verified CI deployment.",
   "mode": "production",
   "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
-  "verified_at": "2026-08-27T10:20:20Z",
+  "verified_at": "2026-08-27T14:20:11Z",
   "verification_run": "Local Node 20 OpenNext deployment + browser HTTPS black-box smoke",
   "control_plane_deployments": {
-    "web": "e7320d5a-b440-4e56-8a91-02afdeb800c4",
+    "web": "072ca3d1-fad9-4a82-9114-b34e7dc802c9",
     "scheduler": "99fc024a-a7b0-47d5-b277-0f52f93797e8"
   },
   "public_smoke": "passed_prior_rollout",

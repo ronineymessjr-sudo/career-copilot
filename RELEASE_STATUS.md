@@ -9,7 +9,7 @@ Live on Cloudflare:
 - Web Worker: https://career-copilot-v2.photomagic.workers.dev
 - Scheduler Worker: https://career-copilot-scheduler.photomagic.workers.dev
 
-The Web Worker is serving 100% traffic on version `e7320d5a-b440-4e56-8a91-02afdeb800c4`. The Scheduler Worker is serving version `99fc024a-a7b0-47d5-b277-0f52f93797e8` with `*/5 * * * *`, daily, and weekly triggers plus the private Web Service Binding.
+The Web Worker is serving 100% traffic on version `072ca3d1-fad9-4a82-9114-b34e7dc802c9`. The Scheduler Worker is serving version `99fc024a-a7b0-47d5-b277-0f52f93797e8` with `*/5 * * * *`, daily, and weekly triggers plus the private Web Service Binding.
 
 ## Acceptance evidence
 
