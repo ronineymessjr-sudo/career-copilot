@@ -50,7 +50,7 @@ export const DEMO_SCENARIOS = Object.freeze([
   {
     id: "salary-mismatch",
     label: "薪资不重叠",
-    note: "区间不重叠直接拦截",
+    note: "区间不重叠，建议跳过",
     jd: `AI 内容运营实习生（远程）\n职责：协助 AI 产品内容整理和用户反馈记录。\n要求：接受2028届；每周3天，至少3个月；双休，80-100元/天。`,
   },
   {
@@ -189,7 +189,7 @@ export function buildDemoTrace(job, score, options = {}) {
     { key: "workplace", label: "办公方式", status: job.workplace === "remote" || job.workplace === "hybrid" ? "pass" : "review", detail: job.workplace === "remote" ? "远程" : job.workplace === "hybrid" ? "混合" : "现场或未知" },
     { key: "schedule", label: "休息与加班", status: job.work_signals?.single_day_off || job.work_signals?.overtime_risk === "high" ? "warn" : "pass", detail: job.work_signals?.single_day_off ? "单休风险" : job.work_signals?.overtime_risk === "high" ? "加班风险" : "未发现明显风险" },
     { key: "recruiter", label: "招聘信号", status: job.work_signals?.recruiter_signal === "review" ? "review" : "pass", detail: job.work_signals?.recruiter_signal === "review" ? "沟通或邀请量高，仅提示复核" : "没有额外信号" },
-    { key: "salary", label: "薪资策略", status: job.salary_min == null ? "review" : salaryMatches ? "pass" : "block", detail: job.salary_min == null ? "薪资待核验" : `${job.salary} · ${policy.salary_match_mode === "contained" ? "完全包含" : "区间重叠"} ${policy.salary_min ?? ""}-${policy.salary_max ?? ""}` },
+    { key: "salary", label: "薪资策略", status: job.salary_min == null ? "review" : salaryMatches ? "pass" : "block", detail: job.salary_min == null ? "薪资待核验" : `${job.salary} · ${salaryMatches ? "与" : "不与"}策略区间 ${policy.salary_min ?? ""}-${policy.salary_max ?? ""}${policy.salary_match_mode === "contained" ? "完全包含" : "重叠"}` },
     { key: "keyword", label: "风险屏蔽词", status: keywordHit ? "block" : "pass", detail: keywordHit ? `命中：${keywordHit}` : "未命中培训贷、押金等风险词" },
     { key: "company_age", label: "公司年份", status: job.company_founded_year == null ? "review" : foundedOutOfRange ? "block" : "pass", detail: job.company_founded_year == null ? "成立年份待核验" : foundedOutOfRange ? `${job.company_founded_year} 年，早于策略下限 ${foundedFrom}` : `${job.company_founded_year} 年，满足策略下限` },
     { key: "freshness", label: "岗位新鲜度", status: freshness.status === "stale" ? "warn" : freshness.status === "unknown" ? "review" : "pass", detail: freshness.detail },

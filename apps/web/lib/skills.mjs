@@ -129,7 +129,13 @@ export function tokenize(value) {
 export function extractJobSkills(job) {
   const text = normalized(`${job?.title ?? ""} ${job?.description ?? ""} ${job?.requirements ?? ""}`);
   return Object.entries(SKILLS)
-    .filter(([, aliases]) => aliases.some((alias) => matchAlias(text, alias)))
+    .filter(([canonical, aliases]) => aliases.some((alias) => {
+      if (canonical !== "payroll" || !["薪酬", "薪资", "福利"].includes(alias)) return matchAlias(text, alias);
+      // Compensation ranges in an arbitrary JD are not payroll experience.
+      // Keep payroll as a skill only when the surrounding text is explicitly HR/payroll work.
+      const hrContext = /人力资源|人事|招聘|hr\b|员工关系|薪酬管理|薪资管理|工资核算|薪资核算|福利管理|payroll/i.test(text);
+      return hrContext && matchAlias(text, alias);
+    }))
     .map(([canonical]) => canonical);
 }
 
