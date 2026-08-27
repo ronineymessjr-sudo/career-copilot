@@ -16,12 +16,24 @@ export function AgentPlayground() {
   const [jd, setJd] = useState(DEFAULT_PLAYGROUND_JD);
   const [result, setResult] = useState<Row | null>(() => analyzePortfolioDemo(DEFAULT_PLAYGROUND_JD));
   const [copied, setCopied] = useState(false);
+  const [copyError, setCopyError] = useState("");
   const [inputError, setInputError] = useState("");
   const [analysisState, setAnalysisState] = useState<AnalysisState>("ready");
   const [analysisError, setAnalysisError] = useState("");
   const analysisToken = useRef(0);
   const trace = useMemo(() => ["Supervisor", "JD Analyst", "Hybrid Ranker", "Resume Agent", "Grounding Evaluator"], []);
   const batch = useMemo(() => runPortfolioBatchDemo(DEMO_BATCH_JOBS), []);
+
+  function selectScenario(scenario: (typeof DEMO_SCENARIOS)[number]) {
+    analysisToken.current += 1;
+    setJd(scenario.jd);
+    setResult(null);
+    setAnalysisState("dirty");
+    setAnalysisError("");
+    setInputError("");
+    setCopied(false);
+    setCopyError("");
+  }
 
   async function analyze() {
     const normalizedJd = jd.trim();
@@ -38,6 +50,7 @@ export function AgentPlayground() {
     setAnalysisState("loading");
     setResult(null);
     setCopied(false);
+    setCopyError("");
     try {
       const next = await new Promise<Row>((resolve, reject) => {
         const timeoutId = window.setTimeout(() => reject(new Error("分析超过 8 秒仍未完成，请重试。")), 8000);
@@ -63,8 +76,31 @@ export function AgentPlayground() {
 
   async function copyGreeting() {
     if (!result) return;
-    await navigator.clipboard.writeText(String(result.greeting?.greeting ?? ""));
-    setCopied(true);
+    const greeting = String(result.greeting?.greeting ?? "");
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(greeting);
+      setCopied(true);
+      setCopyError("");
+    } catch {
+      try {
+        const fallback = document.createElement("textarea");
+        fallback.value = greeting;
+        fallback.setAttribute("readonly", "");
+        fallback.style.position = "fixed";
+        fallback.style.opacity = "0";
+        document.body.appendChild(fallback);
+        fallback.select();
+        const copiedByFallback = document.execCommand("copy");
+        fallback.remove();
+        if (!copiedByFallback) throw new Error("copy rejected");
+        setCopied(true);
+        setCopyError("");
+      } catch {
+        setCopied(false);
+        setCopyError("复制未完成，请手动选择上方招呼语文本。");
+      }
+    }
   }
 
   return <main className="portfolio-page">
@@ -100,9 +136,11 @@ export function AgentPlayground() {
         <div className="playground-input">
           <div className="playground-scenarios" aria-label="公开演示场景">
             <div><strong>先选一个实操场景</strong><small>每个场景都使用公开示例，不读取私有资料</small></div>
-            <div className="playground-scenario-list">{DEMO_SCENARIOS.map((scenario) => <button key={scenario.id} type="button" className={jd === scenario.jd ? "active" : ""} onClick={() => { analysisToken.current += 1; setJd(scenario.jd); setResult(analyzePortfolioDemo(scenario.jd)); setAnalysisState("ready"); setAnalysisError(""); setInputError(""); setCopied(false); }}><span>{scenario.label}</span><small>{scenario.note}</small></button>)}</div>
+            <div className="playground-scenario-list">{DEMO_SCENARIOS.map((scenario) => <button key={scenario.id} type="button" className={jd === scenario.jd ? "active" : ""} aria-pressed={jd === scenario.jd} onClick={() => selectScenario(scenario)}><span>{scenario.label}</span><small>{scenario.note}</small></button>)}</div>
+            <p className="playground-scenario-status" aria-live="polite">{analysisState === "dirty" ? "场景已切换，请点击“运行 Agent 分析”查看结果。" : "默认展示公开示例结果；你可以切换场景后重新分析。"}</p>
           </div>
-          <label>岗位 JD<textarea value={jd} aria-describedby={inputError ? "playground-input-error" : undefined} onChange={(event) => { analysisToken.current += 1; setJd(event.target.value); setResult(null); setAnalysisState("dirty"); setAnalysisError(""); if (inputError) setInputError(""); }} rows={16}/></label>
+          <label>岗位 JD<textarea value={jd} aria-describedby={inputError ? "playground-input-error" : undefined} onChange={(event) => { analysisToken.current += 1; setJd(event.target.value); setResult(null); setAnalysisState("dirty"); setAnalysisError(""); setCopyError(""); if (inputError) setInputError(""); }} rows={16}/></label>
+          <div className="playground-input-meta"><span>{jd.length} 个字符</span><span>至少 20 个字符后可运行分析</span></div>
           {inputError ? <p id="playground-input-error" className="playground-input-error" role="alert">{inputError}</p> : null}
           <button className="primary-button" onClick={() => void analyze()} disabled={analysisState === "loading"} aria-busy={analysisState === "loading"}><Sparkles size={14}/>{analysisState === "loading" ? "正在分析…" : "运行 Agent 分析"}</button>
           <small>{result?.disclaimer ?? "修改岗位描述后，请运行 Agent 分析；公开 Demo 不读取私人数据。"}</small>
@@ -114,7 +152,7 @@ export function AgentPlayground() {
             <div><span>{result.job?.company_name}</span><h3>{result.job?.title}</h3><p>{[result.job?.workplace, result.job?.city, result.job?.district].filter(Boolean).join(" · ") || "地点待核验"}</p></div>
             <strong>{result.score?.final_score}</strong>
           </div>
-          <div className="playground-analysis-context"><strong>本次输入已分析</strong><span>{result.job?.title}</span><small>仅使用当前岗位文本与公开示例证据，不代表个人经历。</small></div>
+          <div className="playground-analysis-context"><strong>公开示例结果已生成</strong><span>{result.job?.title}</span><small>默认结果可直接查看；点击“运行 Agent 分析”可重新计算当前输入。仅使用当前岗位文本与公开示例证据，不代表个人经历。</small></div>
           <div className="playground-demo-disclosure"><strong>公开示例 · 不可直接投递</strong><span>下一步：核验原岗位，再登录控制台使用个人证据生成材料。</span></div>
           <div className={`playground-decision ${result.trace?.decision === "keep" ? "keep" : "review"}`}><strong>{result.trace?.decision === "keep" ? "建议保留供人工复核" : "建议跳过或人工复核"}</strong><span>分数只是排序信号，不代表录用概率；最终动作仍需人工确认。</span></div>
           <div className="playground-metrics">
@@ -123,9 +161,9 @@ export function AgentPlayground() {
             <Metric label="历史分" value={result.score?.history_score ?? 0} note="无样本时使用中性基线"/>
           </div>
           <div className="playground-section"><strong>已匹配</strong><div className="tag-row">{(result.score?.matched_skills ?? []).map((item: string) => <span key={item}>{item}</span>)}</div></div>
-          <div className="playground-section"><strong>缺口与风险</strong><ul>{(result.score?.missing_skills ?? []).slice(0, 6).map((item: string) => <li key={item}>{item}</li>)}{(result.score?.blockers ?? []).map((item: string) => <li key={item}>{item}</li>)}</ul></div>
+          <div className="playground-section"><strong>缺口与风险</strong><ul>{(result.score?.missing_skills ?? []).slice(0, 6).map((item: string) => <li key={item}>{item}</li>)}{(result.trace?.checks ?? []).filter((check: Row) => check.status !== "pass").map((check: Row) => <li key={`check-${check.key}`}>{check.label}：{check.detail}</li>)}{(result.score?.blockers ?? []).map((item: string) => <li key={item}>{item}</li>)}</ul></div>
           <div className="resume-recommendation"><FileCheck2 size={17}/><div><span>推荐简历</span><strong>{result.resume?.persona_label}</strong><p>{(result.resume?.emphasis ?? []).join("；")}</p><small>{(result.resume?.alignment?.explanation ?? []).slice(1, 3).join("；")}</small></div></div>
-          <div className="greeting-draft"><div><span>公开示例招呼语</span><small>仅演示文案，不代表你的个人经历</small><p>{result.greeting?.greeting}</p></div><button className="ghost-button" onClick={() => void copyGreeting()}><Clipboard size={13}/>{copied ? "已复制" : "复制"}</button></div>
+          <div className="greeting-draft"><div><span>公开示例招呼语</span><small>仅演示文案，不代表你的个人经历</small><p>{result.greeting?.greeting}</p>{copyError ? <small className="playground-copy-error" role="alert">{copyError}</small> : null}</div><button className="ghost-button" onClick={() => void copyGreeting()}><Clipboard size={13}/>{copied ? "已复制" : "复制"}</button></div>
           <div className="playground-safety"><ShieldCheck size={15}/><span>状态：等待人工确认 · 不自动发送 · 不自动投递</span></div>
           </> : <div className="playground-empty-state" role={analysisState === "error" ? "alert" : undefined}>
             <strong>{analysisState === "loading" ? "正在运行 Agent 分析…" : analysisState === "error" ? "这次分析没有完成" : "尚未分析当前输入"}</strong>
