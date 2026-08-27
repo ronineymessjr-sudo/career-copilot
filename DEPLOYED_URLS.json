@@ -3,16 +3,16 @@
   "scheduler_url": "https://career-copilot-scheduler.photomagic.workers.dev",
   "runtime_check": "https://career-copilot-v2.photomagic.workers.dev/api/runtime",
   "scheduler_health_check": "https://career-copilot-scheduler.photomagic.workers.dev/health",
-  "application_commit": "1e3f96d981f74b8bc1606a6606077652d3ff45d5",
+  "application_commit": "71c27ee514ddd83fe1015d0fd5e4bf59e51bd6b5",
   "deployment_source_note": "Web Worker was rebuilt with Node 20 + OpenNext and deployed directly from this verified local commit; Scheduler remains on the previously verified CI deployment.",
   "mode": "production",
   "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
-  "verified_at": "2026-08-27T14:20:11Z",
-  "verification_run": "Local Node 20 OpenNext deployment + browser HTTPS black-box smoke",
+  "verified_at": "2026-08-27T14:47:52Z",
+  "verification_run": "Local Node 20 OpenNext deployment + independent user-agent black-box smoke",
   "control_plane_deployments": {
-    "web": "072ca3d1-fad9-4a82-9114-b34e7dc802c9",
+    "web": "3feb1a3f-57f6-43bc-a390-ffe5cebb92e9",
     "scheduler": "99fc024a-a7b0-47d5-b277-0f52f93797e8"
   },
-  "public_smoke": "passed_prior_rollout",
-  "public_smoke_note": "Browser HTTPS smoke passed before this latest Worker rollout for /, /playground, /privacy, anonymous home Demo CTA, public Demo context and unpublished-salary review behavior; post-rollout browser/network recheck remains environment-blocked, while local tests cover the new analysis and route fallback states."
+  "public_smoke": "independent_agents_passed_with_network_caveat",
+  "public_smoke_note": "Three independent user personas verified the live public routes and safety boundary after the latest Worker rollout. Slow/unstable browser control caused intermittent 30-second interaction timeouts; the responsive scenario-selection fix is deployed, and no login, real data, or submission was used."
 }
