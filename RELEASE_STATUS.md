@@ -9,7 +9,7 @@ Live on Cloudflare:
 - Web Worker: https://career-copilot-v2.photomagic.workers.dev
 - Scheduler Worker: https://career-copilot-scheduler.photomagic.workers.dev
 
-The Web Worker is serving 100% traffic on version `7f2d8ba9-83da-4578-a045-cde933d0b199`. The Scheduler Worker is serving version `372fe532-379f-4aaa-a678-6d72e4c01621` with `*/5 * * * *`, daily, and weekly triggers plus the private Web Service Binding.
+The Web Worker is serving 100% traffic on version `7d160dce-8fba-4b52-8ec0-f0866868eaf4`. The Scheduler Worker is serving version `d9a50b0e-8f06-4560-a41d-87f338980847` with `*/5 * * * *`, daily, and weekly triggers plus the private Web Service Binding.
 
 ## Acceptance evidence
 
@@ -25,4 +25,4 @@ The live runtime remains approval-first: no automatic email sending, no automati
 
 ## Repository state
 
-The source changes and deployment record are committed locally. The GitHub remote was intentionally left unchanged in this run.
+The source changes and deployment record are committed locally and pushed to GitHub `main` at `ca936bec3e40645d786fb3877be7d5bc21f09a32`.

@@ -3,15 +3,15 @@
   "scheduler_url": "https://career-copilot-scheduler.photomagic.workers.dev",
   "runtime_check": "https://career-copilot-v2.photomagic.workers.dev/api/runtime",
   "scheduler_health_check": "https://career-copilot-scheduler.photomagic.workers.dev/health",
-  "application_commit": "910dcb1",
-  "deployment_source_note": "Web deployment uses the verified OpenNext baseline with the public Demo UX patch; the current source commit is recorded for the next Linux/CI rebuild.",
+  "application_commit": "ca936be",
+  "deployment_source_note": "Web and Scheduler were rebuilt and deployed by the GitHub Actions Cloudflare workflow from this commit.",
   "mode": "production",
   "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
-  "verified_at": "2026-08-27T03:04:10Z",
-  "verification_run": "local:116 tests + scheduler TypeScript + Cloudflare config validation + live HTTP smoke",
+  "verified_at": "2026-08-27T03:43:14Z",
+  "verification_run": "GitHub Actions: Ubuntu build + OpenNext + deployment + public smoke + authenticated E2E",
   "control_plane_deployments": {
-    "web": "7f2d8ba9-83da-4578-a045-cde933d0b199",
-    "scheduler": "372fe532-379f-4aaa-a678-6d72e4c01621"
+    "web": "7d160dce-8fba-4b52-8ec0-f0866868eaf4",
+    "scheduler": "d9a50b0e-8f06-4560-a41d-87f338980847"
   },
   "public_smoke": "passed",
   "public_smoke_note": "Live checks passed for /, /playground, /api/runtime, anonymous control API (401), and scheduler /health (200); login bundle contains the public Demo handoff."
