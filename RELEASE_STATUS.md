@@ -16,7 +16,7 @@ The Web Worker is serving 100% traffic on version `feda32d9-2120-4b5b-8382-f19e4
 - 119 Node tests passed.
 - Scheduler TypeScript check passed.
 - Cloudflare configuration validation passed.
-- Public root, playground, privacy route, Demo context, explicit analysis states, unpublished-salary review, runtime, anonymous 401 guard, and Scheduler health checks passed over HTTPS.
+- Prior browser HTTPS smoke covered public root, playground, privacy route, Demo context, unpublished-salary review, runtime, anonymous 401 guard, and Scheduler health. The latest Worker rollout succeeded in Wrangler; a second public browser/network pass was unavailable in this environment, while the new analysis states are covered by local checks.
 - Web and Scheduler secret names are configured; secret values were not exposed.
 
 ## Safety boundary
@@ -25,4 +25,4 @@ The live runtime remains approval-first: no automatic email sending, no automati
 
 ## Repository state
 
-The source changes and deployment record are committed locally at `b0f2f68`. GitHub `main` still points to the previous remote commit until GitHub network/login access is restored.
+The source changes and deployment record are committed locally at `b0f2f688057fcfe40e1535a99bca541a180b79b6`. GitHub `main` still points to the previous remote commit until GitHub network/login access is restored.
