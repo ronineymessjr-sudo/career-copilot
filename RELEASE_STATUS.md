@@ -16,7 +16,7 @@ The Web Worker is serving 100% traffic on version `3feb1a3f-57f6-43bc-a390-ffe5c
 - 119 Node tests passed.
 - Scheduler TypeScript check passed.
 - Cloudflare configuration validation passed.
-- Three independent user personas verified the live public root, playground, privacy route, updates route, scenario content, salary review signals, and no-send/no-submit boundary. Slow or unstable browser control caused intermittent interaction timeouts, but the responsive scenario-selection fix is deployed and the live routes returned normally in the slow-network pass.
+- Independent user personas verified the public Playground, default result, scenario/input states, salary-review signal, and no-send/no-submit boundary. A slow-network pass also covered the public root, privacy, and updates routes without a white screen. Browser control remained intermittently unstable with 30-second interaction timeouts, so those timeouts are recorded as an environment caveat rather than a fabricated application failure.
 - Web and Scheduler secret names are configured; secret values were not exposed.
 
 ## Safety boundary

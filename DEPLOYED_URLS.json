@@ -14,5 +14,5 @@
     "scheduler": "99fc024a-a7b0-47d5-b277-0f52f93797e8"
   },
   "public_smoke": "independent_agents_passed_with_network_caveat",
-  "public_smoke_note": "Three independent user personas verified the live public routes and safety boundary after the latest Worker rollout. Slow/unstable browser control caused intermittent 30-second interaction timeouts; the responsive scenario-selection fix is deployed, and no login, real data, or submission was used."
+  "public_smoke_note": "Independent user personas verified the public Playground, default result, scenario/input states, salary-review signal, and no-send/no-submit boundary. A slow-network pass also covered the public root, privacy, and updates routes without a white screen. Browser control remained intermittently unstable with 30-second interaction timeouts; no login, real data, or submission was used."
 }
