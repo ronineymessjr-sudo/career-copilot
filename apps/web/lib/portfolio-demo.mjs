@@ -176,12 +176,13 @@ export function buildDemoTrace(job, score, options = {}) {
   const salaryPeriodMatches = policy.salary_period === "any" || !policy.salary_period || job.salary_period === policy.salary_period;
   const salaryLower = Number.isFinite(Number(policy.salary_min)) ? Number(policy.salary_min) : Number.NEGATIVE_INFINITY;
   const salaryUpper = Number.isFinite(Number(policy.salary_max)) ? Number(policy.salary_max) : Number.POSITIVE_INFINITY;
-  const salaryMatches = !salaryConfigured || (job.salary_min != null && salaryPeriodMatches && (policy.salary_match_mode === "contained" ? job.salary_min >= salaryLower && job.salary_max <= salaryUpper : job.salary_max >= salaryLower && job.salary_min <= salaryUpper));
+  const salaryPublished = job.salary_min != null;
+  const salaryMatches = !salaryConfigured || !salaryPublished || (salaryPeriodMatches && (policy.salary_match_mode === "contained" ? job.salary_min >= salaryLower && job.salary_max <= salaryUpper : job.salary_max >= salaryLower && job.salary_min <= salaryUpper));
   const foundedFrom = Number.isFinite(Number(policy.company_founded_from)) ? Number(policy.company_founded_from) : null;
   const foundedOutOfRange = foundedFrom != null && job.company_founded_year != null && Number(job.company_founded_year) < foundedFrom;
   const freshness = job.source_freshness ?? { status: "unknown", detail: "来源未提供发布时间，无法断言新旧" };
   const workRisk = job.work_signals?.single_day_off || job.work_signals?.overtime_risk === "high";
-  const traceBlockers = [...blockers, ...(workRisk ? ["工作条件触发跳过：单休或加班风险"] : []), ...(keywordHit ? [`命中屏蔽词：${keywordHit}`] : []), ...(!salaryMatches ? ["薪资区间与当前策略不重叠"] : []), ...(foundedOutOfRange ? [`公司成立年份早于 ${foundedFrom}`] : [])];
+  const traceBlockers = [...blockers, ...(workRisk ? ["工作条件触发跳过：单休或加班风险"] : []), ...(keywordHit ? [`命中屏蔽词：${keywordHit}`] : []), ...(salaryPublished && !salaryMatches ? ["薪资区间与当前策略不重叠"] : []), ...(foundedOutOfRange ? [`公司成立年份早于 ${foundedFrom}`] : [])];
   const checks = [
     { key: "internship", label: "实习边界", status: job.is_internship && job.accepts_students !== false ? "pass" : "block", detail: job.is_internship ? "实习岗位" : "不是实习岗位" },
     { key: "cohort", label: "届别与学生", status: job.accepts_2028 === false || job.accepts_students === false ? "block" : job.accepts_2028 === null ? "review" : "pass", detail: job.accepts_2028 === false ? "不接受 2028 届" : job.accepts_students === false ? "不接受在校生" : job.accepts_2028 === null ? "届别待核验" : "接受 2028 届" },

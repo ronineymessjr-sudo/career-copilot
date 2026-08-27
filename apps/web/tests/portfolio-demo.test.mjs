@@ -12,6 +12,13 @@ test("portfolio playground returns a grounded internship analysis", () => {
   assert.equal(result.resume.truth_check.automatic_submission, false);
 });
 
+test("unpublished demo salary stays reviewable instead of becoming a hard blocker", () => {
+  const result = analyzePortfolioDemo(DEFAULT_PLAYGROUND_JD);
+  assert.equal(result.trace.decision, "keep");
+  assert.equal(result.trace.checks.find((check) => check.key === "salary").status, "review");
+  assert.equal(result.trace.blockers.some((item) => item.includes("薪资区间")), false);
+});
+
 test("portfolio playground blocks full-time graduate role", () => {
   const job = demoJobFromText("2027届提前批全职岗位，仅毕业生可投，负责Python开发。");
   const result = analyzePortfolioDemo(job.description);
