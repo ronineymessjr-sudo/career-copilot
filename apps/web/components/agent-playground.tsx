@@ -81,7 +81,9 @@ export function AgentPlayground() {
             <div><span>{result.job?.company_name}</span><h3>{result.job?.title}</h3><p>{[result.job?.workplace, result.job?.city, result.job?.district].filter(Boolean).join(" · ") || "地点待核验"}</p></div>
             <strong>{result.score?.final_score}</strong>
           </div>
+          <div className="playground-analysis-context"><strong>本次输入已分析</strong><span>{result.job?.title}</span><small>仅使用当前岗位文本与公开示例证据，不代表个人经历。</small></div>
           <div className="playground-demo-disclosure"><strong>公开示例 · 不可直接投递</strong><span>下一步：核验原岗位，再登录控制台使用个人证据生成材料。</span></div>
+          <div className={`playground-decision ${result.trace?.decision === "keep" ? "keep" : "review"}`}><strong>{result.trace?.decision === "keep" ? "建议保留供人工复核" : "建议跳过或人工复核"}</strong><span>分数只是排序信号，不代表录用概率；最终动作仍需人工确认。</span></div>
           <div className="playground-metrics">
             <Metric label="规则分" value={result.score?.rule_score ?? 0} note="届别、实习、地点与周期"/>
             <Metric label="证据分" value={result.score?.semantic_score ?? 0} note="示例项目与 JD 重合"/>
@@ -90,7 +92,7 @@ export function AgentPlayground() {
           <div className="playground-section"><strong>已匹配</strong><div className="tag-row">{(result.score?.matched_skills ?? []).map((item: string) => <span key={item}>{item}</span>)}</div></div>
           <div className="playground-section"><strong>缺口与风险</strong><ul>{(result.score?.missing_skills ?? []).slice(0, 6).map((item: string) => <li key={item}>{item}</li>)}{(result.score?.blockers ?? []).map((item: string) => <li key={item}>{item}</li>)}</ul></div>
           <div className="resume-recommendation"><FileCheck2 size={17}/><div><span>推荐简历</span><strong>{result.resume?.persona_label}</strong><p>{(result.resume?.emphasis ?? []).join("；")}</p><small>{(result.resume?.alignment?.explanation ?? []).slice(1, 3).join("；")}</small></div></div>
-          <div className="greeting-draft"><div><span>个性化招呼语</span><p>{result.greeting?.greeting}</p></div><button className="ghost-button" onClick={() => void copyGreeting()}><Clipboard size={13}/>{copied ? "已复制" : "复制"}</button></div>
+          <div className="greeting-draft"><div><span>公开示例招呼语</span><small>仅演示文案，不代表你的个人经历</small><p>{result.greeting?.greeting}</p></div><button className="ghost-button" onClick={() => void copyGreeting()}><Clipboard size={13}/>{copied ? "已复制" : "复制"}</button></div>
           <div className="playground-safety"><ShieldCheck size={15}/><span>状态：等待人工确认 · 不自动发送 · 不自动投递</span></div>
         </div>
       </div>
@@ -115,6 +117,6 @@ export function AgentPlayground() {
       </div>
     </section>
 
-    <footer className="portfolio-footer"><div><strong>Career Copilot V2</strong><span>Evidence-driven AI internship operating system</span></div><div><Gauge size={14}/><span>Portfolio demo · no autonomous submission</span><Link href="/updates">查看更新日志</Link></div></footer>
+    <footer className="portfolio-footer"><div><strong>Career Copilot V2</strong><span>Evidence-driven AI internship operating system</span></div><div><Gauge size={14}/><span>Portfolio demo · no autonomous submission</span><Link href="/updates">查看更新日志</Link><Link href="/privacy">隐私边界</Link></div></footer>
   </main>;
 }

@@ -817,7 +817,17 @@
 .playground-demo-disclosure{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:14px 0 0;padding:10px 12px;border:1px solid rgba(15,98,254,.18);background:#edf5ff;color:#001d6c;font-size:10px;line-height:1.45}
 .playground-demo-disclosure strong{font-size:10px}
 .playground-demo-disclosure span{color:#394858}
+.playground-analysis-context{display:grid;grid-template-columns:auto 1fr;gap:3px 8px;margin-top:12px;padding:10px 12px;border:1px solid #dfe3e8;border-radius:10px;background:#f8fafc;color:#17202a;font-size:10px;line-height:1.45}
+.playground-analysis-context strong{font-size:9px;color:#0f62fe}
+.playground-analysis-context span{font-weight:650}
+.playground-analysis-context small{grid-column:1/-1;color:#697586;font-size:9px}
+.playground-decision{display:flex;flex-wrap:wrap;gap:6px 9px;align-items:baseline;margin-top:9px;padding:9px 11px;border-radius:9px;font-size:9px;line-height:1.45}
+.playground-decision strong{font-size:9px}
+.playground-decision span{color:#4e5d6d}
+.playground-decision.keep{border:1px solid rgba(65,209,125,.2);background:rgba(65,209,125,.07);color:#176a43}
+.playground-decision.review{border:1px solid rgba(255,189,89,.25);background:rgba(255,189,89,.1);color:#805b08}
 .resume-recommendation small{display:block;margin-top:6px;color:#697586;font-size:9px;line-height:1.5}
+.greeting-draft small{display:block;margin-top:4px;color:#697586;font-size:9px;line-height:1.4}
 
 .platform-form-grid .full{grid-column:1/-1}
 .profile-records-section{align-items:start}

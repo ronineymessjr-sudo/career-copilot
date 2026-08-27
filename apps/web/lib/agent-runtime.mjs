@@ -565,7 +565,7 @@ export function generateResumeDraft({ persona = "agent_engineer", job, evidence 
   const config = RESUME_PERSONAS[persona] ?? RESUME_PERSONAS.agent_engineer;
   const selected = evidenceForPersona(persona, job, evidence);
   const jobSkills = extractJobSkills(job);
-  const selectedSkills = [...new Set(selected.flatMap((item) => [...tokenize(item.skill)]).filter((item) => item in SKILLS))];
+  const selectedSkills = [...new Set(selected.flatMap((item) => [...tokenize(`${item.skill ?? ""} ${item.project ?? ""} ${item.evidence ?? ""}`)]).filter((item) => item in SKILLS))];
   const matched = jobSkills.filter((skill) => selectedSkills.includes(skill));
   const missing = jobSkills.filter((skill) => !selectedSkills.includes(skill));
   const projects = orderProjects(selected.map((item) => ({

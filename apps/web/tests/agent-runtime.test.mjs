@@ -106,6 +106,12 @@ test("resume draft excludes unverified evidence", () => {
   assert.equal(draft.truth_check.automatic_submission, false);
 });
 
+test("resume alignment counts skills proven in verified project evidence", () => {
+  const draft = generateResumeDraft({ persona: "agent_engineer", job, evidence });
+  assert.equal(draft.alignment.missing_keywords.includes("rag"), false);
+  assert.equal(draft.alignment.matched_keywords.includes("rag"), true);
+});
+
 test("all eleven resume personas are available", () => {
   assert.deepEqual(Object.keys(RESUME_PERSONAS).sort(), ["admin", "agent_engineer", "ai_product", "ai_solution", "engineering", "finance", "hr", "legal", "live_streaming", "local_transition", "photo_video"].sort());
 });
