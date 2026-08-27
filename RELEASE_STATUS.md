@@ -9,14 +9,14 @@ Live on Cloudflare:
 - Web Worker: https://career-copilot-v2.photomagic.workers.dev
 - Scheduler Worker: https://career-copilot-scheduler.photomagic.workers.dev
 
-The Web Worker is serving 100% traffic on version `feda32d9-2120-4b5b-8382-f19e4d949a5d`. The Scheduler Worker is serving version `99fc024a-a7b0-47d5-b277-0f52f93797e8` with `*/5 * * * *`, daily, and weekly triggers plus the private Web Service Binding.
+The Web Worker is serving 100% traffic on version `e7320d5a-b440-4e56-8a91-02afdeb800c4`. The Scheduler Worker is serving version `99fc024a-a7b0-47d5-b277-0f52f93797e8` with `*/5 * * * *`, daily, and weekly triggers plus the private Web Service Binding.
 
 ## Acceptance evidence
 
 - 119 Node tests passed.
 - Scheduler TypeScript check passed.
 - Cloudflare configuration validation passed.
-- Prior browser HTTPS smoke covered public root, playground, privacy route, Demo context, unpublished-salary review, runtime, anonymous 401 guard, and Scheduler health. The latest Worker rollout succeeded in Wrangler; a second public browser/network pass was unavailable in this environment, while the new analysis states are covered by local checks.
+- Prior browser HTTPS smoke covered public root, playground, privacy route, Demo context, unpublished-salary review, runtime, anonymous 401 guard, and Scheduler health. The latest Worker rollout succeeded in Wrangler; a second public browser/network pass remains unavailable in this environment, while the new analysis states and route fallbacks are covered by local checks.
 - Web and Scheduler secret names are configured; secret values were not exposed.
 
 ## Safety boundary
@@ -25,4 +25,4 @@ The live runtime remains approval-first: no automatic email sending, no automati
 
 ## Repository state
 
-The source changes and deployment record are committed locally at `b0f2f688057fcfe40e1535a99bca541a180b79b6`. GitHub `main` still points to the previous remote commit until GitHub network/login access is restored.
+The source changes and deployment record are committed locally at `1e3f96d981f74b8bc1606a6606077652d3ff45d5`. GitHub `main` still points to the previous remote commit until GitHub network/login access is restored.
