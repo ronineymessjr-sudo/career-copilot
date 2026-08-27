@@ -824,6 +824,10 @@
 .playground-empty-state{min-height:280px;display:grid;place-content:center;justify-items:center;gap:8px;padding:28px;border:1px dashed #cdd5df;border-radius:14px;background:#f8fafc;color:#17202a;text-align:center}
 .playground-empty-state strong{font-size:14px}
 .playground-empty-state p{max-width:380px;margin:0;color:#697586;font-size:10px;line-height:1.6}
+.playground-route-state{min-height:100vh;display:grid;place-items:center;padding:28px}
+.playground-route-card{width:min(100%,560px);display:flex;gap:14px;align-items:flex-start;padding:28px;border:1px solid var(--line);border-radius:18px;background:rgba(13,17,24,.92);color:var(--text);box-shadow:0 20px 80px rgba(0,0,0,.35)}
+.playground-route-card strong{font-size:16px}
+.playground-route-card p{margin:8px 0 16px;color:var(--muted);font-size:11px;line-height:1.7}
 .playground-decision{display:flex;flex-wrap:wrap;gap:6px 9px;align-items:baseline;margin-top:9px;padding:9px 11px;border-radius:9px;font-size:9px;line-height:1.45}
 .playground-decision strong{font-size:9px}
 .playground-decision span{color:#4e5d6d}
