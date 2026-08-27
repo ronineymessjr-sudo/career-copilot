@@ -7,11 +7,11 @@
   "deployment_source_note": "Web and Scheduler were rebuilt and deployed by the GitHub Actions Cloudflare workflow from this commit.",
   "mode": "production",
   "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
-  "verified_at": "2026-08-27T03:43:14Z",
+  "verified_at": "2026-08-27T03:52:13Z",
   "verification_run": "GitHub Actions: Ubuntu build + OpenNext + deployment + public smoke + authenticated E2E",
   "control_plane_deployments": {
-    "web": "7d160dce-8fba-4b52-8ec0-f0866868eaf4",
-    "scheduler": "d9a50b0e-8f06-4560-a41d-87f338980847"
+    "web": "7febfea2-406c-409c-8807-abe0ad49c124",
+    "scheduler": "9de0586d-0f9a-4e0d-b2fc-5b60f86200a1"
   },
   "public_smoke": "passed",
   "public_smoke_note": "Live checks passed for /, /playground, /api/runtime, anonymous control API (401), and scheduler /health (200); login bundle contains the public Demo handoff."
