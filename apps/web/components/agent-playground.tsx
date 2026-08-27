@@ -15,11 +15,18 @@ export function AgentPlayground() {
   const [jd, setJd] = useState(DEFAULT_PLAYGROUND_JD);
   const [result, setResult] = useState<Row>(() => analyzePortfolioDemo(DEFAULT_PLAYGROUND_JD));
   const [copied, setCopied] = useState(false);
+  const [inputError, setInputError] = useState("");
   const trace = useMemo(() => ["Supervisor", "JD Analyst", "Hybrid Ranker", "Resume Agent", "Grounding Evaluator"], []);
   const batch = useMemo(() => runPortfolioBatchDemo(DEMO_BATCH_JOBS), []);
 
   function analyze() {
-    setResult(analyzePortfolioDemo(jd));
+    const normalizedJd = jd.trim();
+    if (normalizedJd.length < 20) {
+      setInputError("请先粘贴一段完整岗位描述（至少 20 个字符），再运行分析。");
+      return;
+    }
+    setInputError("");
+    setResult(analyzePortfolioDemo(normalizedJd));
     setCopied(false);
   }
 
@@ -61,9 +68,10 @@ export function AgentPlayground() {
         <div className="playground-input">
           <div className="playground-scenarios" aria-label="公开演示场景">
             <div><strong>先选一个实操场景</strong><small>每个场景都使用公开示例，不读取私有资料</small></div>
-            <div className="playground-scenario-list">{DEMO_SCENARIOS.map((scenario) => <button key={scenario.id} type="button" className={jd === scenario.jd ? "active" : ""} onClick={() => { setJd(scenario.jd); setResult(analyzePortfolioDemo(scenario.jd)); setCopied(false); }}><span>{scenario.label}</span><small>{scenario.note}</small></button>)}</div>
+            <div className="playground-scenario-list">{DEMO_SCENARIOS.map((scenario) => <button key={scenario.id} type="button" className={jd === scenario.jd ? "active" : ""} onClick={() => { setJd(scenario.jd); setResult(analyzePortfolioDemo(scenario.jd)); setInputError(""); setCopied(false); }}><span>{scenario.label}</span><small>{scenario.note}</small></button>)}</div>
           </div>
-          <label>岗位 JD<textarea value={jd} onChange={(event) => setJd(event.target.value)} rows={16}/></label>
+          <label>岗位 JD<textarea value={jd} aria-describedby={inputError ? "playground-input-error" : undefined} onChange={(event) => { setJd(event.target.value); if (inputError) setInputError(""); }} rows={16}/></label>
+          {inputError ? <p id="playground-input-error" className="playground-input-error" role="alert">{inputError}</p> : null}
           <button className="primary-button" onClick={analyze}><Sparkles size={14}/>运行 Agent 分析</button>
           <small>{result.disclaimer}</small>
         </div>
@@ -73,6 +81,7 @@ export function AgentPlayground() {
             <div><span>{result.job?.company_name}</span><h3>{result.job?.title}</h3><p>{[result.job?.workplace, result.job?.city, result.job?.district].filter(Boolean).join(" · ") || "地点待核验"}</p></div>
             <strong>{result.score?.final_score}</strong>
           </div>
+          <div className="playground-demo-disclosure"><strong>公开示例 · 不可直接投递</strong><span>下一步：核验原岗位，再登录控制台使用个人证据生成材料。</span></div>
           <div className="playground-metrics">
             <Metric label="规则分" value={result.score?.rule_score ?? 0} note="届别、实习、地点与周期"/>
             <Metric label="证据分" value={result.score?.semantic_score ?? 0} note="示例项目与 JD 重合"/>
@@ -80,7 +89,7 @@ export function AgentPlayground() {
           </div>
           <div className="playground-section"><strong>已匹配</strong><div className="tag-row">{(result.score?.matched_skills ?? []).map((item: string) => <span key={item}>{item}</span>)}</div></div>
           <div className="playground-section"><strong>缺口与风险</strong><ul>{(result.score?.missing_skills ?? []).slice(0, 6).map((item: string) => <li key={item}>{item}</li>)}{(result.score?.blockers ?? []).map((item: string) => <li key={item}>{item}</li>)}</ul></div>
-          <div className="resume-recommendation"><FileCheck2 size={17}/><div><span>推荐简历</span><strong>{result.resume?.persona_label}</strong><p>{(result.resume?.emphasis ?? []).join("；")}</p></div></div>
+          <div className="resume-recommendation"><FileCheck2 size={17}/><div><span>推荐简历</span><strong>{result.resume?.persona_label}</strong><p>{(result.resume?.emphasis ?? []).join("；")}</p><small>{(result.resume?.alignment?.explanation ?? []).slice(1, 3).join("；")}</small></div></div>
           <div className="greeting-draft"><div><span>个性化招呼语</span><p>{result.greeting?.greeting}</p></div><button className="ghost-button" onClick={() => void copyGreeting()}><Clipboard size={13}/>{copied ? "已复制" : "复制"}</button></div>
           <div className="playground-safety"><ShieldCheck size={15}/><span>状态：等待人工确认 · 不自动发送 · 不自动投递</span></div>
         </div>

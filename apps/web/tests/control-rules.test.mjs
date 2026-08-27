@@ -23,6 +23,16 @@ test("parser keeps 2028 eligibility unknown when JD only says internship", () =>
   assert.equal(job.workplace, "remote");
 });
 
+test("parser extracts a published date from pasted JD text without inventing history", () => {
+  const parsed = parseJobIntake({
+    raw_text: "AI 应用工程实习生\n更新于2026-08-22。接受2028届在校生，每周3天，至少3个月。",
+    company: "Fresh Signals",
+    title: "AI 应用工程实习生",
+  });
+  assert.equal(parsed.published_at, "2026-08-22");
+  assert.equal(parsed.raw_payload.parser, "deterministic-v1");
+});
+
 test("evaluation surfaces work-condition risks from the JD", () => {
   const job = parseJobIntake({
     raw_text: "接受2028届在校生实习，每周3天，至少3个月，大小周，项目节点可能加班。Python",

@@ -111,6 +111,14 @@ function parseFoundedYear(text) {
   return parseInteger(match);
 }
 
+function parsePublishedAt(text) {
+  const match = matchFirst(normalize(text), [
+    /(?:发布于|更新于|发布时间[：:]?|更新时间[：:]?)\s*(20\d{2})[-年](\d{1,2})[-月](\d{1,2})日?/,
+  ]);
+  if (!match) return null;
+  return `${match[1]}-${String(match[2]).padStart(2, "0")}-${String(match[3]).padStart(2, "0")}`;
+}
+
 function inferCompanyTier(text) {
   if (includesAny(text, ["0-20人", "少于20人", "初创", "创业团队", "早期团队"])) return "small";
   if (includesAny(text, ["20-99人", "100-499人", "中型", "成长型"])) return "medium";
@@ -165,6 +173,7 @@ export function parseJobIntake(input) {
   const title = normalize(input?.title) || normalize(lines.find((line) => /实习|intern|agent|产品|开发|工程/.test(lower(line)))) || "待核验岗位";
   const sourceUrl = normalize(input?.source_url ?? input?.sourceUrl);
   const foundedYear = input?.company_founded_year ?? input?.companyFoundedYear ?? parseFoundedYear(rawText);
+  const publishedAt = input?.published_at ?? input?.publishedAt ?? parsePublishedAt(rawText);
   return {
     source_id: normalize(input?.source_id ?? input?.sourceId),
     company,
@@ -185,7 +194,7 @@ export function parseJobIntake(input) {
     days_per_week: input?.days_per_week ?? days,
     minimum_months: input?.minimum_months ?? months,
     salary: normalize(input?.salary) || extractSalary(rawText),
-    published_at: input?.published_at ?? null,
+    published_at: publishedAt || null,
     deadline: input?.deadline ?? null,
     source_name: normalize(input?.source_name ?? input?.sourceName),
     source_url: sourceUrl || null,

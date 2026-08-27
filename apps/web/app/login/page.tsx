@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, KeyRound, Sparkles, UserPlus } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
@@ -164,6 +165,11 @@ export default function LoginPage() {
         <button type="button" aria-pressed={mode === "login"} onClick={() => switchMode("login")}>登录</button>
         <button type="button" aria-pressed={mode === "register"} onClick={() => switchMode("register")}>注册</button>
         <button type="button" aria-pressed={mode === "reset"} onClick={() => switchMode("reset")}>找回密码</button>
+      </div> : null}
+      {mode !== "update_password" ? <div className="login-demo-handoff">
+        <span>想先了解系统？</span>
+        <Link href="/playground">体验公开 Demo <ArrowRight size={14}/></Link>
+        <small>无需登录，不读取私人资料，也不会自动投递。</small>
       </div> : null}
     </form>
   </main>;

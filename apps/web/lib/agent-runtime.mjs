@@ -443,6 +443,10 @@ export function recommendResumePersona(job) {
   if (legalSignals.some((term) => title.includes(term) || text.includes(term))) return "legal";
   if (liveSignals.some((term) => title.includes(term) || text.includes(term))) return "live_streaming";
   if (photoVideoSignals.some((term) => title.includes(term) || text.includes(term))) return "photo_video";
+  if (engineeringSignals.some((term) => title.includes(term))) return "engineering";
+  if (solutionSignals.some((term) => title.includes(term))) return "ai_solution";
+  if (productSignals.some((term) => title.includes(term))) return "ai_product";
+  if (engineeringITSignals.some((term) => title.includes(term))) return "agent_engineer";
   if (engineeringSignals.some((term) => title.includes(term) || text.includes(term))) return "engineering";
   if (financeSignals.some((term) => title.includes(term) || text.includes(term))) return "finance";
   if (adminSignals.some((term) => title.includes(term) || text.includes(term))) return "admin";
