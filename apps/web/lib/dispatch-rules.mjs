@@ -26,9 +26,21 @@ export function normalizeDispatchPolicy(input = {}) {
   };
 }
 
+function dispatchFingerprint(job = {}) {
+  const explicit = String(job.job_fingerprint ?? "").trim();
+  if (explicit) return explicit;
+  const source = String(job.source_url ?? "").split(/[?#]/)[0];
+  const fallback = [job.company_name ?? job.company, job.title, job.city ?? job.location, source]
+    .map((value) => String(value ?? "").trim().toLowerCase())
+    .join("|")
+    .trim();
+  return fallback || String(job.id ?? "");
+}
+
 export function selectDispatchCandidates(candidates, policyInput = {}) {
   const policy = normalizeDispatchPolicy(policyInput);
   if (!policy.enabled) return [];
+  const seenFingerprints = new Set();
   return candidates
     .filter((candidate) => {
       const application = candidate.application ?? {};
@@ -41,11 +53,19 @@ export function selectDispatchCandidates(candidates, policyInput = {}) {
         && applicationPackage.approval === "approved"
         && applicationPackage.truth_check?.passed === true
         && score.eligible === true
+        && score.needs_confirmation !== true
         && Number(score.final_score ?? 0) >= policy.minimum_score
         && Boolean(job.source_url)
         && policy.allowed_channels.includes(channel)
         && policy.allowed_workplaces.includes(workplace);
     })
     .sort((left, right) => Number(right.score?.final_score ?? 0) - Number(left.score?.final_score ?? 0))
+    .filter((candidate) => {
+      const job = candidate.job ?? {};
+      const fingerprint = dispatchFingerprint(job);
+      if (seenFingerprints.has(fingerprint)) return false;
+      seenFingerprints.add(fingerprint);
+      return true;
+    })
     .slice(0, policy.daily_limit);
 }
