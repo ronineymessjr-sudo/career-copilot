@@ -24,7 +24,9 @@ jobs:
       - run: npm run test:complete
       - run: npm run test:m08.1
       - run: npm run evaluation:m08.1
-      - run: npm run smoke:m08.1
+      # The dedicated Public smoke workflow owns pre-deploy public-route checks.
+      # Keeping this external network probe out of validate prevents a runner-specific
+      # workers.dev route timeout from blocking an otherwise verified deployment.
       - run: npm run check
       - run: python scripts/validate_supabase_migrations.py
       - run: python scripts/validate_cloudflare.py
