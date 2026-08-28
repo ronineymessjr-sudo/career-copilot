@@ -56,3 +56,11 @@ test("source filtering is broad by default and only restricts to internships whe
   assert.equal(passesSourceFilters(job, {}), true);
   assert.equal(passesSourceFilters(job, { internships_only: true }), false);
 });
+
+test("source filters enforce remote-only work mode", () => {
+  const base = { externalId: "remote", company: "A", title: "AI 实习", rawText: "Python 实习", sourceUrl: "https://x", applyUrl: "https://x", location: "", publishedAt: null, deadline: null, salary: "", sourcePayload: {} };
+  assert.equal(passesSourceFilters({ ...base, workplace: "remote" }, { work_modes: ["remote"] }), true);
+  assert.equal(passesSourceFilters({ ...base, workplace: "hybrid" }, { work_modes: ["remote"] }), false);
+  assert.equal(passesSourceFilters({ ...base, workplace: "onsite" }, { work_modes: ["remote"] }), false);
+  assert.equal(passesSourceFilters({ ...base, workplace: "unknown" }, { work_modes: ["remote"] }), false);
+});

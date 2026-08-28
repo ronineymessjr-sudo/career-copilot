@@ -33,6 +33,18 @@ test("daily queue observes the configured daily limit and score floor", () => {
   assert.equal(selectDispatchCandidates([lower], { minimum_score: 80 }).length, 0);
 });
 
+test("daily queue does not dispatch candidates that still need confirmation", () => {
+  const candidate = { ...ready, score: { eligible: true, needs_confirmation: true, final_score: 95 } };
+  assert.deepEqual(selectDispatchCandidates([candidate], { allowed_workplaces: ["remote"] }), []);
+});
+
+test("daily queue deduplicates candidates with the same job fingerprint", () => {
+  const first = { ...ready, application: { ...ready.application, id: "a-fp-1" }, job: { ...ready.job, job_fingerprint: "same-job" }, score: { eligible: true, final_score: 95 } };
+  const second = { ...ready, application: { ...ready.application, id: "a-fp-2" }, job: { ...ready.job, job_fingerprint: "same-job" }, score: { eligible: true, final_score: 90 } };
+  const selected = selectDispatchCandidates([second, first], { allowed_workplaces: ["remote"] });
+  assert.deepEqual(selected.map((item) => item.application.id), ["a-fp-1"]);
+});
+
 test("dispatch policy is bounded and always keeps batch approval enabled by default", () => {
   const policy = normalizeDispatchPolicy({ daily_limit: 99, minimum_score: -1 });
   assert.equal(policy.daily_limit, 20);
