@@ -17,6 +17,7 @@ The Web Worker is serving 100% traffic on version `329eb4f4-1d4b-429e-9768-b3a03
 - Scheduler TypeScript check passed.
 - Cloudflare configuration validation passed.
 - The public Playground exposes 18 deterministic role scenarios, including legal, operations, photo/video, AI research, traditional R&D, data, solutions, and remote HR. Independent user personas verified the public result, scenario/input states, salary-review signal, and no-send/no-submit boundary. The current execution environment intermittently cannot establish outbound HTTPS connections to the Worker; that is recorded as an environment caveat rather than a fabricated application failure.
+- The local deterministic role matrix generated an analysis, decision, and resume direction for all 18 scenarios. A fresh 10-persona live black-box run was attempted across law, product, operations, photo/video, AI research, traditional R&D, data, solutions, remote HR, and engineering: one persona reached a partial page-open/analysis observation and nine were blocked by browser/network or turn-interruption failures. No live result was marked as passed when the environment did not return evidence.
 - Web and Scheduler secret names are configured; secret values were not exposed.
 
 ## Safety boundary
@@ -25,4 +26,4 @@ The live runtime remains approval-first: no automatic email sending, no automati
 
 ## Repository state
 
-The Worker was built from source commit `7ac86cd53fac030b7d4e0557dde8614234c100cf`; the source and deployment record are committed and pushed at `7feee91d1110e659f8720f41406309251507f09f`, and GitHub `main` matches that commit.
+The Worker was built from source commit `7ac86cd53fac030b7d4e0557dde8614234c100cf`; this documentation update is the final release record and must match GitHub `main` after the final SHA check.

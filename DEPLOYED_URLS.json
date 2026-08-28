@@ -13,6 +13,6 @@
     "web": "329eb4f4-1d4b-429e-9768-b3a0335e2661",
     "scheduler": "17ab1056-68bf-49ac-b967-763b4cb737f8"
   },
-  "public_smoke": "independent_agents_passed_with_network_caveat",
-  "public_smoke_note": "The public Playground now exposes 18 deterministic role scenarios, including legal, operations, photo/video, AI research, traditional R&D, data, solutions, and remote HR. Independent user personas verified the public result, scenario/input states, salary-review signal, and no-send/no-submit boundary. The current execution environment intermittently cannot establish outbound HTTPS connections to the Worker; no login, real data, or submission was used."
+  "public_smoke": "role_matrix_passed_live_black_box_environment_blocked",
+  "public_smoke_note": "The public Playground exposes 18 deterministic role scenarios, including legal, operations, photo/video, AI research, traditional R&D, data, solutions, and remote HR. The local deterministic matrix generated an analysis, decision, and resume direction for all 18 scenarios. The latest 10-persona live black-box run had one partial page-open/analysis observation and nine browser/network or turn-interruption blocks; no login, real data, or submission was used."
 }
