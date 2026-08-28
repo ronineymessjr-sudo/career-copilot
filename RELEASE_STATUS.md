@@ -26,4 +26,4 @@ The live runtime remains approval-first: no automatic email sending, no automati
 
 ## Repository state
 
-The Worker was built from source commit `7ac86cd53fac030b7d4e0557dde8614234c100cf`; the final release record is committed and pushed at `55ecffea821735a3d7786684960e95d5daa66337`, and GitHub `main` matches this commit.
+The Worker was built from source commit `7ac86cd53fac030b7d4e0557dde8614234c100cf`; the final release record is committed and pushed at `fe4b2b90b9f53cffed085800f4b0ef03e1a03eea`, and GitHub `main` matches this commit.
