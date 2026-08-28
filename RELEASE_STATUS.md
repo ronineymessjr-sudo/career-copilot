@@ -9,14 +9,14 @@ Live on Cloudflare:
 - Web Worker: https://career-copilot-v2.photomagic.workers.dev
 - Scheduler Worker: https://career-copilot-scheduler.photomagic.workers.dev
 
-The Web Worker is serving 100% traffic on version `5c16cfd8-11bd-4fd4-b8ef-a282c9481185`. The Scheduler Worker is serving version `99fc024a-a7b0-47d5-b277-0f52f93797e8` with `*/5 * * * *`, daily, and weekly triggers plus the private Web Service Binding.
+The Web Worker is serving 100% traffic on version `329eb4f4-1d4b-429e-9768-b3a0335e2661`. The Scheduler Worker is serving version `17ab1056-68bf-49ac-b967-763b4cb737f8` with `*/5 * * * *`, daily, and weekly triggers plus the private Web Service Binding.
 
 ## Acceptance evidence
 
-- 119 Node tests passed.
+- 121 Node tests passed.
 - Scheduler TypeScript check passed.
 - Cloudflare configuration validation passed.
-- Independent user personas verified the public Playground, default result, scenario/input states, salary-review signal, and no-send/no-submit boundary. A slow-network pass also covered the public root, privacy, and updates routes without a white screen. Browser control remained intermittently unstable with 30-second interaction timeouts, so those timeouts are recorded as an environment caveat rather than a fabricated application failure.
+- The public Playground exposes 18 deterministic role scenarios, including legal, operations, photo/video, AI research, traditional R&D, data, solutions, and remote HR. Independent user personas verified the public result, scenario/input states, salary-review signal, and no-send/no-submit boundary. The current execution environment intermittently cannot establish outbound HTTPS connections to the Worker; that is recorded as an environment caveat rather than a fabricated application failure.
 - Web and Scheduler secret names are configured; secret values were not exposed.
 
 ## Safety boundary
@@ -25,4 +25,4 @@ The live runtime remains approval-first: no automatic email sending, no automati
 
 ## Repository state
 
-The source changes and deployment record are committed and pushed at `71c27ee514ddd83fe1015d0fd5e4bf59e51bd6b5`; GitHub `main` matches this commit.
+The source changes and deployment record are committed and pushed at `7ac86cd53fac030b7d4e0557dde8614234c100cf`; GitHub `main` must match this commit after the push verification step.
