@@ -447,7 +447,7 @@ export function recommendResumePersona(job) {
   const title = normalized(job?.title ?? "");
   const text = normalized(`${job?.title ?? ""} ${job?.description ?? ""} ${job?.requirements ?? ""}`);
   const productSignals = ["产品", "运营", "用户研究", "增长", "内容", "prd", "figma", "product", "operation"];
-  const solutionSignals = ["解决方案", "实施", "咨询", "客户成功", "售前", "销售", "商务", "交付", "consulting", "sales"];
+  const solutionSignals = ["解决方案", "实施", "咨询", "客户成功", "售前", "销售", "商务", "交付", "商业化", "创业营", "consulting", "sales", "business"];
   const operationsSignals = ["运营", "增长", "用户运营", "内容运营", "社区运营", "活动运营", "operation", "growth", "community"];
   const engineeringITSignals = ["开发", "研发", "算法", "数据", "测试", "后端", "前端", "全栈", "python", "java", "javascript", "typescript", "sql", "engineer"];
   const researchSignals = ["机器学习", "深度学习", "transformer", "论文复现", "模型训练", "实验设计", "ai research", "machine learning", "deep learning"];

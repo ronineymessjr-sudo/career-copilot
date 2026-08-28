@@ -131,6 +131,11 @@ test("solution persona is recommended for implementation roles", () => {
   assert.equal(recommendResumePersona(localJob), "ai_solution");
 });
 
+test("commercialization roles use the solutions and business persona", () => {
+  const businessJob = { ...job, title: "AI Business 创造营实习生", description: "参与 AI 产品商业化和全球业务运营" };
+  assert.equal(recommendResumePersona(businessJob), "ai_solution");
+});
+
 test("technical title wins over product wording in project context", () => {
   const localJob = { ...job, title: "AI Agent 应用研发实习生", description: "使用 Python 和 LangGraph 构建产品化应用", requirements: "接受在校生" };
   assert.equal(recommendResumePersona(localJob), "agent_engineer");
