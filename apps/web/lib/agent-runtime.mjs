@@ -19,6 +19,14 @@ export const RESUME_PERSONAS = {
     emphasis: ["需求分析与用户理解", "产品方案和运营执行", "指标、协作与复盘"],
     summary: "面向产品、运营、用户研究和项目岗位，强调需求判断、执行和数据复盘。",
   },
+  ai_research: {
+    label: "AI 研究与算法版",
+    roleFamily: "AI Research",
+    prioritySkills: ["python", "research", "evaluation", "analytics", "rag", "agent", "prompt"],
+    projectOrder: [],
+    emphasis: ["算法与实验设计", "可复现的评测与结果", "论文复现、数据和工程实现"],
+    summary: "面向 AI 研究、机器学习和算法岗位，强调实验严谨性、可复现评测与算法落地。",
+  },
   ai_solution: {
     label: "解决方案与商务版",
     roleFamily: "Solutions and Business",
@@ -433,6 +441,7 @@ export function recommendResumePersona(job) {
   const productSignals = ["产品", "运营", "用户研究", "增长", "内容", "prd", "figma", "product", "operation"];
   const solutionSignals = ["解决方案", "实施", "咨询", "客户成功", "售前", "销售", "商务", "交付", "consulting", "sales"];
   const engineeringITSignals = ["开发", "研发", "算法", "数据", "测试", "后端", "前端", "全栈", "python", "java", "javascript", "typescript", "sql", "engineer"];
+  const researchSignals = ["机器学习", "深度学习", "transformer", "论文复现", "模型训练", "实验设计", "ai research", "machine learning", "deep learning"];
   const legalSignals = ["法律", "法务", "律师", "合规", "合同", "law", "legal", "attorney", "compliance", "诉讼", "仲裁", "知识产权", "专利", "商标"];
   const hrSignals = ["人力资源", "人事", "hr", "human resources", "recruiting", "员工关系", "绩效", "薪酬", "猎头", "招聘专员", "招聘经理", "招聘顾问", "hrbp"];
   const financeSignals = ["财务", "会计", "审计", "税务", "出纳", "finance", "accounting", "audit", "tax", "bookkeeping"];
@@ -443,6 +452,7 @@ export function recommendResumePersona(job) {
   if (legalSignals.some((term) => title.includes(term) || text.includes(term))) return "legal";
   if (liveSignals.some((term) => title.includes(term) || text.includes(term))) return "live_streaming";
   if (photoVideoSignals.some((term) => title.includes(term) || text.includes(term))) return "photo_video";
+  if (researchSignals.some((term) => title.includes(term) || text.includes(term))) return "ai_research";
   if (engineeringSignals.some((term) => title.includes(term))) return "engineering";
   if (solutionSignals.some((term) => title.includes(term))) return "ai_solution";
   if (productSignals.some((term) => title.includes(term))) return "ai_product";

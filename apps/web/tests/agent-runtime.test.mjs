@@ -112,8 +112,13 @@ test("resume alignment counts skills proven in verified project evidence", () =>
   assert.equal(draft.alignment.matched_keywords.includes("rag"), true);
 });
 
-test("all eleven resume personas are available", () => {
-  assert.deepEqual(Object.keys(RESUME_PERSONAS).sort(), ["admin", "agent_engineer", "ai_product", "ai_solution", "engineering", "finance", "hr", "legal", "live_streaming", "local_transition", "photo_video"].sort());
+test("all resume personas are available", () => {
+  assert.deepEqual(Object.keys(RESUME_PERSONAS).sort(), ["admin", "agent_engineer", "ai_product", "ai_research", "ai_solution", "engineering", "finance", "hr", "legal", "live_streaming", "local_transition", "photo_video"].sort());
+});
+
+test("research roles use the AI research resume persona", () => {
+  const researchJob = { ...job, title: "机器学习与 AI 研究实习生", description: "Transformer、深度学习、论文复现和实验设计", requirements: "熟悉 Python 与机器学习" };
+  assert.equal(recommendResumePersona(researchJob), "ai_research");
 });
 
 test("solution persona is recommended for implementation roles", () => {

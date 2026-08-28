@@ -40,7 +40,6 @@ export const SKILLS = {
   sales: ["sales", "销售", "商务", "商务拓展", "business development"],
   consulting: ["consulting", "咨询", "解决方案", "售前", "客户成功", "实施", "交付"],
   marketing: ["marketing", "市场营销", "营销"],
-  finance: ["finance", "accounting", "财务", "会计"],
   design: ["design", "视觉设计", "交互设计", "ui", "ux", "photoshop", "illustrator"],
   excel: ["excel", "电子表格", "表格"],
   testing: ["testing", "测试", "qa", "quality assurance"],

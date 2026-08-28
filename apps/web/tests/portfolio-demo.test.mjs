@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { analyzePortfolioDemo, DEFAULT_PLAYGROUND_JD, demoJobFromText } from "../lib/portfolio-demo.mjs";
+import { analyzePortfolioDemo, DEFAULT_PLAYGROUND_JD, DEMO_SCENARIOS, demoJobFromText } from "../lib/portfolio-demo.mjs";
 import { extractJobSkills } from "../lib/skills.mjs";
 
 test("portfolio playground returns a grounded internship analysis", () => {
@@ -30,4 +30,21 @@ test("portfolio playground blocks full-time graduate role", () => {
   const result = analyzePortfolioDemo(job.description);
   assert.equal(result.score.grade, "C");
   assert.ok(result.score.blockers.length > 0);
+});
+
+test("role-specific demo scenarios select the matching resume direction", () => {
+  const expected = new Map([
+    ["legal-compliance", "legal"],
+    ["operations-growth", "ai_product"],
+    ["photo-video", "photo_video"],
+    ["ai-research", "ai_research"],
+    ["traditional-rnd", "engineering"],
+    ["data-analytics", "agent_engineer"],
+    ["solutions-sales", "ai_solution"],
+    ["remote-hr", "ai_product"],
+  ]);
+  for (const scenario of DEMO_SCENARIOS) {
+    if (!expected.has(scenario.id)) continue;
+    assert.equal(analyzePortfolioDemo(scenario.jd).resume.persona, expected.get(scenario.id), scenario.id);
+  }
 });
