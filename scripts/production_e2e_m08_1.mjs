@@ -1,32 +1,35 @@
 import assert from "node:assert/strict";
-import https from "node:https";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
 
 const base = (process.env.WEB_URL || "https://career-copilot-v2.photomagic.workers.dev").replace(/\/$/, "");
-const REQUEST_TIMEOUT_MS = 15_000;
-const MAX_ATTEMPTS = 4;
+const REQUEST_TIMEOUT_MS = 60_000;
+const MAX_ATTEMPTS = 2;
+const execFileAsync = promisify(execFile);
 
-function requestWithIpv4(url) {
-  return new Promise((resolve, reject) => {
-    const request = https.get(url, { family: 4, timeout: REQUEST_TIMEOUT_MS }, (response) => {
-      const chunks = [];
-      response.setEncoding("utf8");
-      response.on("data", (chunk) => chunks.push(chunk));
-      response.on("end", () => resolve({
-        ok: (response.statusCode ?? 0) >= 200 && (response.statusCode ?? 0) < 300,
-        status: response.statusCode ?? 0,
-        body: chunks.join(""),
-      }));
-    });
-    request.on("timeout", () => request.destroy(new Error(`Request timed out after ${REQUEST_TIMEOUT_MS}ms`)));
-    request.on("error", reject);
-  });
+async function requestWithCurl(url) {
+  const curl = process.platform === "win32" ? "curl.exe" : "curl";
+  const marker = "__CAREER_COPILOT_STATUS__";
+  const { stdout } = await execFileAsync(curl, [
+    "--silent", "--show-error", "--location",
+    "--retry", "3", "--retry-all-errors", "--retry-delay", "2",
+    "--connect-timeout", "15", "--max-time", String(REQUEST_TIMEOUT_MS / 1_000),
+    "--write-out", `\\n${marker}%{http_code}`,
+    url,
+  ], { encoding: "utf8", maxBuffer: 2 * 1024 * 1024, timeout: REQUEST_TIMEOUT_MS + 15_000 });
+  const statusMarker = `${String.fromCharCode(10)}${marker}`;
+  const statusIndex = stdout.lastIndexOf(statusMarker);
+  if (statusIndex < 0) throw new Error(`curl did not return an HTTP status for ${url}`);
+  const body = stdout.slice(0, statusIndex);
+  const status = Number(stdout.slice(statusIndex + statusMarker.length));
+  return { ok: status >= 200 && status < 300, status, body };
 }
 
 async function fetchWithRetry(url) {
   let lastError;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
-      const response = await requestWithIpv4(url);
+      const response = await requestWithCurl(url);
       if (response.ok || attempt === MAX_ATTEMPTS) {
         return { ok: response.ok, status: response.status, json: async () => JSON.parse(response.body) };
       }
