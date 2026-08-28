@@ -30,6 +30,7 @@ type Profile = {
   preferences: {
     target_roles: string[];
     locations: string[];
+    onsite_locations: string[];
     work_modes: string[];
     industries: string[];
     keywords: string[];
@@ -82,7 +83,7 @@ export function ProfileWorkspace() {
   const load = useCallback(async () => {
     try {
       const result = await controlFetch<ProfileResponse>("/api/control/profile");
-      setProfile(result.profile);
+      setProfile({ ...result.profile, preferences: { ...result.profile.preferences, onsite_locations: result.profile.preferences.onsite_locations ?? [] } });
       setCompleteness(result.completeness);
       setEmail(result.account?.email ?? "");
       setMessage("");
@@ -178,6 +179,7 @@ export function ProfileWorkspace() {
         <div className="platform-form-grid two">
           <label>目标岗位<textarea rows={3} value={profile.preferences.target_roles.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, target_roles: csv(event.target.value) } })} placeholder="AI 应用开发，后端开发，数据产品"/></label>
           <label>目标地点<textarea rows={3} value={profile.preferences.locations.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, locations: csv(event.target.value) } })} placeholder="上海，南京，远程"/></label>
+          <label>允许现场城市/区县<textarea rows={3} value={profile.preferences.onsite_locations.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, onsite_locations: csv(event.target.value) } })} placeholder="南通崇川区，南京浦口区（留空则不限制现场区县）"/></label>
           <label>推荐关键词<textarea rows={3} value={profile.preferences.keywords.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, keywords: csv(event.target.value) } })} placeholder="Agent，RAG，平台工程"/></label>
           <label>排除关键词<textarea rows={3} value={profile.preferences.excluded_keywords.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, excluded_keywords: csv(event.target.value) } })} placeholder="销售，纯线下（可留空）"/></label>
           <label>偏好行业<input value={profile.preferences.industries.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, industries: csv(event.target.value) } })} placeholder="人工智能，SaaS，医疗科技"/></label>

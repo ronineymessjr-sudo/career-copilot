@@ -174,7 +174,7 @@ export function ResumeAgentWorkspace() {
   }
 
   function personaLabel(value: string) {
-    return ({ agent_engineer: "工程研发版", ai_product: "产品与运营版", ai_solution: "解决方案与商务版", local_transition: "通用岗位版", legal: "法律与法务版", hr: "人力资源版", finance: "财务与会计版", admin: "行政与支持版", engineering: "工科工程版", photo_video: "摄影与视频版", live_streaming: "主播与直播版" } as Record<string, string>)[value] || value;
+    return ({ agent_engineer: "工程研发版", ai_product: "产品与运营版", operations: "运营与增长版", ai_solution: "解决方案与商务版", local_transition: "通用岗位版", legal: "法律与法务版", hr: "人力资源版", finance: "财务与会计版", admin: "行政与支持版", engineering: "工科工程版", photo_video: "摄影与视频版", live_streaming: "主播与直播版", ai_research: "AI 研究与算法版" } as Record<string, string>)[value] || value;
   }
 
   async function createFromProfile() {
@@ -248,7 +248,7 @@ export function ResumeAgentWorkspace() {
       <header><Sparkles size={20}/><div><h2>生成岗位定制版本</h2><p>系统读取岗位、主简历和已核验项目证据，生成新的草稿版本，不覆盖原简历。</p></div></header>
       <form onSubmit={generate}>
         <label>目标岗位<select value={jobId} onChange={(event) => setJobId(event.target.value)} required><option value="">请选择岗位</option>{jobs.map((job) => <option value={job.id} key={job.id}>{job.company_name} · {job.title}</option>)}</select></label>
-        <label>版本方向<select value={persona} onChange={(event) => setPersona(event.target.value)}><option value="agent_engineer">工程研发版</option><option value="ai_product">产品与运营版</option><option value="ai_solution">解决方案与商务版</option><option value="engineering">工科工程版</option><option value="photo_video">摄影与视频版</option><option value="live_streaming">主播与直播版</option><option value="legal">法律与法务版</option><option value="hr">人力资源版</option><option value="finance">财务与会计版</option><option value="admin">行政与支持版</option><option value="local_transition">通用岗位版</option></select></label>
+        <label>版本方向<select value={persona} onChange={(event) => setPersona(event.target.value)}><option value="agent_engineer">工程研发版</option><option value="ai_product">产品与运营版</option><option value="operations">运营与增长版</option><option value="ai_solution">解决方案与商务版</option><option value="ai_research">AI 研究与算法版</option><option value="engineering">工科工程版</option><option value="photo_video">摄影与视频版</option><option value="live_streaming">主播与直播版</option><option value="legal">法律与法务版</option><option value="hr">人力资源版</option><option value="finance">财务与会计版</option><option value="admin">行政与支持版</option><option value="local_transition">通用岗位版</option></select></label>
         <button className="primary-button" disabled={busy === "generate" || !jobId}><Sparkles size={14}/>{busy === "generate" ? "生成中…" : "生成新版本"}</button>
       </form>
       <div className="resume-batch-actions">

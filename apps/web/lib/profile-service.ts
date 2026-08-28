@@ -14,7 +14,7 @@ export async function ensureProfile(auth: AuthContext): Promise<Record<string, a
       graduation_year: null,
       major: "",
       degree: "",
-      preferences: { target_roles: [], locations: [], work_modes: [], industries: [], keywords: [], excluded_keywords: [], internship_only: false },
+      preferences: { target_roles: [], locations: [], onsite_locations: [], work_modes: [], industries: [], keywords: [], excluded_keywords: [], internship_only: false },
       profile_details: { display_name: "", phone: "", current_city: "", headline: "", summary: "", years_experience: 0, skills: [], experience: [], education: [], projects: [], languages: [], certifications: [], links: [] },
     }]),
   });

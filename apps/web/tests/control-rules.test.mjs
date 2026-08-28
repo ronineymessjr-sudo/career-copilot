@@ -336,6 +336,15 @@ test("remote-only preference hard-blocks hybrid and onsite jobs", () => {
   }
 });
 
+test("onsite preference enforces the allowed city and district pairs", () => {
+  const profile = { graduation_year: 2028, major: "人工智能", degree: "本科", availability_days: 5, availability_months: 6, preferences: { internship_only: true, locations: ["南通崇川区", "南京浦口区"], onsite_locations: ["南通崇川区", "南京浦口区"], work_modes: ["remote", "onsite"] } };
+  const allowed = evaluateJob({ id: "onsite-allowed", title: "AI 产品实习", description: "南京浦口区", city: "南京", district: "浦口", workplace: "onsite", is_internship: true, accepts_students: true, accepts_2028: true, days_per_week: 3, minimum_months: 3 }, [], new Date("2026-08-05T00:00:00Z"), profile);
+  const blocked = evaluateJob({ id: "onsite-blocked", title: "AI 产品实习", description: "南京秦淮区", city: "南京", district: "秦淮", workplace: "onsite", is_internship: true, accepts_students: true, accepts_2028: true, days_per_week: 3, minimum_months: 3 }, [], new Date("2026-08-05T00:00:00Z"), profile);
+  assert.equal(allowed.eligible, true);
+  assert.equal(blocked.eligible, false);
+  assert.ok(blocked.hard_filter_reasons.some((item) => item.includes("现场岗位地点")));
+});
+
 test("remote-only preference keeps unknown workplace reviewable", () => {
   const profile = {
     graduation_year: 2028,

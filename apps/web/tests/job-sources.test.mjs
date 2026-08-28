@@ -57,6 +57,13 @@ test("source filtering is broad by default and only restricts to internships whe
   assert.equal(passesSourceFilters(job, { internships_only: true }), false);
 });
 
+test("source filtering enforces allowed onsite city and district pairs", () => {
+  const filters = { onsite_locations: ["南通崇川区", "南京浦口区"] };
+  assert.equal(passesSourceFilters({ title: "AI 实习", rawText: "", location: "南京 浦口区", workplace: "onsite" }, filters), true);
+  assert.equal(passesSourceFilters({ title: "AI 实习", rawText: "", location: "南京 秦淮区", workplace: "onsite" }, filters), false);
+  assert.equal(passesSourceFilters({ title: "AI 实习", rawText: "", location: "北京", workplace: "remote" }, filters), true);
+});
+
 test("source filters enforce remote-only work mode", () => {
   const base = { externalId: "remote", company: "A", title: "AI 实习", rawText: "Python 实习", sourceUrl: "https://x", applyUrl: "https://x", location: "", publishedAt: null, deadline: null, salary: "", sourcePayload: {} };
   assert.equal(passesSourceFilters({ ...base, workplace: "remote" }, { work_modes: ["remote"] }), true);

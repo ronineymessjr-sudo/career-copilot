@@ -32,16 +32,22 @@ test("portfolio playground blocks full-time graduate role", () => {
   assert.ok(result.score.blockers.length > 0);
 });
 
+test("portfolio demo workplace parsing fails closed on negative or conflicting wording", () => {
+  assert.equal(analyzePortfolioDemo("AI 实习生（可远程）\n接受2028届在校生；每周3天，至少3个月。").job.workplace, "remote");
+  assert.equal(analyzePortfolioDemo("AI 实习生（混合办公，部分远程）\n接受2028届在校生；每周3天，至少3个月。").job.workplace, "unknown");
+  assert.equal(analyzePortfolioDemo("AI 实习生（不接受远程）\n接受2028届在校生；每周3天，至少3个月。").job.workplace, "onsite");
+});
+
 test("role-specific demo scenarios select the matching resume direction", () => {
   const expected = new Map([
     ["legal-compliance", "legal"],
-    ["operations-growth", "ai_product"],
+    ["operations-growth", "operations"],
     ["photo-video", "photo_video"],
     ["ai-research", "ai_research"],
     ["traditional-rnd", "engineering"],
     ["data-analytics", "agent_engineer"],
     ["solutions-sales", "ai_solution"],
-    ["remote-hr", "ai_product"],
+    ["remote-hr", "hr"],
   ]);
   for (const scenario of DEMO_SCENARIOS) {
     if (!expected.has(scenario.id)) continue;

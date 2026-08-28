@@ -172,6 +172,18 @@ function parseSourceFreshness(text, referenceDate = "2026-08-24") {
   return { status: daysOld <= 7 ? "fresh" : daysOld <= 30 ? "aging" : "stale", days_old: daysOld, source_date: sourceDate, detail: `${sourceDate} · 已发布 ${daysOld} 天` };
 }
 
+function parseWorkplace(text) {
+  const remote = /可远程|全国远程|远程办公|线上办公|居家办公|远程|remote/i.test(text);
+  const hybrid = /混合办公|部分远程|hybrid/i.test(text);
+  const onsite = /坐班|到岗|线下办公|现场办公|现场到岗|onsite/i.test(text);
+  if (/(?:不接受|不支持|不提供|不能|无法|禁止)[^。；;，,\n]{0,6}远程/i.test(text)) return "onsite";
+  if (remote && (hybrid || onsite)) return "unknown";
+  if (remote) return "remote";
+  if (hybrid) return "hybrid";
+  if (onsite) return "onsite";
+  return "unknown";
+}
+
 function normalizeKey(value) {
   return String(value ?? "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
 }
@@ -195,7 +207,7 @@ export function demoJobFromText(jdText, overrides = {}) {
     requirements: text,
     city,
     district,
-    workplace: lower.includes("remote") || text.includes("远程") ? "remote" : text.includes("混合") ? "hybrid" : "onsite",
+    workplace: parseWorkplace(text),
     accepts_students: parseBoolean(text, ["在校", "实习生"], ["仅毕业生", "毕业后"]),
     accepts_2028: parseBoolean(text, ["2028", "不限届别"], ["仅2027", "2027届专属"]),
     is_internship: !isFulltime && (text.includes("实习") || lower.includes("intern")),
