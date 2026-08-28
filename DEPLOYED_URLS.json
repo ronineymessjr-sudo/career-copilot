@@ -10,7 +10,7 @@
   "verified_at": "2026-08-27T14:47:52Z",
   "verification_run": "Local Node 20 OpenNext deployment + independent user-agent black-box smoke",
   "control_plane_deployments": {
-    "web": "3feb1a3f-57f6-43bc-a390-ffe5cebb92e9",
+    "web": "5c16cfd8-11bd-4fd4-b8ef-a282c9481185",
     "scheduler": "99fc024a-a7b0-47d5-b277-0f52f93797e8"
   },
   "public_smoke": "independent_agents_passed_with_network_caveat",
