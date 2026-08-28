@@ -3,16 +3,16 @@
   "scheduler_url": "https://career-copilot-scheduler.photomagic.workers.dev",
   "runtime_check": "https://career-copilot-v2.photomagic.workers.dev/api/runtime",
   "scheduler_health_check": "https://career-copilot-scheduler.photomagic.workers.dev/health",
-  "application_commit": "7ac86cd53fac030b7d4e0557dde8614234c100cf",
-  "deployment_source_note": "Web Worker was rebuilt with Node 20 + OpenNext and deployed directly from this verified local commit; Scheduler remains on the latest verified CI deployment.",
+  "application_commit": "a65b40e2474ee457be489fde8fab66fe2f343575",
+  "deployment_source_note": "Cloudflare workflow #108 passed validation, built the OpenNext Web Worker, deployed Web and Scheduler, and completed the post-deploy smoke checks.",
   "mode": "production",
   "schedule": "*/5 * * * *,0 0 * * *,0 12 * * SUN",
-  "verified_at": "2026-08-28T04:31:08Z",
-  "verification_run": "Local Node 20 OpenNext deployment + 121 Node tests + independent user-agent black-box smoke",
+  "verified_at": "2026-08-28T06:19:43Z",
+  "verification_run": "Cloudflare workflow #108 + Public smoke workflow #94 + 121 Node tests + independent user-agent black-box smoke",
   "control_plane_deployments": {
-    "web": "329eb4f4-1d4b-429e-9768-b3a0335e2661",
-    "scheduler": "17ab1056-68bf-49ac-b967-763b4cb737f8"
+    "web": "4b7a458a-b2ab-4a39-a9ca-512f1b152bb5",
+    "scheduler": "9ca95fc1-17ff-4f96-9552-af084f12caa1"
   },
   "public_smoke": "role_matrix_passed_live_black_box_environment_blocked",
-  "public_smoke_note": "The public Playground exposes 18 deterministic role scenarios, including legal, operations, photo/video, AI research, traditional R&D, data, solutions, and remote HR. The local deterministic matrix generated an analysis, decision, and resume direction for all 18 scenarios. The latest 10-persona live black-box run had one partial page-open/analysis observation and nine browser/network or turn-interruption blocks; no login, real data, or submission was used."
+  "public_smoke_note": "The public Playground exposes 18 deterministic role scenarios, including legal, operations, photo/video, AI research, traditional R&D, data, solutions, and remote HR. The local deterministic matrix generated an analysis, decision, and resume direction for all 18 scenarios. GitHub Public smoke #94 passed the public endpoints; the latest 10-persona live black-box run still had one partial page-open/analysis observation and nine browser/network or turn-interruption blocks in the Codex harness. No login, real data, or submission was used."
 }
