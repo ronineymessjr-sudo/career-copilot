@@ -3,6 +3,14 @@ name: Cloudflare deploy
 on:
   push:
     branches: [main]
+    paths:
+      - "apps/**"
+      - "workers/**"
+      - "scripts/**"
+      - "supabase/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/cloudflare-deploy.yml"
   workflow_dispatch:
 
 permissions:
