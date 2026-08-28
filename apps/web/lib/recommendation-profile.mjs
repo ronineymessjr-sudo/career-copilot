@@ -24,6 +24,7 @@ function objectList(value, limit = 30) {
 export const DEFAULT_PROFILE_PREFERENCES = Object.freeze({
   target_roles: [],
   locations: [],
+  onsite_locations: [],
   work_modes: [],
   industries: [],
   keywords: [],
@@ -88,6 +89,7 @@ export function normalizeProfile(profile = {}) {
     preferences: {
       target_roles: list(preferences.target_roles ?? DEFAULT_PROFILE_PREFERENCES.target_roles),
       locations: list(preferences.locations ?? DEFAULT_PROFILE_PREFERENCES.locations),
+      onsite_locations: list(preferences.onsite_locations ?? DEFAULT_PROFILE_PREFERENCES.onsite_locations),
       work_modes: list(preferences.work_modes ?? DEFAULT_PROFILE_PREFERENCES.work_modes),
       industries: list(preferences.industries ?? DEFAULT_PROFILE_PREFERENCES.industries),
       keywords: list(preferences.keywords ?? DEFAULT_PROFILE_PREFERENCES.keywords),

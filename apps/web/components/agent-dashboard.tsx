@@ -122,7 +122,7 @@ export function AgentDashboard() {
       <form className="agent-resume-form" onSubmit={generateResume}>
         <div className="panel-title"><FileText size={16}/><div><strong>Resume Agent</strong><span>多种岗位版本，只使用已核验证据</span></div></div>
         <label>目标岗位<select value={selectedJob} onChange={(event) => setSelectedJob(event.target.value)} required><option value="">选择岗位</option>{jobs.map((job) => <option value={job.id} key={job.id}>{job.company_name} · {job.title}</option>)}</select></label>
-        <label>简历 Persona<select value={persona} onChange={(event) => setPersona(event.target.value)}><option value="agent_engineer">工程研发版</option><option value="ai_product">产品与运营版</option><option value="ai_solution">解决方案与商务版</option><option value="local_transition">通用岗位版</option></select></label>
+        <label>简历 Persona<select value={persona} onChange={(event) => setPersona(event.target.value)}><option value="agent_engineer">工程研发版</option><option value="ai_product">产品与运营版</option><option value="operations">运营与增长版</option><option value="ai_solution">解决方案与商务版</option><option value="ai_research">AI 研究与算法版</option><option value="legal">法律与法务版</option><option value="hr">人力资源版</option><option value="finance">财务与会计版</option><option value="admin">行政与支持版</option><option value="engineering">工科工程版</option><option value="photo_video">摄影与视频版</option><option value="live_streaming">主播与直播版</option><option value="local_transition">通用岗位版</option></select></label>
         <button className="primary-button" disabled={!selectedJob || Boolean(busy)}><Sparkles size={14}/>{busy === "resume" ? "生成中…" : "生成可审计草稿"}</button>
       </form>
 

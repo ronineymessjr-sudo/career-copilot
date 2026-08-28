@@ -21,6 +21,7 @@ test("profile normalization gives each account independent recommendation defaul
   });
   assert.equal(profile.graduation_year, 2027);
   assert.deepEqual(profile.preferences.target_roles, ["前端开发"]);
+  assert.deepEqual(profile.preferences.onsite_locations, []);
   assert.ok(profileCompleteness(profile).score >= 80);
 });
 
@@ -46,4 +47,5 @@ test("new accounts start with a neutral profile instead of a fixed AI internship
   assert.equal(profile.preferences.salary_period, "any");
   assert.equal(profile.preferences.salary_match_mode, "overlap");
   assert.equal(profile.preferences.company_founded_from, null);
+  assert.deepEqual(profile.preferences.onsite_locations, []);
 });

@@ -529,7 +529,8 @@ assert "approval_required" in agent_runtime
 
 for flag in ["agentRuntime: true", "hybridJobRanking: true", "mcpServer: true", "agentEvaluation: true", "publicPortfolioPlayground: true", "deterministicAgentDemoApi: true", "dockerDemoStack: true", "automaticEmailSend: RELEASE.safety.automaticEmailSend"]:
     assert flag in runtime
-assert "local_transition" in runtime
+assert 'from "@/lib/agent-runtime.mjs"' in runtime
+assert "Object.keys(RESUME_PERSONAS)" in runtime
 
 daily_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text(encoding="utf-8")
 assert "runDailyRecommendationForUser" in daily_route

@@ -1,6 +1,7 @@
 export type ProfilePreferences = {
   target_roles: string[];
   locations: string[];
+  onsite_locations: string[];
   work_modes: string[];
   industries: string[];
   keywords: string[];

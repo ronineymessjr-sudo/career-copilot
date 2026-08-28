@@ -59,6 +59,7 @@ function profileParts(profile = {}) {
   return {
     roles: list(preferences.target_roles),
     locations: list(preferences.locations),
+    onsiteLocations: list(preferences.onsite_locations),
     workModes: list(preferences.work_modes),
     industries: list(preferences.industries),
     keywords: list(preferences.keywords),
@@ -84,7 +85,7 @@ export function buildProfileSearchSpec(profile = {}, extraQuery = "") {
     parts.major,
     extra,
   ].filter(Boolean))].slice(0, 12);
-  const locationTerms = parts.locations.slice(0, 4);
+  const locationTerms = [...new Set([...parts.locations, ...parts.onsiteLocations])].slice(0, 6);
   const queryText = [
     coreTerms.join(" "),
     locationTerms.length ? locationTerms.join(" ") : "",
@@ -93,7 +94,8 @@ export function buildProfileSearchSpec(profile = {}, extraQuery = "") {
   return {
     queryText,
     roles: parts.roles,
-    locations: locationTerms,
+    locations: [...new Set([...locationTerms, ...parts.onsiteLocations])].slice(0, 6),
+    onsiteLocations: parts.onsiteLocations,
     workModes: parts.workModes,
     industries: parts.industries,
     keywords: coreTerms,

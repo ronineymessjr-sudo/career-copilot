@@ -19,6 +19,14 @@ export const RESUME_PERSONAS = {
     emphasis: ["需求分析与用户理解", "产品方案和运营执行", "指标、协作与复盘"],
     summary: "面向产品、运营、用户研究和项目岗位，强调需求判断、执行和数据复盘。",
   },
+  operations: {
+    label: "运营与增长版",
+    roleFamily: "Operations and Growth",
+    prioritySkills: ["operations", "analytics", "communication", "content creation", "excel", "research"],
+    projectOrder: [],
+    emphasis: ["内容与活动执行", "用户反馈和增长指标", "跨团队推进与复盘"],
+    summary: "面向用户运营、内容运营、增长和社区岗位，强调执行节奏、数据复盘与用户闭环。",
+  },
   ai_research: {
     label: "AI 研究与算法版",
     roleFamily: "AI Research",
@@ -440,10 +448,11 @@ export function recommendResumePersona(job) {
   const text = normalized(`${job?.title ?? ""} ${job?.description ?? ""} ${job?.requirements ?? ""}`);
   const productSignals = ["产品", "运营", "用户研究", "增长", "内容", "prd", "figma", "product", "operation"];
   const solutionSignals = ["解决方案", "实施", "咨询", "客户成功", "售前", "销售", "商务", "交付", "consulting", "sales"];
+  const operationsSignals = ["运营", "增长", "用户运营", "内容运营", "社区运营", "活动运营", "operation", "growth", "community"];
   const engineeringITSignals = ["开发", "研发", "算法", "数据", "测试", "后端", "前端", "全栈", "python", "java", "javascript", "typescript", "sql", "engineer"];
   const researchSignals = ["机器学习", "深度学习", "transformer", "论文复现", "模型训练", "实验设计", "ai research", "machine learning", "deep learning"];
   const legalSignals = ["法律", "法务", "律师", "合规", "合同", "law", "legal", "attorney", "compliance", "诉讼", "仲裁", "知识产权", "专利", "商标"];
-  const hrSignals = ["人力资源", "人事", "hr", "human resources", "recruiting", "员工关系", "绩效", "薪酬", "猎头", "招聘专员", "招聘经理", "招聘顾问", "hrbp"];
+  const hrSignals = ["人力资源", "人事", "hr", "human resources", "recruiting", "招聘", "员工关系", "绩效", "薪酬", "猎头", "招聘专员", "招聘经理", "招聘顾问", "hrbp"];
   const financeSignals = ["财务", "会计", "审计", "税务", "出纳", "finance", "accounting", "audit", "tax", "bookkeeping"];
   const adminSignals = ["行政", "采购", "客服", "后勤", "前台", "admin", "procurement", "customer service", "support"];
   const engineeringSignals = ["机械", "电气", "自动化", "机电", "电子", "嵌入式", "通信", "材料", "化工", "能源", "制造", "生产工艺", "设备", "plc", "mechanical", "electrical", "automation", "mechatronics", "electronic", "manufacturing", "工艺"];
@@ -455,12 +464,17 @@ export function recommendResumePersona(job) {
   if (researchSignals.some((term) => title.includes(term) || text.includes(term))) return "ai_research";
   if (engineeringSignals.some((term) => title.includes(term))) return "engineering";
   if (solutionSignals.some((term) => title.includes(term))) return "ai_solution";
+  if (hrSignals.some((term) => title.includes(term))) return "hr";
+  if (financeSignals.some((term) => title.includes(term))) return "finance";
+  if (adminSignals.some((term) => title.includes(term))) return "admin";
+  if (operationsSignals.some((term) => title.includes(term))) return "operations";
   if (productSignals.some((term) => title.includes(term))) return "ai_product";
   if (engineeringITSignals.some((term) => title.includes(term))) return "agent_engineer";
   if (engineeringSignals.some((term) => title.includes(term) || text.includes(term))) return "engineering";
   if (financeSignals.some((term) => title.includes(term) || text.includes(term))) return "finance";
   if (adminSignals.some((term) => title.includes(term) || text.includes(term))) return "admin";
   if (hrSignals.some((term) => title.includes(term) || text.includes(term))) return "hr";
+  if (operationsSignals.some((term) => title.includes(term) || text.includes(term))) return "operations";
   if (productSignals.some((term) => title.includes(term) || text.includes(term))) return "ai_product";
   if (solutionSignals.some((term) => title.includes(term) || text.includes(term))) return "ai_solution";
   if (engineeringITSignals.some((term) => title.includes(term) || text.includes(term))) return "agent_engineer";

@@ -41,6 +41,10 @@ function lower(value) {
   return normalize(value).toLowerCase();
 }
 
+function compactLocation(value) {
+  return lower(value).replace(/[市区县省\s·,，/\\-]+/g, "");
+}
+
 function matchFirst(text, patterns) {
   for (const pattern of patterns) {
     const match = text.match(pattern);
@@ -335,6 +339,7 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
   const preferences = profile?.preferences && typeof profile.preferences === "object" ? profile.preferences : {};
   const targetRoles = Array.isArray(preferences.target_roles) ? preferences.target_roles.map(lower).filter(Boolean) : [];
   const preferredLocations = Array.isArray(preferences.locations) ? preferences.locations.map(lower).filter(Boolean) : [];
+  const preferredOnsiteLocations = Array.isArray(preferences.onsite_locations) ? preferences.onsite_locations.map(compactLocation).filter(Boolean) : [];
   const preferredWorkModes = Array.isArray(preferences.work_modes) ? preferences.work_modes.map(lower).filter(Boolean) : [];
   const profileKeywords = Array.isArray(preferences.keywords) ? preferences.keywords.map(lower).filter(Boolean) : [];
   const profileConfigured = Boolean(
@@ -494,6 +499,11 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
     }
   }
   const locationMatch = preferredLocations.some((item) => locationText.includes(item));
+  const onsiteLocationMatch = preferredOnsiteLocations.length === 0 || preferredOnsiteLocations.some((item) => compactLocation(locationText).includes(item));
+  if (workplace === "onsite" && preferredOnsiteLocations.length && !onsiteLocationMatch) {
+    eligible = false;
+    hard_filter_reasons.push("现场岗位地点不在允许的现场城市/区县范围");
+  }
   const workModeMatch = preferredWorkModes.some((item) => item === workplace || locationText.includes(item));
   const location_score = !preferredLocations.length && !preferredWorkModes.length ? 8 : locationMatch || workModeMatch ? 15 : 5;
   const schedule_score = !isInternship || (Number(job.days_per_week ?? availabilityDays) <= availabilityDays && Number(job.minimum_months ?? availabilityMonths) <= availabilityMonths) ? 10 : 3;
