@@ -25,4 +25,4 @@ The live runtime remains approval-first: no automatic email sending, no automati
 
 ## Repository state
 
-The source changes and deployment record are committed and pushed at `7ac86cd53fac030b7d4e0557dde8614234c100cf`; GitHub `main` must match this commit after the push verification step.
+The Worker was built from source commit `7ac86cd53fac030b7d4e0557dde8614234c100cf`; the source and deployment record are committed and pushed at `7feee91d1110e659f8720f41406309251507f09f`, and GitHub `main` matches that commit.
