@@ -264,6 +264,10 @@ function lowerLocation(value) {
   return String(value ?? "").toLowerCase();
 }
 
+function compactLocation(value) {
+  return lowerLocation(value).replace(/[市区县省\s·,，/\\-]+/g, "");
+}
+
 function ashbyJobs(source, payload) {
   const jobs = Array.isArray(payload?.jobs) ? payload.jobs : [];
   return jobs.flatMap((raw) => {
@@ -304,10 +308,19 @@ export function passesSourceFilters(job, filters) {
   const keywords = stringList(config.keywords);
   const exclude = stringList(config.exclude_keywords);
   const locations = stringList(config.locations);
+  const onsiteLocations = stringList(config.onsite_locations).map(compactLocation).filter(Boolean);
+  const workModes = stringList(config.work_modes ?? config.allowed_workplaces).map((item) => {
+    if (["远程", "remote"].includes(item)) return "remote";
+    if (["混合", "部分远程", "hybrid"].includes(item)) return "hybrid";
+    if (["现场", "线下", "onsite", "on-site", "on site"].includes(item)) return "onsite";
+    return item;
+  });
   if (keywords.length && !keywords.some((item) => haystack.includes(item))) return false;
   if (exclude.some((item) => haystack.includes(item))) return false;
   if (locations.length && !locations.some((item) => haystack.includes(item))) return false;
   if (config.internships_only === true && !/(实习|intern|internship)/i.test(haystack)) return false;
+  if (workModes.length && !workModes.includes(String(job.workplace ?? "unknown").toLowerCase())) return false;
+  if (onsiteLocations.length && String(job.workplace ?? "unknown").toLowerCase() === "onsite" && !onsiteLocations.some((item) => compactLocation(`${job.location ?? ""} ${job.city ?? ""} ${job.district ?? ""}`).includes(item))) return false;
   return true;
 }
 

@@ -41,6 +41,10 @@ function lower(value) {
   return normalize(value).toLowerCase();
 }
 
+function compactLocation(value) {
+  return lower(value).replace(/[市区县省\s·,，/\\-]+/g, "");
+}
+
 function matchFirst(text, patterns) {
   for (const pattern of patterns) {
     const match = text.match(pattern);
@@ -136,9 +140,18 @@ function inferChannel(text, sourceUrl, recruiterEmail) {
 }
 
 function inferWorkplace(text) {
-  if (includesAny(text, ["可远程", "全国远程", "remote", "远程办公"])) return "remote";
-  if (includesAny(text, ["混合办公", "hybrid", "部分远程"])) return "hybrid";
-  if (includesAny(text, ["坐班", "到岗", "线下办公", "onsite"])) return "onsite";
+  // Treat common remote-work wording as the same hard-filterable mode. Keep
+  // explicit negative wording ahead of the positive match so "不接受远程"
+  // cannot be misclassified as a remote role.
+  if (/(?:不接受|不支持|不提供|不能|无法|禁止)[^。；;，,\n]{0,6}远程/i.test(text)) return "onsite";
+  const remote = includesAny(text, ["可远程", "全国远程", "远程办公", "线上办公", "居家办公", "远程", "remote"]);
+  const hybrid = includesAny(text, ["混合办公", "hybrid", "部分远程"]);
+  const onsite = includesAny(text, ["坐班", "到岗", "线下办公", "现场办公", "现场到岗", "onsite"]);
+  // Conflicting wording cannot safely satisfy a remote-only preference.
+  if (remote && (hybrid || onsite)) return "unknown";
+  if (remote) return "remote";
+  if (hybrid) return "hybrid";
+  if (onsite) return "onsite";
   return "unknown";
 }
 
@@ -326,10 +339,11 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
   const preferences = profile?.preferences && typeof profile.preferences === "object" ? profile.preferences : {};
   const targetRoles = Array.isArray(preferences.target_roles) ? preferences.target_roles.map(lower).filter(Boolean) : [];
   const preferredLocations = Array.isArray(preferences.locations) ? preferences.locations.map(lower).filter(Boolean) : [];
+  const preferredOnsiteLocations = Array.isArray(preferences.onsite_locations) ? preferences.onsite_locations.map(compactLocation).filter(Boolean) : [];
   const preferredWorkModes = Array.isArray(preferences.work_modes) ? preferences.work_modes.map(lower).filter(Boolean) : [];
   const profileKeywords = Array.isArray(preferences.keywords) ? preferences.keywords.map(lower).filter(Boolean) : [];
   const profileConfigured = Boolean(
-    normalize(profile?.major) || normalize(profile?.degree) || targetRoles.length || preferredLocations.length || profileKeywords.length
+    normalize(profile?.major) || normalize(profile?.degree) || targetRoles.length || preferredLocations.length || preferredWorkModes.length || profileKeywords.length
   );
   const internshipOnly = preferences.internship_only === true;
   const isInternship = job.is_internship === true;
@@ -474,8 +488,22 @@ export function evaluateJob(job, evidence = [], today = new Date(), profile = {}
 
   const segment = segmentFor(job);
   const locationText = lower(`${job.city ?? ""} ${job.district ?? ""} ${job.address ?? ""} ${job.workplace ?? ""}`);
-  const workplace = lower(job.workplace);
+  const workplace = lower(job.workplace || "unknown");
+  if (preferredWorkModes.length) {
+    if (workplace === "unknown") {
+      needs_confirmation = true;
+      confirmation_questions.push("岗位办公方式无法核验，不能按当前办公偏好直接准备投递");
+    } else if (!preferredWorkModes.includes(workplace)) {
+      eligible = false;
+      hard_filter_reasons.push(`岗位办公方式 ${workplace} 不符合当前偏好`);
+    }
+  }
   const locationMatch = preferredLocations.some((item) => locationText.includes(item));
+  const onsiteLocationMatch = preferredOnsiteLocations.length === 0 || preferredOnsiteLocations.some((item) => compactLocation(locationText).includes(item));
+  if (workplace === "onsite" && preferredOnsiteLocations.length && !onsiteLocationMatch) {
+    eligible = false;
+    hard_filter_reasons.push("现场岗位地点不在允许的现场城市/区县范围");
+  }
   const workModeMatch = preferredWorkModes.some((item) => item === workplace || locationText.includes(item));
   const location_score = !preferredLocations.length && !preferredWorkModes.length ? 8 : locationMatch || workModeMatch ? 15 : 5;
   const schedule_score = !isInternship || (Number(job.days_per_week ?? availabilityDays) <= availabilityDays && Number(job.minimum_months ?? availabilityMonths) <= availabilityMonths) ? 10 : 3;

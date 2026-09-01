@@ -113,7 +113,12 @@ test("resume alignment counts skills proven in verified project evidence", () =>
 });
 
 test("all resume personas are available", () => {
-  assert.deepEqual(Object.keys(RESUME_PERSONAS).sort(), ["admin", "agent_engineer", "ai_product", "ai_research", "ai_solution", "engineering", "finance", "hr", "legal", "live_streaming", "local_transition", "photo_video"].sort());
+  assert.deepEqual(Object.keys(RESUME_PERSONAS).sort(), ["admin", "agent_engineer", "ai_product", "ai_research", "ai_solution", "engineering", "finance", "hr", "legal", "live_streaming", "local_transition", "operations", "photo_video"].sort());
+});
+
+test("operations roles use the dedicated operations resume persona", () => {
+  const operationsJob = { ...job, title: "用户运营与增长实习生", description: "负责内容运营、活动增长、用户反馈和数据复盘", requirements: "熟悉表格和沟通协作" };
+  assert.equal(recommendResumePersona(operationsJob), "operations");
 });
 
 test("research roles use the AI research resume persona", () => {
@@ -124,6 +129,11 @@ test("research roles use the AI research resume persona", () => {
 test("solution persona is recommended for implementation roles", () => {
   const localJob = { ...job, title: "ERP实施实习生", description: "南通崇川区，负责软件实施、SQL和客户流程", requirements: "ERP与SQL基础", city: "南通", district: "崇川" };
   assert.equal(recommendResumePersona(localJob), "ai_solution");
+});
+
+test("commercialization roles use the solutions and business persona", () => {
+  const businessJob = { ...job, title: "AI Business 创造营实习生", description: "参与 AI 产品商业化和全球业务运营" };
+  assert.equal(recommendResumePersona(businessJob), "ai_solution");
 });
 
 test("technical title wins over product wording in project context", () => {

@@ -221,7 +221,7 @@ test("explicit 2027-only restriction rejects a 2028 applicant", () => {
 
 test("verified project evidence is optional when saved profile or resume can support the package", () => {
   const job = parseJobIntake({
-    raw_text: "接受2028届在校生实习，每周3天，至少3个月。Python FastAPI",
+    raw_text: "接受2028届在校生全国远程办公实习，每周3天，至少3个月。Python FastAPI",
     company: "No Evidence",
     title: "Python 实习生",
     source_url: "https://example.com/jobs/python-intern",
@@ -318,4 +318,53 @@ test("configured profile without graduation year asks for the missing fact inste
   assert.equal(result.needs_confirmation, true);
   assert.ok(result.confirmation_questions.includes("请先在个人画像中填写毕业年份"));
   assert.equal(result.confirmation_questions.some((item) => item.includes("0 届")), false);
+});
+
+test("remote-only preference hard-blocks hybrid and onsite jobs", () => {
+  const profile = {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { internship_only: true, target_roles: ["AI 开发"], locations: ["远程"], work_modes: ["remote"], keywords: ["Python"] },
+  };
+  for (const workplace of ["hybrid", "onsite"]) {
+    const result = evaluateJob({ id: `remote-${workplace}`, title: "AI 实习", description: "Python 实习", is_internship: true, workplace, accepts_students: true, accepts_2028: true, days_per_week: 3, minimum_months: 3 }, [], new Date("2026-08-05T00:00:00Z"), profile);
+    assert.equal(result.eligible, false, workplace);
+    assert.ok(result.hard_filter_reasons.some((item) => item.includes("办公方式")), workplace);
+  }
+});
+
+test("onsite preference enforces the allowed city and district pairs", () => {
+  const profile = { graduation_year: 2028, major: "人工智能", degree: "本科", availability_days: 5, availability_months: 6, preferences: { internship_only: true, locations: ["南通崇川区", "南京浦口区"], onsite_locations: ["南通崇川区", "南京浦口区"], work_modes: ["remote", "onsite"] } };
+  const allowed = evaluateJob({ id: "onsite-allowed", title: "AI 产品实习", description: "南京浦口区", city: "南京", district: "浦口", workplace: "onsite", is_internship: true, accepts_students: true, accepts_2028: true, days_per_week: 3, minimum_months: 3 }, [], new Date("2026-08-05T00:00:00Z"), profile);
+  const blocked = evaluateJob({ id: "onsite-blocked", title: "AI 产品实习", description: "南京秦淮区", city: "南京", district: "秦淮", workplace: "onsite", is_internship: true, accepts_students: true, accepts_2028: true, days_per_week: 3, minimum_months: 3 }, [], new Date("2026-08-05T00:00:00Z"), profile);
+  assert.equal(allowed.eligible, true);
+  assert.equal(blocked.eligible, false);
+  assert.ok(blocked.hard_filter_reasons.some((item) => item.includes("现场岗位地点")));
+});
+
+test("remote-only preference keeps unknown workplace reviewable", () => {
+  const profile = {
+    graduation_year: 2028,
+    major: "人工智能",
+    degree: "本科",
+    availability_days: 5,
+    availability_months: 6,
+    preferences: { internship_only: true, target_roles: ["AI 开发"], locations: ["远程"], work_modes: ["remote"], keywords: ["Python"] },
+  };
+  const result = evaluateJob({ id: "remote-unknown", title: "AI 实习", description: "Python 实习", is_internship: true, workplace: "unknown", accepts_students: true, accepts_2028: true, days_per_week: 3, minimum_months: 3 }, [], new Date("2026-08-05T00:00:00Z"), profile);
+  assert.equal(result.eligible, true);
+  assert.equal(result.needs_confirmation, true);
+  assert.ok(result.confirmation_questions.some((item) => item.includes("办公方式")));
+});
+
+test("workplace parser does not treat conflicting remote and onsite wording as remote", () => {
+  const job = parseJobIntake({
+    raw_text: "2028届在校生远程实习，线下办公，每周3天，至少3个月。",
+    company: "Conflicting Workplace",
+    title: "AI 实习生",
+  });
+  assert.equal(job.workplace, "unknown");
 });

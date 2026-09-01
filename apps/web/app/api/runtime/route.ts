@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { RELEASE } from "@/lib/release";
+import { RESUME_PERSONAS } from "@/lib/agent-runtime.mjs";
 export async function GET() {
   return NextResponse.json({
     ok: true,
@@ -35,7 +36,7 @@ export async function GET() {
     automaticEvidencePromotion: false,
     agentRuntime: true,
     hybridJobRanking: true,
-    resumePersonas: ["agent_engineer", "ai_product", "ai_solution", "local_transition"],
+    resumePersonas: Object.keys(RESUME_PERSONAS),
     mcpServer: true,
     agentEvaluation: true,
     publicPortfolioPlayground: true,
