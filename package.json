@@ -32,6 +32,7 @@
     "test:m08.1": "npm run test:m08 && npm run test:portfolio",
     "smoke:m08.1": "node scripts/smoke_m08_1.mjs SMOKE_RESULT_M08_1.json",
     "evaluation:m08.1": "node scripts/generate_agent_evaluation_report.mjs",
+    "evaluation:matrix": "node scripts/evaluate_agent_matrix.mjs",
     "test:integrations": "node --test apps/web/tests/dispatch-queue.test.mjs apps/web/tests/application-view.test.mjs apps/web/tests/application-plan.test.mjs",
     "test:recommendation": "node --test apps/web/tests/recommendation-profile.test.mjs",
     "test:complete": "node --test apps/web/tests/*.test.mjs",
