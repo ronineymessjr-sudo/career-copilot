@@ -22,6 +22,13 @@ export function AgentPlayground() {
   const [analysisError, setAnalysisError] = useState("");
   const analysisToken = useRef(0);
   const trace = useMemo(() => ["Supervisor", "JD Analyst", "Hybrid Ranker", "Resume Agent", "Grounding Evaluator"], []);
+  const traceCopy = useMemo(() => [
+    "理解目标，编排任务并监控执行",
+    "解析 JD 结构、要求与隐含约束",
+    "融合规则、证据和历史信号",
+    "按证据生成差异化材料",
+    "检查引用覆盖与事实一致性",
+  ], []);
   const batch = useMemo(() => runPortfolioBatchDemo(DEMO_BATCH_JOBS), []);
 
   function selectScenario(scenario: (typeof DEMO_SCENARIOS)[number]) {
@@ -105,25 +112,27 @@ export function AgentPlayground() {
 
   return <main className="portfolio-page">
     <header className="portfolio-nav">
-      <Link href="/playground" className="portfolio-brand"><span><Sparkles size={16}/></span><div><strong>Career Copilot</strong><small>AI Career Intelligence Agent Platform</small></div></Link>
+      <Link href="/playground" className="portfolio-brand"><span><Sparkles size={16}/></span><div><strong>Career Copilot</strong><small>Evidence-driven AI career workspace</small></div></Link>
+      <nav className="portfolio-nav-links" aria-label="公开展示导航"><a href="#proof">产品能力</a><a href="#workflow">工作原理</a><a href="#safety">安全与透明</a></nav>
       <div><Link href="/updates" className="ghost-button">更新日志</Link><Link href="/login" className="ghost-button">登录控制台</Link><a href="#demo" className="primary-button">体验 Demo <ArrowRight size={14}/></a></div>
     </header>
 
-    <section className="portfolio-hero">
+    <section className="portfolio-hero" id="product">
       <div>
-        <span className="eyebrow">LangGraph · RAG · pgvector · MCP · Agent Evaluation</span>
         <h1>把求职流程变成一个<br/><em>有证据、可评测、可人工接管</em>的 AI Agent 系统</h1>
         <p>面向 AI Agent、LLM 应用、RAG、AI 产品和解决方案实习。系统完成岗位分析、混合评分、证据检索、简历适配和面试准备，但不会替用户自动投递或发送。</p>
+        <ul className="hero-points"><li><CheckCircle2 size={15}/>JD 深度分析：结构化解析职位要求与隐含约束</li><li><CheckCircle2 size={15}/>证据检索：从项目经历中找到最强证据，逐条对齐 JD</li><li><CheckCircle2 size={15}/>简历适配：基于证据生成差异化版本，保留可追溯引用</li><li><CheckCircle2 size={15}/>安全可控：发送、提交、面试与 Offer 动作都需要人工确认</li></ul>
         <div className="portfolio-actions"><a href="#demo" className="primary-button"><Play size={14}/>分析一条真实 JD</a><Link href="/agents" className="ghost-button">查看 Agent 控制台</Link></div>
+        <div className="hero-note"><ShieldCheck size={15}/><span>公开演示环境：不连接邮箱、不读取私人资料、不自动投递。</span></div>
       </div>
-      <div className="architecture-card">
+      <div className="architecture-card" id="workflow">
         <div className="architecture-title"><Bot size={18}/><div><strong>Grounded Agent Runtime</strong><span>每个节点保留输入摘要、结果与引用</span></div></div>
-        <div className="architecture-flow">{trace.map((node, index) => <div key={node}><span>{index + 1}</span><strong>{node}</strong>{index < trace.length - 1 ? <ArrowRight size={13}/> : null}</div>)}</div>
+        <div className="architecture-flow">{trace.map((node, index) => <div key={node}><span>{index + 1}</span><div><strong>{node}</strong><small>{traceCopy[index]}</small></div><b>{index === 0 ? "运行中" : "已完成"}</b></div>)}</div>
         <div className="architecture-safety"><ShieldCheck size={16}/><span>Human-in-the-loop：发送、提交、面试与 Offer 动作必须独立确认</span></div>
       </div>
     </section>
 
-    <section className="portfolio-capabilities">
+    <section className="portfolio-capabilities" id="proof">
       <article><GitBranch size={18}/><strong>Multi-Agent Workflow</strong><p>岗位发现、JD 分析、简历、面试与评测由专用节点协作。</p></article>
       <article><Braces size={18}/><strong>MCP-compatible Tools</strong><p>读操作可调用，高风险写操作只返回审批要求。</p></article>
       <article><Target size={18}/><strong>Hybrid Ranking</strong><p>40% 硬规则、40% 证据匹配、20% 历史反馈。</p></article>
