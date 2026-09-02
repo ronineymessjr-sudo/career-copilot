@@ -124,10 +124,19 @@ export function AgentPlayground() {
         <ul className="hero-points"><li><CheckCircle2 size={15}/>JD 深度分析：结构化解析职位要求与隐含约束</li><li><CheckCircle2 size={15}/>证据检索：从项目经历中找到最强证据，逐条对齐 JD</li><li><CheckCircle2 size={15}/>简历适配：基于证据生成差异化版本，保留可追溯引用</li><li><CheckCircle2 size={15}/>安全可控：发送、提交、面试与 Offer 动作都需要人工确认</li></ul>
         <div className="portfolio-actions"><a href="#demo" className="primary-button"><Play size={14}/>分析一条真实 JD</a><Link href="/agents" className="ghost-button">查看 Agent 控制台</Link></div>
         <div className="hero-note"><ShieldCheck size={15}/><span>公开演示环境：不连接邮箱、不读取私人资料、不自动投递。</span></div>
+        <div className="hero-evidence-rail" aria-label="证据处理进度">
+          <div className="hero-evidence-heading"><strong>证据快照</strong><span>Evidence rail</span></div>
+          <div className="hero-evidence-item"><CheckCircle2 size={15}/><div><strong>JD 已解析</strong><small>结构、约束与风险已拆解</small></div><span>完成</span></div>
+          <div className="hero-evidence-item"><CheckCircle2 size={15}/><div><strong>知识与政策检索</strong><small>公开规则与岗位信号</small></div><span>完成</span></div>
+          <div className="hero-evidence-item"><CheckCircle2 size={15}/><div><strong>简历候选集</strong><small>按证据匹配版本</small></div><span>完成</span></div>
+          <div className="hero-evidence-item is-active"><Sparkles size={15}/><div><strong>评测中</strong><small>引用覆盖与事实一致性</small></div><span>进行中</span></div>
+        </div>
       </div>
       <div className="architecture-card" id="workflow">
+        <div className="architecture-kicker"><span>AGENT RUNTIME MAP</span><b><i/>RUNNING</b></div>
         <div className="architecture-title"><Bot size={18}/><div><strong>Grounded Agent Runtime</strong><span>每个节点保留输入摘要、结果与引用</span></div></div>
         <div className="architecture-flow">{trace.map((node, index) => <div key={node}><span>{index + 1}</span><div><strong>{node}</strong><small>{traceCopy[index]}</small></div><b>{index === 0 ? "运行中" : "已完成"}</b></div>)}</div>
+        <div className="architecture-log"><span>RUNTIME LOG</span><code>09:17:35&nbsp; [Supervisor] route → JD Analyst</code><a href="#demo">VIEW LOGS <ArrowRight size={12}/></a></div>
         <div className="architecture-safety"><ShieldCheck size={16}/><span>Human-in-the-loop：发送、提交、面试与 Offer 动作必须独立确认</span></div>
       </div>
     </section>
@@ -141,6 +150,7 @@ export function AgentPlayground() {
 
     <section className="playground-shell" id="demo">
       <header><div><span className="eyebrow">Public portfolio demo</span><h2>Agent Playground</h2><p>粘贴 AI 实习 JD，立即查看岗位评分、证据匹配、风险、简历版本和招呼语。此演示不读取私人数据。</p></div><span className="demo-badge">SAFE DEMO</span></header>
+      <div className="playground-command-rail" aria-label="演示工作台视图"><span className="is-active">JD 解析</span><span>需求结构</span><span>候选集预览</span><span>匹配结果</span><span>证据明细</span><span>Agent 日志</span></div>
       <div className="playground-grid">
         <div className="playground-input">
           <div className="playground-scenarios" aria-label="公开演示场景">
