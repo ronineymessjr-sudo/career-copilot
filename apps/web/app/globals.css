@@ -1973,7 +1973,10 @@
 .architecture-title strong{color:var(--portfolio-ink);font-size:14px}
 .architecture-title span{color:var(--portfolio-muted);font-size:9px;margin-top:5px}
 .architecture-flow{gap:8px;padding:17px 0}
+.architecture-flow{position:relative}
+.architecture-flow:before{content:"";position:absolute;left:21px;top:29px;bottom:29px;border-left:1px dashed #b9c4f6}
 .architecture-flow>div{grid-template-columns:28px minmax(0,1fr) auto;gap:10px;padding:10px 9px;border:1px solid #e0e7ef;border-radius:10px;background:#fff}
+.architecture-flow>div{position:relative;z-index:1}
 .architecture-flow>div>span{width:26px;height:26px;border-radius:8px;background:var(--portfolio-indigo-soft);color:var(--portfolio-indigo);font-size:10px}
 .architecture-flow>div>div{min-width:0}
 .architecture-flow strong{color:var(--portfolio-ink);font-size:11px}
@@ -1998,7 +2001,8 @@
 .playground-input textarea:focus{outline:3px solid rgba(79,70,229,.12);border-color:#818cf8}
 .playground-input small,.playground-input-meta,.playground-scenario-status{color:#728198}
 .playground-scenarios{border-color:#dce4ef;background:#f8faff}
-.playground-scenario-list button{border-color:#d7e0eb;background:#fff;color:#344660}
+.playground-scenario-list{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.playground-scenario-list button{min-height:58px;border-color:#d7e0eb;background:#fff;color:#344660}
 .playground-scenario-list button:hover,.playground-scenario-list button.active{border-color:#818cf8;background:#f0f2ff;color:#3730a3}
 .playground-scenario-list small{color:#73829a}
 .playground-output{padding:24px}
@@ -2047,5 +2051,5 @@
 .portfolio-footer{border-top-color:var(--portfolio-line);color:#6b7a90}
 .portfolio-footer a{color:#4f46b8}
 .portfolio-footer strong{color:var(--portfolio-ink)}
-@media(max-width:980px){.portfolio-nav-links{display:none}.portfolio-nav>div{margin-left:auto}.portfolio-hero{padding:60px 0 52px}.portfolio-capabilities{grid-template-columns:1fr 1fr}.portfolio-capabilities article:nth-child(2){border-right:0}.portfolio-capabilities article:nth-child(-n+2){border-bottom:1px solid var(--portfolio-line)}}
-@media(max-width:640px){.portfolio-page{padding:0 18px 30px}.portfolio-nav{gap:12px}.portfolio-nav>div{gap:6px}.portfolio-nav>div .ghost-button{display:none}.portfolio-hero{padding:46px 0 42px}.portfolio-hero h1{font-size:40px}.portfolio-capabilities{grid-template-columns:1fr}.portfolio-capabilities article,.portfolio-capabilities article:nth-child(2){border-right:0;border-bottom:1px solid var(--portfolio-line)}.portfolio-capabilities article:last-child{border-bottom:0}.architecture-card{padding:17px}.architecture-flow>div{grid-template-columns:26px minmax(0,1fr)}.architecture-flow>div>b{grid-column:2;justify-self:start}.playground-shell>header,.batch-lab>header{padding:20px}.playground-input,.playground-output{padding:20px}.evaluation-preview{padding:20px}}
+@media(max-width:980px){.portfolio-nav-links{display:none}.portfolio-nav>div{margin-left:auto}.portfolio-hero{padding:60px 0 52px}.portfolio-capabilities{grid-template-columns:1fr 1fr}.portfolio-capabilities article:nth-child(2){border-right:0}.portfolio-capabilities article:nth-child(-n+2){border-bottom:1px solid var(--portfolio-line)}.playground-scenario-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:640px){.portfolio-page{padding:0 18px 30px}.portfolio-nav{gap:12px}.portfolio-nav>div{gap:6px}.portfolio-nav>div .ghost-button{display:none}.portfolio-hero{padding:46px 0 42px}.portfolio-hero h1{font-size:40px}.portfolio-capabilities{grid-template-columns:1fr}.portfolio-capabilities article,.portfolio-capabilities article:nth-child(2){border-right:0;border-bottom:1px solid var(--portfolio-line)}.portfolio-capabilities article:last-child{border-bottom:0}.architecture-card{padding:17px}.architecture-flow>div{grid-template-columns:26px minmax(0,1fr)}.architecture-flow>div>b{grid-column:2;justify-self:start}.playground-scenario-list{grid-template-columns:1fr}.playground-shell>header,.batch-lab>header{padding:20px}.playground-input,.playground-output{padding:20px}.evaluation-preview{padding:20px}}
