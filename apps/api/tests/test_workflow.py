@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -35,3 +36,4 @@ def test_dashboard_and_daily_report(client):
     report = client.get("/api/daily-report")
     assert report.status_code == 200
     assert "top_recommendations" in report.json()
+    assert report.json()["date"] == datetime.now(timezone.utc).date().isoformat()

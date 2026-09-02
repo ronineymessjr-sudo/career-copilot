@@ -30,6 +30,13 @@ export function AgentPlayground() {
     "检查引用覆盖与事实一致性",
   ], []);
   const batch = useMemo(() => runPortfolioBatchDemo(DEMO_BATCH_JOBS), []);
+  const runtimeStatus = analysisState === "loading"
+    ? { label: "ANALYZING", tone: "busy", log: "[Agent] running deterministic analysis" }
+    : analysisState === "error"
+      ? { label: "REVIEW", tone: "review", log: "[Agent] run stopped · input needs review" }
+      : analysisState === "dirty"
+        ? { label: "READY", tone: "ready", log: "[Supervisor] waiting for a new analysis run" }
+        : { label: "COMPLETE", tone: "complete", log: "[Evaluator] result grounded · awaiting human review" };
 
   function selectScenario(scenario: (typeof DEMO_SCENARIOS)[number]) {
     analysisToken.current += 1;
@@ -126,10 +133,10 @@ export function AgentPlayground() {
         <div className="hero-note"><ShieldCheck size={15}/><span>公开演示环境：不连接邮箱、不读取私人资料、不自动投递。</span></div>
       </div>
       <div className="architecture-card" id="workflow">
-        <div className="architecture-kicker"><span>AGENT RUNTIME MAP</span><b><i/>RUNNING</b></div>
+        <div className="architecture-kicker"><span>AGENT RUNTIME MAP</span><b className={`runtime-status ${runtimeStatus.tone}`} aria-live="polite"><i/>{runtimeStatus.label}</b></div>
         <div className="architecture-title"><Bot size={18}/><div><strong>Grounded Agent Runtime</strong><span>每个节点保留输入摘要、结果与引用</span></div></div>
-        <div className="architecture-flow">{trace.map((node, index) => <div key={node}><span>{index + 1}</span><div><strong>{node}</strong><small>{traceCopy[index]}</small></div><b>{index === 0 ? "运行中" : "已完成"}</b></div>)}</div>
-        <div className="architecture-log"><span>RUNTIME LOG</span><code>09:17:35&nbsp; [Supervisor] route → JD Analyst</code><a href="#demo">VIEW LOGS <ArrowRight size={12}/></a></div>
+        <div className="architecture-flow">{trace.map((node, index) => <div key={node}><span>{index + 1}</span><div><strong>{node}</strong><small>{traceCopy[index]}</small></div><b>{index === 0 ? (analysisState === "loading" ? "运行中" : analysisState === "error" ? "需复核" : analysisState === "dirty" ? "待运行" : "已完成") : "已完成"}</b></div>)}</div>
+        <div className="architecture-log"><span>RUNTIME LOG</span><code>{runtimeStatus.log}</code><a href="#demo">VIEW LOGS <ArrowRight size={12}/></a></div>
         <div className="architecture-safety"><ShieldCheck size={16}/><span>Human-in-the-loop：发送、提交、面试与 Offer 动作必须独立确认</span></div>
       </div>
     </section>

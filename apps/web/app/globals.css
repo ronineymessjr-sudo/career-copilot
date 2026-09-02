@@ -2060,6 +2060,13 @@
 .architecture-kicker{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid #21365f;color:#8ea3ca;font:9px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.08em}
 .architecture-kicker b{display:inline-flex;align-items:center;gap:6px;color:#aaf0d5;font:9px/1.2 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.04em}
 .architecture-kicker i{width:6px;height:6px;border-radius:50%;background:#22c49b;box-shadow:0 0 0 3px rgba(34,196,155,.14)}
+.architecture-kicker .runtime-status{transition:color .18s ease,background .18s ease,border-color .18s ease}
+.architecture-kicker .runtime-status.ready{color:#c8d2ff;background:#1b2e62;border-color:#405bb1}
+.architecture-kicker .runtime-status.busy{color:#e5e7ff;background:#312e81;border-color:#6860d8}
+.architecture-kicker .runtime-status.busy i{background:#a5b4fc;box-shadow:0 0 0 3px rgba(165,180,252,.16)}
+.architecture-kicker .runtime-status.review{color:#ffe0a3;background:#4a3517;border-color:#8e6b2a}
+.architecture-kicker .runtime-status.review i{background:#f3b94f;box-shadow:0 0 0 3px rgba(243,185,79,.16);animation:none}
+.architecture-kicker .runtime-status.complete{color:#aaf0d5;background:#113e46;border-color:#1b6d6d}
 .architecture-title{padding:15px 0 14px;border-bottom-color:#21365f}
 .architecture-title svg{color:#96a7ff}
 .architecture-title strong{color:#f4f7ff;font-size:14px}

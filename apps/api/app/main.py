@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, Header, HTTPException
@@ -291,7 +292,7 @@ def benchmark_runs(limit: int = 30):
 def daily_report():
     jobs=list_jobs()
     return {
-        "date":"2026-07-23",
+        "date":datetime.now(timezone.utc).date().isoformat(),
         "summary":dashboard_summary(),
         "top_recommendations":[row for row in jobs if row.get("evaluation") and row["evaluation"]["grade"] in {"S","A"}][:8],
         "pending_approvals":list_packages("pending"),
