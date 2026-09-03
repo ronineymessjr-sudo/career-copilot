@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.responses import FileResponse, HTMLResponse
@@ -291,8 +292,11 @@ def benchmark_runs(limit: int = 30):
 @app.get("/api/daily-report")
 def daily_report():
     jobs=list_jobs()
+    generated_at=datetime.now(ZoneInfo("Asia/Shanghai"))
     return {
-        "date":datetime.now(timezone.utc).date().isoformat(),
+        "date":generated_at.date().isoformat(),
+        "generated_at":generated_at.isoformat(),
+        "timezone":"Asia/Shanghai",
         "summary":dashboard_summary(),
         "top_recommendations":[row for row in jobs if row.get("evaluation") and row["evaluation"]["grade"] in {"S","A"}][:8],
         "pending_approvals":list_packages("pending"),

@@ -1,6 +1,7 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 
 def seed_one(client):
@@ -36,4 +37,8 @@ def test_dashboard_and_daily_report(client):
     report = client.get("/api/daily-report")
     assert report.status_code == 200
     assert "top_recommendations" in report.json()
-    assert report.json()["date"] == datetime.now(timezone.utc).date().isoformat()
+    payload = report.json()
+    now = datetime.now(ZoneInfo("Asia/Shanghai"))
+    assert payload["date"] == now.date().isoformat()
+    assert payload["timezone"] == "Asia/Shanghai"
+    assert datetime.fromisoformat(payload["generated_at"]).tzinfo is not None
