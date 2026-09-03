@@ -31,6 +31,23 @@
 
 这些边界与当前系统的 `verified_evidence_only`、MCP `approval_required`、异步 queue 和 trace 结构一致；当前缺口是平台级授权适配器，而不是再加一个未经授权的抓取插件。
 
+## GitHub 进一步筛选（2026-09-03）
+
+- **StoneLL1/resume-builder**：最接近“简历优化作者”的公开实现。它把近百篇小红书高赞经验帖蒸馏成 skill，并把 claim-map、已确认/待确认/缺失阻塞/已省略四态、按目标岗位分版本、一页 PDF 和 ATS 单栏排版写进流程；它还明确把“投简历”保留为人工动作。
+- **sunyet-01/ai-job-search-cn**：中文岗位的 JD 评估、定制简历 PDF、投递清单和中国化维度（工作强度、通勤、公司稳定性）；适合补充中文岗位规则，但其前端仍在开发中。
+- **shuheng-mo/career-ops-china**：用 archetype、title filter、评分权重和 bookmarklet 适配国内 SPA/登录墙，强调“过滤器”而非海投；适合借鉴岗位族配置和用户侧 JD 捕获，不应复制绕过反爬的表述。
+- **riwonswain-ovo/OfferLoop**：把招聘机会、投递、经历深挖、面试和复盘拆成长期 Skill/工作区闭环；适合借鉴跨阶段状态、增量同步和失败后续跑。
+- **shengjidaguai-china/BossHunter**：本地浏览器连接、AI 评分、回复监测和定制材料，遇到验证码/频率限制/未知页面会停下；可借鉴连接健康检查和低频策略，但它是非商业 PolyForm 许可。
+- **artbyjazi/simply-apply**：用结构化数据生成单页 PDF 与 ATS-safe DOCX，并在连接器失败时明确报错；适合借鉴“空结果不等于成功”和渲染回读校验，但其 AGPL-3.0 需要单独评估合规。
+
+### 对 Career Copilot 的落地取舍
+
+1. 将 `claim-map` 的阻塞态接到现有 `verified_evidence_only`，未确认的日期、指标、雇主和技能不能进入渲染队列。
+2. 把岗位方向（AI/后端、AI 产品、运营、研究、法务/职能等）抽成可版本化的 profile/archetype 配置，分别维护关键词、评分权重和简历顺序。
+3. 在 PDF/DOCX 生成后做“页数 + 文本可提取 + 关键字段回读”检查；失败时降级并明确提示，不把空文件或静态成功当成已完成。
+4. 继续保持浏览器只填表、不自动提交；遇到验证码、登录墙、未知字段、法律声明或外部消息时暂停并记录原因。
+5. 只复用许可证允许的概念和接口模式；不直接复制 AGPL/PolyForm 代码，也不引入未审查的反爬实现。
+
 ## 与当前系统的映射
 
 已经具备：
@@ -67,3 +84,9 @@
 - [小红书开放平台：快速接入](https://openaccount.xiaohongshu.com/docs/quick-start)
 - [Reddit：拒绝自动提交的求职 Agent](https://www.reddit.com/r/AI_Agents/comments/1unrgj2/i_built_a_job_application_agent_that_tailors_real/)
 - [Reddit：9-agent 求职系统](https://www.reddit.com/r/ClaudeAI/comments/1sf42bz/i_built_a_9agent_job_application_system_on_claude/)
+- [StoneLL1/resume-builder](https://github.com/StoneLL1/resume-builder)
+- [sunyet-01/ai-job-search-cn](https://github.com/sunyet-01/ai-job-search-cn)
+- [shuheng-mo/career-ops-china](https://github.com/shuheng-mo/career-ops-china)
+- [riwonswain-ovo/OfferLoop](https://github.com/riwonswain-ovo/OfferLoop)
+- [shengjidaguai-china/BossHunter](https://github.com/shengjidaguai-china/BossHunter)
+- [artbyjazi/simply-apply](https://github.com/artbyjazi/simply-apply)
