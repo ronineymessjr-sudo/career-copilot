@@ -101,18 +101,18 @@ export function OverviewWorkspace() {
   }
 
   return <section className="platform-workspace">
-    <header className="platform-page-head overview"><div><h1>今日简报</h1><p>先看岗位池、推荐结果和投递状态，再决定今天最值得做的事情。</p></div><button className="platform-refresh" onClick={() => void refresh()} disabled={loading}><RefreshCw size={16}/>{loading ? "生成中" : "重新生成推荐"}</button></header>
+    <header className="platform-page-head overview"><div><h1>今日简报</h1><p>今天只看三件事：推荐什么、缺什么、下一步做什么。</p></div><button className="platform-refresh" onClick={() => void refresh()} disabled={loading}><RefreshCw size={16}/>{loading ? "生成中" : "重新生成推荐"}</button></header>
     {message ? <div className="platform-message">{message}</div> : null}
 
     {state.unread > 0 ? <section className="platform-notification-strip"><div><strong>{state.unread} 条新消息</strong><span>{state.notifications.filter((item) => !item.read_at).slice(0, 3).map((item) => item.body || item.title).join(" · ")}</span>{state.notifications.find((item) => !item.read_at && item.type === "profile_search_review")?.action_url ? <Link href={state.notifications.find((item) => !item.read_at && item.type === "profile_search_review")?.action_url}>查看岗位复核报告</Link> : null}</div><button type="button" onClick={() => void markNotificationsRead()}>标记已读</button></section> : null}
 
     {state.jobs.length === 0 ? <section className="platform-welcome">
       <div className="platform-welcome-mark"><Sparkles size={22}/></div>
-      <div className="platform-welcome-copy"><h2>欢迎来到 Career Copilot</h2><p>你的 AI 求职助手：导入岗位 → 画像匹配 → 生成简历/求职信 → 投递跟踪，一条龙帮你找工作。</p><div className="platform-welcome-actions"><Link href="/profile" className="primary-button">先完善我的画像<ArrowRight size={15}/></Link><Link href="/jobs#import-job" className="ghost-button">直接导入岗位</Link></div></div>
+      <div className="platform-welcome-copy"><h2>欢迎来到 Career Copilot</h2><p>先补齐画像，再导入岗位；系统会生成可审核的推荐和投递材料。</p><div className="platform-welcome-actions"><Link href="/profile" className="primary-button">先完善我的画像<ArrowRight size={15}/></Link><Link href="/jobs#import-job" className="ghost-button">直接导入岗位</Link></div></div>
     </section> : null}
 
     {!onboarding.finished ? <details className="platform-panel platform-onboarding-panel" open={onboarding.score < 80}>
-      <summary className="platform-panel-head"><div><h2><ListChecks size={19}/>首次使用引导</h2><p>按顺序完成下面几步，系统就能给出可信的个性化推荐与投递包。下一步：<strong className="onboarding-next-label">{onboarding.steps.find((step) => !step.done)?.label ?? "完成全部"}</strong></p></div><strong>{onboarding.score}%</strong></summary>
+      <summary className="platform-panel-head"><div><h2><ListChecks size={19}/>首次使用引导</h2><p>完成画像、简历和岗位来源后，推荐才有依据。下一步：<strong className="onboarding-next-label">{onboarding.steps.find((step) => !step.done)?.label ?? "完成全部"}</strong></p></div><strong>{onboarding.score}%</strong></summary>
       <div className="platform-onboarding-steps">{onboarding.steps.map((step) => <Link key={step.key} href={step.href} className={`${step.done ? "done" : "pending"}${!step.done && onboarding.steps.findIndex((s) => !s.done) === onboarding.steps.findIndex((s) => s.key === step.key) ? " next" : ""}`}><span>{step.done ? <CheckCircle2 size={16}/> : <CircleAlert size={16}/>}</span><strong>{step.label}</strong><small>{step.detail}</small><ArrowRight size={14}/></Link>)}</div>
     </details> : null}
 
@@ -124,9 +124,17 @@ export function OverviewWorkspace() {
       <article><UserRound size={18}/><span>画像完整度</span><strong>{state.completeness.score ?? 0}%</strong><small>每个账号独立推荐</small></article>
     </section>
 
+    <section className="platform-flow-strip" aria-label="求职流程摘要">
+      <article><span>01 · 岗位池</span><strong>{state.pool.open ?? state.jobs.length} 个开放岗位</strong><small>{state.jobs.length ? "已进入匹配" : "导入 JD 后开始"}</small></article>
+      <ArrowRight className="platform-flow-arrow" size={16}/>
+      <article><span>02 · 今日推荐</span><strong>{recommended.length} 个匹配结果</strong><small>{recommended.length ? "按当前画像排序" : "等待岗位或推荐"}</small></article>
+      <ArrowRight className="platform-flow-arrow" size={16}/>
+      <article><span>03 · 投递准备</span><strong>{ready.length} 个可投递</strong><small>{blocked.length ? `${blocked.length} 个待补齐` : "没有阻塞事项"}</small></article>
+    </section>
+
     <div className="platform-overview-grid">
       <section className="platform-panel platform-priority-panel">
-        <header className="platform-panel-head"><div><h2>今日推荐</h2><p>{state.daily?.recommendation_date ? `${state.daily.recommendation_date} 已按当前画像完成推荐与投递准备。` : "每天从完整岗位池中，为当前账号独立生成推荐。"}</p></div><Link href="/applications">推荐设置<ArrowRight size={15}/></Link></header>
+        <header className="platform-panel-head"><div><h2>今日推荐</h2><p>{state.daily?.recommendation_date ? `${state.daily.recommendation_date} 已按当前画像完成推荐。` : "按当前画像显示岗位、分数和匹配理由。"}</p></div><Link href="/applications">推荐设置<ArrowRight size={15}/></Link></header>
         <div className="platform-recommendation-groups">
           {Object.values(recommendationGroups).filter((group) => group.jobs.length).map((group) => <section key={group.key}><header><strong>{group.label}</strong><small>{group.jobs.length} 个</small></header><div className="platform-priority-list">{group.jobs.map((job) => <Link href={`/jobs?job=${encodeURIComponent(String(job.id))}`} key={job.id} className="platform-priority-row">
             <span className={`platform-score fit-${job.recommendation?.fit ?? "possible"}`}>{job.recommendation?.score ?? job.evaluation?.total_score ?? "--"}</span>
@@ -138,7 +146,7 @@ export function OverviewWorkspace() {
       </section>
 
       <section className="platform-panel platform-action-panel">
-        <header className="platform-panel-head"><div><h2>今天需要处理</h2><p>只显示会影响推荐或投递的事项。</p></div></header>
+        <header className="platform-panel-head"><div><h2>今天需要处理</h2><p>只保留会阻止推荐或投递的事项。</p></div></header>
         <div className="platform-action-list">
           {actions.length ? actions.slice(0, 5).map((item) => <Link href={item.href} key={`${item.title}-${item.href}`} className={`platform-action-item ${item.tone}`}>
             {item.tone === "ok" ? <CheckCircle2 size={18}/> : item.tone === "warn" ? <CircleAlert size={18}/> : <Clock3 size={18}/>}<span><strong>{item.title}</strong><small>{item.copy}</small></span><em>{item.label}<ArrowRight size={14}/></em>
@@ -148,7 +156,7 @@ export function OverviewWorkspace() {
     </div>
 
     <section className="platform-panel platform-data-overview">
-      <header className="platform-panel-head"><div><h2>招聘数据看板</h2><p>岗位来源、推荐覆盖和真实投递转化。</p></div><Link href="/analytics">完整数据看板<ArrowRight size={15}/></Link></header>
+      <header className="platform-panel-head"><div><h2>招聘数据看板</h2><p>来源、申请、回复、面试四项真实数据。</p></div><Link href="/analytics">完整数据看板<ArrowRight size={15}/></Link></header>
       <details className="platform-subfold">
         <summary>展开查看数据</summary>
       <div className="platform-data-grid">

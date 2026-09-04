@@ -129,14 +129,14 @@ export function AgentPlayground() {
     <section className="portfolio-hero" id="product">
       <div>
         <h1>把求职流程变成一个<br/><em>有证据、可评测、可人工接管</em>的 AI Agent 系统</h1>
-        <p>面向 AI Agent、LLM 应用、RAG、AI 产品和解决方案实习。系统完成岗位分析、混合评分、证据检索、简历适配和面试准备，但不会替用户自动投递或发送。</p>
+        <p>面向 AI Agent、LLM 应用、RAG、AI 产品和解决方案实习：输入 JD，得到评分、证据、简历和面试准备；不自动投递或发送。</p>
         <div className="hero-proof-row" aria-label="核心工作流"><span><CheckCircle2 size={14}/>JD → 证据 → 简历</span><span><CheckCircle2 size={14}/>结果可追溯</span><span><ShieldCheck size={14}/>关键动作人工确认</span></div>
         <div className="portfolio-actions"><a href="#demo" className="primary-button"><Play size={14}/>分析一条真实 JD</a><Link href="/agents" className="ghost-button">查看 Agent 控制台</Link></div>
         <div className="hero-note"><ShieldCheck size={15}/><span>公开演示环境：不连接邮箱、不读取私人资料、不自动投递。</span></div>
       </div>
       <div className="architecture-card" id="workflow">
         <div className="architecture-kicker"><span>AGENT RUNTIME MAP</span><b className={`runtime-status ${runtimeStatus.tone}`} aria-live="polite"><i/>{runtimeStatus.label}</b></div>
-        <div className="architecture-title"><Bot size={18}/><div><strong>Grounded Agent Runtime</strong><span>每个节点保留输入摘要、结果与引用</span></div></div>
+        <div className="architecture-title"><Bot size={18}/><div><strong>Grounded Agent Runtime</strong><span>输入、输出、引用都保留</span></div></div>
         <div className="architecture-flow">{trace.map((node, index) => <div key={node}><span>{index + 1}</span><div><strong>{node}</strong><small>{traceCopy[index]}</small></div><b>{index === 0 ? (analysisState === "loading" ? "运行中" : analysisState === "error" ? "需复核" : analysisState === "dirty" ? "待运行" : "已完成") : "已完成"}</b></div>)}</div>
         <div className="architecture-log"><span>RUNTIME LOG</span><code>{runtimeStatus.log}</code><a href="#demo">VIEW LOGS <ArrowRight size={12}/></a></div>
         <div className="architecture-safety"><ShieldCheck size={16}/><span>Human-in-the-loop：发送、提交、面试与 Offer 动作必须独立确认</span></div>
@@ -144,25 +144,25 @@ export function AgentPlayground() {
     </section>
 
     <section className="portfolio-capabilities" id="proof">
-      <article><GitBranch size={18}/><strong>Multi-Agent Workflow</strong><p>岗位发现、JD 分析、简历、面试与评测由专用节点协作。</p></article>
-      <article><Braces size={18}/><strong>MCP-compatible Tools</strong><p>读操作可调用，高风险写操作只返回审批要求。</p></article>
-      <article><Target size={18}/><strong>Hybrid Ranking</strong><p>40% 硬规则、40% 证据匹配、20% 历史反馈。</p></article>
-      <article><CheckCircle2 size={18}/><strong>Agent Evaluation</strong><p>Recall@K、MRR、Citation Coverage 与 Grounding 检查。</p></article>
+      <article><GitBranch size={18}/><strong>Multi-Agent Workflow</strong><p>5 个节点：发现、分析、简历、面试、评测。</p></article>
+      <article><Braces size={18}/><strong>MCP-compatible Tools</strong><p>读操作直达；投递等写操作只生成审批请求。</p></article>
+      <article><Target size={18}/><strong>Hybrid Ranking</strong><p>规则 40% · 证据 40% · 历史 20%。</p></article>
+      <article><CheckCircle2 size={18}/><strong>Agent Evaluation</strong><p>Recall@K · MRR · Citation Coverage · Grounding。</p></article>
     </section>
 
     <section className="playground-shell" id="demo">
-      <header><div><span className="eyebrow">Public portfolio demo</span><h2>Agent Playground</h2><p>粘贴 AI 实习 JD，立即查看岗位评分、证据匹配、风险、简历版本和招呼语。此演示不读取私人数据。</p></div><span className="demo-badge">SAFE DEMO</span></header>
-      <div className="playground-command-rail" aria-label="演示工作台视图"><span className="is-active">JD 解析</span><span>匹配结果</span><span>证据明细</span><span>Agent 日志</span></div>
+      <header><div><span className="eyebrow">Public portfolio demo</span><h2>Agent Playground</h2><p>粘贴 JD，查看评分、匹配证据和对应简历。公开 Demo 不读取私人数据。</p></div><span className="demo-badge">SAFE DEMO</span></header>
+      <div className="playground-command-rail" aria-label="演示工作台视图"><span className="is-active">输入 JD</span><span>评分与风险</span><span>证据与缺口</span><span>简历与招呼语</span></div>
       <div className="playground-grid">
         <div className="playground-input">
           <div className="playground-scenarios" aria-label="公开演示场景">
-            <div><strong>先选一个实操场景</strong><small>每个场景都使用公开示例，不读取私有资料</small></div>
+            <div><strong>先选一个实操场景</strong><small>6 个常用场景；更多场景按需展开</small></div>
             <div className="playground-scenario-list">{FEATURED_SCENARIOS.map((scenario) => <button key={scenario.id} type="button" className={jd === scenario.jd ? "active" : ""} aria-pressed={jd === scenario.jd} onClick={() => selectScenario(scenario)}><span>{scenario.label}</span><small>{scenario.note}</small></button>)}</div>
             {MORE_SCENARIOS.length ? <details className="playground-scenarios-more"><summary>更多场景（{MORE_SCENARIOS.length}）<ChevronDown size={13}/></summary><div className="playground-scenario-list">{MORE_SCENARIOS.map((scenario) => <button key={scenario.id} type="button" className={jd === scenario.jd ? "active" : ""} aria-pressed={jd === scenario.jd} onClick={() => selectScenario(scenario)}><span>{scenario.label}</span><small>{scenario.note}</small></button>)}</div></details> : null}
             <p className="playground-scenario-status" aria-live="polite">{analysisState === "dirty" ? "场景已切换，请点击“运行 Agent 分析”查看结果。" : "默认展示公开示例结果；你可以切换场景后重新分析。"}</p>
           </div>
           <label>岗位 JD<textarea value={jd} aria-describedby={inputError ? "playground-input-error" : undefined} onChange={(event) => { analysisToken.current += 1; setJd(event.target.value); setResult(null); setAnalysisState("dirty"); setAnalysisError(""); setCopyError(""); if (inputError) setInputError(""); }} rows={16}/></label>
-          <div className="playground-input-meta"><span>{jd.length} 个字符</span><span>至少 20 个字符后可运行分析</span></div>
+          <div className="playground-input-meta"><span>{jd.length} 个字符</span><span>满 20 个字符即可分析</span></div>
           {inputError ? <p id="playground-input-error" className="playground-input-error" role="alert">{inputError}</p> : null}
           <button className="primary-button" onClick={() => void analyze()} disabled={analysisState === "loading"} aria-busy={analysisState === "loading"}><Sparkles size={14}/>{analysisState === "loading" ? "正在分析…" : "运行 Agent 分析"}</button>
           <small>{result?.disclaimer ?? "修改岗位描述后，请运行 Agent 分析；公开 Demo 不读取私人数据。"}</small>
