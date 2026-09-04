@@ -218,7 +218,7 @@ export function ResumeAgentWorkspace() {
   }
 
   return <section className="platform-workspace resume-library-page">
-    <header className="platform-page-head"><div><h1>多版本简历库</h1><p>保存原始文件、主简历、通用版本和岗位定制版本。投递时系统从可使用版本中自动选择匹配度最高的一份。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
+    <header className="platform-page-head"><div><h1>多版本简历库</h1><p>先保证有一份主简历，再按岗位生成定制版本；原始文件不会被覆盖。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
     {message ? <div className="platform-message" role="status">{message}</div> : null}
 
     <section className="resume-storage-strip">
@@ -228,7 +228,13 @@ export function ResumeAgentWorkspace() {
       <article><strong>{activeResumes.length}</strong><span><small>可使用版本</small></span></article>
     </section>
 
-    <div className="resume-create-grid">
+    <nav className="platform-priority-rail" aria-label="简历库优先级">
+      <a className="platform-priority-item p0" href="#resume-base"><span>P0 · 现在做</span><strong>{master ? "确认主简历" : "建立主简历"}</strong><small>没有主简历就先从画像建立</small></a>
+      <a className="platform-priority-item p1" href="#resume-target"><span>P1 · 接着处理</span><strong>{jobs.length} 个岗位可定制</strong><small>按岗位方向生成新版本</small></a>
+      <a className="platform-priority-item p2" href="#resume-library"><span>P2 · 需要时看</span><strong>{activeResumes.length} 份可使用</strong><small>比较、复制或查看归档版本</small></a>
+    </nav>
+
+    <div className="resume-create-grid" id="resume-base">
       <form className="platform-panel resume-upload-panel" onSubmit={uploadFile}>
         <header><Upload size={20}/><div><h2>上传已有简历</h2><p>支持 PDF、DOC、DOCX、TXT，最大 10MB。文件仅当前账号可读取。</p></div></header>
         <label>选择文件<input id="resume-file-input" type="file" accept=".pdf,.doc,.docx,.txt,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain" onChange={(event) => setUpload({ ...upload, file: event.target.files?.[0] ?? null })} required/></label>
@@ -249,7 +255,7 @@ export function ResumeAgentWorkspace() {
       </section>
     </div>
 
-    <section className="platform-panel resume-target-panel">
+    <section className="platform-panel resume-target-panel" id="resume-target">
       <header><Sparkles size={20}/><div><h2>生成岗位定制版本</h2><p>系统读取岗位、主简历和已核验项目证据，生成新的草稿版本，不覆盖原简历。</p></div></header>
       <form onSubmit={generate}>
         <label>目标岗位<select value={jobId} onChange={(event) => setJobId(event.target.value)} required><option value="">请选择岗位</option>{jobs.map((job) => <option value={job.id} key={job.id}>{job.company_name} · {job.title}</option>)}</select></label>
@@ -261,7 +267,7 @@ export function ResumeAgentWorkspace() {
       </div>
     </section>
 
-    <section className="platform-section"><header><h2>全部简历版本</h2><span>{activeResumes.length} 份可使用</span></header>
+    <section className="platform-section" id="resume-library"><header><h2>全部简历版本</h2><span>{activeResumes.length} 份可使用</span></header>
       {activeResumes.length === 0 ? <div className="platform-empty-guide compact"><FileCheck2 size={25}/><h2>还没有简历版本</h2><p>上传现有简历，或先完善画像后建立主简历。</p></div> : <div className="resume-library-list">{activeResumes.map((resume) => <ResumeCard key={resume.id} resume={resume} busy={busy} onReload={load} compareSelected={compareIds.includes(String(resume.id))} onToggleCompare={() => toggleCompare(String(resume.id))} onCopyCopy={copyCopy}/>)}</div>}
       {compareIds.length === 2 ? <ResumeCompare left={activeResumes.find((item) => String(item.id) === compareIds[0]) ?? null} right={activeResumes.find((item) => String(item.id) === compareIds[1]) ?? null} onClear={() => setCompareIds([])}/> : null}
     </section>

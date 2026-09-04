@@ -84,15 +84,20 @@ export function InterviewsWorkspace() {
   }
 
   return <section className="control-panel interview-panel">
-    <header className="control-heading"><div><span className="eyebrow">Interview learning loop</span><h2>面试管理</h2><p>准备、复盘和能力补强形成闭环；接受面试、下一轮或 Offer 始终由你决定。</p></div><button className="icon-button" onClick={() => void load()}><RefreshCw size={15}/></button></header>
+    <header className="control-heading"><div><span className="eyebrow">Interview learning loop</span><h2>面试管理</h2><p>先准备下一场，再处理技能缺口；复盘只记录，不替你接受下一轮或 Offer。</p></div><button className="icon-button" onClick={() => void load()}><RefreshCw size={15}/></button></header>
     {message ? <div className="control-message">{message}</div> : null}
     <div className="interview-summary-grid">
       <article><CalendarClock size={17}/><strong>{scheduled.length}</strong><span>待进行面试</span></article>
       <article><ClipboardCheck size={17}/><strong>{completed.length}</strong><span>已完成复盘</span></article>
       <article><Target size={17}/><strong>{openGaps.length}</strong><span>开放技能缺口</span></article>
     </div>
+    <nav className="platform-priority-rail" aria-label="面试管理优先级">
+      <a className="platform-priority-item p0" href="#interview-list"><span>P0 · 现在做</span><strong>{scheduled.length} 场待准备</strong><small>先打开下一场面试计划</small></a>
+      <a className="platform-priority-item p1" href="#skill-gaps"><span>P1 · 接着处理</span><strong>{openGaps.length} 个技能缺口</strong><small>按严重度补强并标记进度</small></a>
+      <a className="platform-priority-item p2" href="#interview-list"><span>P2 · 需要时看</span><strong>{completed.length} 场已复盘</strong><small>回看证据和自评变化</small></a>
+    </nav>
     <div className="interview-layout">
-      <div className="interview-list">
+      <div className="interview-list" id="interview-list">
         {interviews.length === 0 ? <div className="empty-state"><MessageSquareText size={25}/><strong>暂无面试记录</strong><span>从已准备或已投递的岗位创建第一场面试。</span></div> : interviews.map((item) => {
           const job = item.job ?? {}; const plan = item.preparation_plan ?? {}; const itemGaps = item.skill_gaps ?? [];
           return <article className="interview-card" key={item.id}>
@@ -116,7 +121,7 @@ export function InterviewsWorkspace() {
           <label>面试官<input value={form.interviewer} onChange={(event) => setForm({ ...form, interviewer: event.target.value })}/></label>
           <button className="primary-button" disabled={!form.application_id || !form.scheduled_at || busy === "create"}><Plus size={14}/>创建面试</button>
         </form>
-        <div className="skill-gap-panel"><div><span className="eyebrow">Skill gaps</span><h3>技能缺口队列</h3></div>{openGaps.length === 0 ? <p className="muted-copy">暂无开放缺口。完成面试复盘后，低分项会自动进入这里。</p> : openGaps.slice(0, 8).map((gap) => <article key={gap.id}><div><strong>{gap.skill}</strong><span>严重度 {gap.severity}/5</span></div><p>{gap.next_action || gap.evidence}</p><div><button onClick={() => void updateGap(gap, "in_progress")}>进行中</button><button onClick={() => void updateGap(gap, "resolved")}>已解决</button></div></article>)}</div>
+        <div className="skill-gap-panel" id="skill-gaps"><div><span className="eyebrow">Skill gaps</span><h3>技能缺口队列</h3></div>{openGaps.length === 0 ? <p className="muted-copy">暂无开放缺口。完成面试复盘后，低分项会自动进入这里。</p> : openGaps.slice(0, 8).map((gap) => <article key={gap.id}><div><strong>{gap.skill}</strong><span>严重度 {gap.severity}/5</span></div><p>{gap.next_action || gap.evidence}</p><div><button onClick={() => void updateGap(gap, "in_progress")}>进行中</button><button onClick={() => void updateGap(gap, "resolved")}>已解决</button></div></article>)}</div>
       </aside>
     </div>
   </section>;

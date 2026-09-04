@@ -289,19 +289,25 @@ export function JobsWorkspace() {
   function resetFilters() { setFilter("all"); setQuery(""); setLocation(""); setSource(""); setWorkplace(""); setSort("recommendation"); }
 
   return <section className="platform-workspace">
-    <header className="platform-page-head"><div><h1>岗位发现</h1><p>这里展示完整岗位池。画像只改变推荐顺序，不会把其他岗位从列表中删除。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新岗位池</button></header>
+    <header className="platform-page-head"><div><h1>岗位发现</h1><p>先看推荐岗位，再处理需确认项；完整岗位池始终保留。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新岗位池</button></header>
 
     <section className="platform-pool-summary"><div><strong>{pool.total ?? openJobs.length}</strong><span>岗位总数</span></div><div><strong>{pool.sources ?? sources.length}</strong><span>岗位来源</span></div><div><strong>{counts.recommended}</strong><span>为我推荐</span></div><div><strong>{profileCompleteness}%</strong><span>画像完整度</span></div><Link href="/profile">调整推荐画像<SlidersHorizontal size={15}/></Link></section>
+
+    <nav className="platform-priority-rail" aria-label="岗位发现优先级">
+      <Link className="platform-priority-item p0" href="#job-list"><span>P0 · 现在看</span><strong>{counts.recommended} 个推荐岗位</strong><small>先看匹配度和投递状态</small></Link>
+      <button className="platform-priority-item p1" type="button" onClick={() => setFilter("verify")}><span>P1 · 接着处理</span><strong>{counts.verify} 个需确认</strong><small>核对地点、届别或材料缺口</small></button>
+      <Link className="platform-priority-item p2" href="#import-job"><span>P2 · 需要时看</span><strong>完整岗位池与导入</strong><small>新增来源或粘贴真实 JD</small></Link>
+    </nav>
 
     {profileCompleteness < 70 ? <div className="platform-notice warn"><AlertTriangle size={18}/><span><strong>推荐画像还不完整</strong><small>完整岗位池仍然可浏览，但推荐排序可能不够准确。</small></span><Link href="/profile">完善画像</Link></div> : null}
     {message ? <div className="platform-message" role="status">{message}</div> : null}
 
     <section className="platform-panel instant-profile-search">
-      <header><div><Sparkles size={20}/><span><h2>即时聚合搜索</h2><p>点击一次，同时搜索各招聘平台的公开岗位索引（LinkedIn、实习僧、智联、猎聘、前程无忧、Workday 等）；结果统一去重、画像筛选和排序，高匹配岗位自动准备简历与投递文案。</p></span></div><button className="primary-button" type="button" onClick={() => void runInstantSearch()} disabled={busyId === "instant-search"}>{busyId === "instant-search" ? <><LoaderCircle className="spin" size={16}/>正在搜索各平台…</> : <><SearchCheck size={16}/>开始聚合搜索</>}</button></header>
+      <header><div><Sparkles size={20}/><span><h2>即时聚合搜索</h2><p>按画像搜索公开岗位，结果会去重并按匹配度排序。</p></span></div><button className="primary-button" type="button" onClick={() => void runInstantSearch()} disabled={busyId === "instant-search"}>{busyId === "instant-search" ? <><LoaderCircle className="spin" size={16}/>正在搜索各平台…</> : <><SearchCheck size={16}/>开始聚合搜索</>}</button></header>
       <label><span>本次补充关键词（可选）</span><input value={instantQuery} onChange={(event) => setInstantQuery(event.target.value)} placeholder="例如：AI 产品实习、上海、Agent；留空则完全按画像搜索"/></label>
       {lastSearch ? <div className="instant-search-summary"><strong>{Number(lastSearch.jobs_found ?? searchResultIds.size)} 个结果</strong><span>新增 {Number(lastSearch.jobs_imported ?? 0)} 个</span><span>材料已准备 {Number(lastSearch.jobs_prepared ?? 0)} 个</span><time>{lastSearch.completed_at ? new Date(lastSearch.completed_at).toLocaleString("zh-CN") : "搜索处理中"}</time></div> : null}
-      {searchStatuses.length ? <div className="instant-search-platforms">{searchStatuses.map((item) => <article key={item.platform} className={`status-${item.status}${["boss", "nowcoder"].includes(item.platform) ? " login-wall" : ""}`}><div><strong>{item.label}</strong><span>{item.status === "success" ? "已找到" : item.status === "no_results" ? "暂无合适结果" : item.status === "failed" ? "搜索失败" : "当前不可用"}</span></div><b>{item.result_count ?? 0}</b><small>{item.note || `已检查 ${item.searched_sources ?? 0} 个来源`}</small></article>)}</div> : null}
-      <p className="instant-search-note">多数平台可直接聚合真实岗位。BOSS直聘、牛客需登录才能查看（搜索引擎收录不到），请在浏览器登录该平台后搜索并复制链接/JD 导入。投递前系统会提示你先登录对应平台。</p>
+      {searchStatuses.length ? <details className="platform-secondary-fold instant-search-status-fold"><summary>查看本次来源结果 · {searchStatuses.length} 个</summary><div className="instant-search-platforms">{searchStatuses.map((item) => <article key={item.platform} className={`status-${item.status}${["boss", "nowcoder"].includes(item.platform) ? " login-wall" : ""}`}><div><strong>{item.label}</strong><span>{item.status === "success" ? "已找到" : item.status === "no_results" ? "暂无合适结果" : item.status === "failed" ? "搜索失败" : "当前不可用"}</span></div><b>{item.result_count ?? 0}</b><small>{item.note || `已检查 ${item.searched_sources ?? 0} 个来源`}</small></article>)}</div></details> : null}
+      <details className="platform-secondary-fold instant-search-note-fold"><summary>平台登录与数据边界</summary><p className="instant-search-note">多数平台可直接聚合真实岗位。BOSS直聘、牛客需登录才能查看，请在浏览器登录后复制链接或 JD 导入；投递前系统会提示先登录对应平台。</p></details>
     </section>
 
     <section className="platform-job-controls">
@@ -316,7 +322,7 @@ export function JobsWorkspace() {
       </div>
     </section>
 
-    <section className="platform-data-panel" aria-label="完整岗位池">
+    <section className="platform-data-panel" id="job-list" aria-label="完整岗位池">
       <div className="platform-table-head platform-job-table-head"><span>推荐度</span><span>岗位与来源</span><span>资格状态</span><span>操作</span></div>
       <div className="platform-job-list">
         {visibleJobs.length ? visibleJobs.map((job) => <JobRow key={job.id} job={job} planState={plans[job.id]} busyId={busyId} onPlan={plan} onVerify={verify} onConfirm={confirmAndApply} onFeedback={feedback}/>) : openJobs.length ? <div className="platform-empty-state"><Filter size={22}/><strong>当前筛选没有结果</strong><p>岗位没有被删除，清除筛选即可查看完整岗位池。</p><button onClick={resetFilters}>查看全部岗位</button></div> : <div className="platform-empty-state"><SearchCheck size={22}/><strong>岗位池还是空的</strong><p>导入任意招聘平台的真实岗位链接和 JD，系统会自动解析、去重和画像匹配。</p><div><Link href="/sources">查看岗位来源</Link></div></div>}

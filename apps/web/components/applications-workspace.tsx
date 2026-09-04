@@ -257,18 +257,24 @@ export function ApplicationsWorkspace() {
 
   const rowProps = { activeHandoffId, busyId, onStart: startSubmission, onConfirm: confirmSubmitted, onApprove: approve, onOpenExport: openExport, onReload: load };
   return <section className="platform-workspace">
-    <header className="platform-page-head"><div><h1>投递管理</h1><p>系统每天推荐岗位并准备定制简历、求职信、招呼语和常见问答；支持的渠道直接打开已准备动作，其他渠道跳转真实申请页。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
+    <header className="platform-page-head"><div><h1>投递管理</h1><p>只看三类：可投递、待补齐、已完成。材料和真实投递入口集中在这里。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
+
+    <nav className="platform-priority-rail" aria-label="投递管理优先级">
+      <Link className="platform-priority-item p0" href="#ready"><span>P0 · 现在做</span><strong>{groups.ready.length} 个可投递</strong><small>打开材料并确认后提交</small></Link>
+      <Link className="platform-priority-item p1" href="#blocked"><span>P1 · 接着处理</span><strong>{groups.blocked.length} 个待补齐</strong><small>先补信息或确认岗位条件</small></Link>
+      <Link className="platform-priority-item p2" href="#submitted-history"><span>P2 · 需要时看</span><strong>{groups.submitted.length} 个已完成</strong><small>复盘已投递记录</small></Link>
+    </nav>
 
     <section className="platform-panel automation-panel">
       <header><Bot size={20}/><div><h2>每日推荐与完整投递包</h2><p>每天 08:00（亚洲时区）为每个账号独立生成推荐，并自动准备岗位定制简历与全部文案。</p></div><button className="ghost-button compact" type="button" onClick={() => void runNow()} disabled={busyId === "automation-run"}><Sparkles size={14}/>{busyId === "automation-run" ? "运行中…" : "立即生成今日推荐"}</button></header>
-      {automation ? <div className="automation-settings">
+      {automation ? <details className="automation-settings-fold"><summary>调整每日推荐设置<ChevronDown size={14}/></summary><div className="automation-settings">
         <label className="platform-checkbox"><input type="checkbox" checked={automation.enabled} onChange={(event) => setAutomation({ ...automation, enabled: event.target.checked })}/>启用每日推荐</label>
         <label className="platform-checkbox"><input type="checkbox" checked={automation.auto_prepare_enabled} onChange={(event) => setAutomation({ ...automation, auto_prepare_enabled: event.target.checked })}/>自动生成简历和全部投递文案</label>
         <label>每日推荐数量<input type="number" min="1" max="30" value={automation.recommendation_limit} onChange={(event) => setAutomation({ ...automation, recommendation_limit: Number(event.target.value) })}/></label>
         <label>最低匹配分<input type="number" min="0" max="100" value={automation.minimum_score} onChange={(event) => setAutomation({ ...automation, minimum_score: Number(event.target.value) })}/></label>
         <label>每日自动准备上限<input type="number" min="0" max="10" value={automation.auto_prepare_limit} onChange={(event) => setAutomation({ ...automation, auto_prepare_limit: Number(event.target.value) })}/></label>
         <button className="primary-button compact" type="button" onClick={() => void saveAutomation()} disabled={busyId === "automation-save"}><Save size={14}/>{busyId === "automation-save" ? "保存中…" : "保存设置"}</button>
-      </div> : null}
+      </div></details> : null}
       <footer>{latest ? <span>最近生成：{latest.recommendation_date} · 推荐 {(latest.ranked_job_ids ?? []).length} 个 · 准备 {(latest.prepared_application_ids ?? []).length} 个</span> : <span>尚未生成个人每日推荐</span>}</footer>
     </section>
 
@@ -277,11 +283,11 @@ export function ApplicationsWorkspace() {
 
     {!items.length ? <section className="platform-empty-guide"><Inbox size={26}/><h2>投递队列目前为空</h2><p>立即运行今日推荐，系统会自动选择岗位、匹配简历并生成完整投递包。</p><div><button className="primary-button" type="button" onClick={() => void runNow()}><Sparkles size={15}/>生成今日推荐</button><Link href="/jobs"><strong>浏览完整岗位池</strong><small>查看所有岗位并手动选择</small></Link><Link href="/resumes"><strong>准备多份简历</strong><small>上传主简历和不同方向版本</small></Link></div></section> : null}
 
-    {groups.ready.length ? <section className="platform-section"><header><h2>材料齐全，可以投递</h2><span>{groups.ready.length} 个</span></header><div className="platform-data-panel"><div className="platform-table-head platform-application-table-head"><span>岗位</span><span>简历</span><span>状态</span><span>操作</span></div>{groups.ready.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></section> : items.length ? <section className="platform-notice neutral"><ShieldCheck size={19}/><span><strong>还没有材料齐全的岗位</strong><small>下面列出了仍待确认条件、材料或用户批准的岗位。</small></span><Link href="/jobs">继续选择岗位</Link></section> : null}
+    {groups.ready.length ? <section className="platform-section" id="ready"><header><h2>材料齐全，可以投递</h2><span>{groups.ready.length} 个</span></header><div className="platform-data-panel"><div className="platform-table-head platform-application-table-head"><span>岗位</span><span>简历</span><span>状态</span><span>操作</span></div>{groups.ready.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></section> : items.length ? <section className="platform-notice neutral" id="ready"><ShieldCheck size={19}/><span><strong>还没有材料齐全的岗位</strong><small>下面列出了仍待确认条件、材料或用户批准的岗位。</small></span><Link href="/jobs">继续选择岗位</Link></section> : null}
 
-    {groups.blocked.length ? <section className="platform-section"><header><h2>等待确认或需要补齐</h2><span>{groups.blocked.length} 个</span></header><div className="platform-data-panel"><div className="platform-table-head platform-application-table-head"><span>岗位</span><span>简历</span><span>状态</span><span>操作</span></div>{groups.blocked.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></section> : null}
+    {groups.blocked.length ? <section className="platform-section" id="blocked"><header><h2>等待确认或需要补齐</h2><span>{groups.blocked.length} 个</span></header><div className="platform-data-panel"><div className="platform-table-head platform-application-table-head"><span>岗位</span><span>简历</span><span>状态</span><span>操作</span></div>{groups.blocked.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></section> : null}
 
-    {groups.submitted.length ? <details className="platform-history"><summary><CheckCircle2 size={16}/>最近已投递 <span>{groups.submitted.length}</span></summary><div>{groups.submitted.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></details> : null}
+    {groups.submitted.length ? <details className="platform-history" id="submitted-history"><summary><CheckCircle2 size={16}/>最近已投递 <span>{groups.submitted.length}</span></summary><div>{groups.submitted.map((item) => <ApplicationRow key={item.id} item={item} {...rowProps}/>)}</div></details> : null}
     <p className="platform-safety">一键投递在这里表示：系统生成全部材料并打开已准备的邮件或真实招聘页面。系统不会保存招聘平台密码、Cookie 或验证码，也不会把“打开页面”冒充成已经提交。</p>
   </section>;
 }

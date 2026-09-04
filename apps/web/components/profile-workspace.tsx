@@ -122,7 +122,7 @@ export function ProfileWorkspace() {
 
   return <section className="platform-workspace">
     <header className="platform-page-head">
-      <div><h1>我的完整画像</h1><p>一次填写，保存为当前账号的长期画像。它同时服务于每日推荐、简历版本选择、材料缺口判断和投递准备。</p></div>
+      <div><h1>我的完整画像</h1><p>先补齐推荐所需信息，再补充经历和偏好。</p></div>
       <div className="platform-profile-score"><strong>{completeness.score}%</strong><span>画像完整度</span></div>
     </header>
 
@@ -130,10 +130,16 @@ export function ProfileWorkspace() {
 
     <div className="platform-profile-summary"><CheckCircle2 size={18}/><div><strong>{summary || "画像尚未填写"}</strong><span>{completeness.missing.length ? `还可补充：${completeness.missing.slice(0, 6).join("、")}` : "画像信息已足够用于完整推荐"}</span></div></div>
 
+    <nav className="platform-priority-rail" aria-label="个人画像优先级">
+      <a className="platform-priority-item p0" href="#profile-basics"><span>P0 · 现在做</span><strong>{completeness.missing.length ? `补齐 ${completeness.missing.length} 项` : "确认基础信息"}</strong><small>先让推荐和简历可用</small></a>
+      <a className="platform-priority-item p1" href="#profile-records"><span>P1 · 接着处理</span><strong>{profile.details.projects.length + profile.details.experience.length} 条经历证据</strong><small>补充项目、实习和结果</small></a>
+      <a className="platform-priority-item p2" href="#profile-preferences"><span>P2 · 需要时看</span><strong>目标与筛选偏好</strong><small>再调整地点、岗位和办公方式</small></a>
+    </nav>
+
     {completeness.missing.length ? <div className="platform-notice warn"><CircleAlert size={18}/><span><strong>下一步建议</strong><small>先填好下面这些，推荐会明显更准：{completeness.missing.slice(0, 6).join("、")}。填完点右下角「保存完整画像并重新推荐」即可。</small></span></div> : <div className="platform-notice ok"><CheckCircle2 size={18}/><span><strong>画像完整</strong><small>信息已足够用于完整推荐和投递准备。</small></span></div>}
 
     <form className="platform-profile-form" onSubmit={save}>
-      <section className="platform-form-section">
+      <section className="platform-form-section" id="profile-basics">
         <header><h2>个人信息与职业定位</h2><p>这些内容构成简历主档案，不会公开给其他用户。</p></header>
         <div className="platform-form-grid two">
           <label>姓名或称呼<input value={profile.details.display_name} onChange={(event) => setProfile({ ...profile, details: { ...profile.details, display_name: event.target.value } })} placeholder="例如 张同学"/></label>
@@ -167,14 +173,14 @@ export function ProfileWorkspace() {
         </div>
       </section>
 
-      <section className="platform-form-section profile-records-section">
+      <section className="platform-form-section profile-records-section" id="profile-records">
         <header><h2>经历档案</h2><p>这里保存完整经历，简历库会从中生成不同版本；项目证据仍在 Career Vault 中单独核验。</p></header>
         <RecordsEditor title="教育经历" hint="学校、专业、学位和时间。" items={profile.details.education} onChange={(items) => setProfile({ ...profile, details: { ...profile.details, education: items } })}/>
         <RecordsEditor title="工作或实习经历" hint="职位、机构、时间与可验证结果。" items={profile.details.experience} onChange={(items) => setProfile({ ...profile, details: { ...profile.details, experience: items } })}/>
         <RecordsEditor title="项目经历" hint="项目名称、角色、技术方法与结果。" items={profile.details.projects} onChange={(items) => setProfile({ ...profile, details: { ...profile.details, projects: items } })}/>
       </section>
 
-      <section className="platform-form-section">
+      <section className="platform-form-section" id="profile-preferences">
         <header><h2>求职与推荐偏好</h2><p>系统不会因此隐藏完整岗位池，只会改变每日推荐顺序和解释。</p></header>
         <div className="platform-form-grid two">
           <label>目标岗位<textarea rows={3} value={profile.preferences.target_roles.join("，")} onChange={(event) => setProfile({ ...profile, preferences: { ...profile.preferences, target_roles: csv(event.target.value) } })} placeholder="AI 应用开发，后端开发，数据产品"/></label>

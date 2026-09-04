@@ -63,8 +63,14 @@ export function JdToolWorkspace() {
   useEffect(() => { void runAssess(); }, [runAssess]);
 
   return <section className="platform-workspace">
-    <header className="platform-page-head"><div><h1>JD 深拆与简历就绪度</h1><p>粘贴任意岗位 JD,资深视角拆解必备/加分/职责/隐含信息/匹配度与行动清单;并检查简历是否达到可投递就绪。</p></div></header>
+    <header className="platform-page-head"><div><h1>JD 深拆与简历就绪度</h1><p>先判断该不该投，再看缺口和简历是否就绪。</p></div></header>
     {message ? <div className="platform-message" role="status">{message}</div> : null}
+
+    <nav className="platform-priority-rail" aria-label="JD 分析优先级">
+      <article className="platform-priority-item p0"><span>P0 · 现在看</span><strong>{analysis?.verdict ?? "先粘贴 JD"}</strong><small>{analysis ? "确认是否值得继续" : "输入岗位文本或 URL"}</small></article>
+      <article className="platform-priority-item p1"><span>P1 · 接着处理</span><strong>{analysis ? `${analysis.gaps?.length ?? 0} 个待补缺口` : "匹配与缺口"}</strong><small>把缺口转成简历行动</small></article>
+      <article className="platform-priority-item p2"><span>P2 · 需要时看</span><strong>{assess ? `${assess.passed}/${assess.total} 项就绪` : "简历门禁"}</strong><small>全部通过后再生成最终版</small></article>
+    </nav>
 
     <section className="platform-panel">
       <header className="platform-panel-head"><div><h2><FileSearch size={17}/>岗位 JD 深拆</h2><p>输入 JD 文本或岗位 URL,分析该不该投、缺什么、怎么补。</p></div><button className="primary-button" type="button" onClick={() => void runJd()} disabled={busy === "jd" || (!jdText.trim() && !jdUrl.trim())}><Sparkles size={15}/>{busy === "jd" ? "拆解中…" : "开始拆解"}</button></header>
@@ -76,16 +82,18 @@ export function JdToolWorkspace() {
 
     {analysis ? <section className="platform-panel jd-result">
       <header className="platform-panel-head"><div><h2>拆解结果 · {analysis.role || "未识别岗位"}</h2><p>{analysis.company || "公司未知"} · {analysis.location || "地点未说明"}</p></div><span className={`jd-verdict ${analysis.matched?.length ? "ok" : "warn"}`}>{analysis.verdict}</span></header>
-      {analysis.must_have.length ? <div className="jd-block"><strong>必备条件(硬门槛)</strong><ul>{analysis.must_have.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
-      {analysis.nice_to_have.length ? <div className="jd-block"><strong>加分项(软性)</strong><ul>{analysis.nice_to_have.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
-      {analysis.duties.length ? <div className="jd-block"><strong>日常工作与职责</strong><ul>{analysis.duties.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
-      {analysis.hidden_signals.length ? <div className="jd-block"><strong>隐含信息</strong><ul>{analysis.hidden_signals.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
+      <details className="platform-secondary-fold jd-breakdown-fold"><summary>查看岗位拆解明细 · {analysis.must_have.length + analysis.nice_to_have.length + analysis.duties.length + analysis.hidden_signals.length} 项</summary><div className="jd-breakdown-grid">
+        {analysis.must_have.length ? <div className="jd-block"><strong>必备条件(硬门槛)</strong><ul>{analysis.must_have.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
+        {analysis.nice_to_have.length ? <div className="jd-block"><strong>加分项(软性)</strong><ul>{analysis.nice_to_have.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
+        {analysis.duties.length ? <div className="jd-block"><strong>日常工作与职责</strong><ul>{analysis.duties.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
+        {analysis.hidden_signals.length ? <div className="jd-block"><strong>隐含信息</strong><ul>{analysis.hidden_signals.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
+      </div></details>
       <div className="jd-block"><strong>你的匹配度</strong>
         {analysis.matched?.length ? <p>✅ 命中:{analysis.matched.join("、")}</p> : null}
         {analysis.gaps?.length ? <p>⚠️ 缺口:{analysis.gaps.join("、")}</p> : null}
         <p>{analysis.fit_note}</p>
       </div>
-      {analysis.interview_hints?.length ? <div className="jd-block"><strong>面试重点</strong><ul>{analysis.interview_hints.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
+      {analysis.interview_hints?.length ? <details className="platform-secondary-fold jd-interview-fold"><summary>面试重点 · {analysis.interview_hints.length} 项</summary><div className="jd-block"><ul>{analysis.interview_hints.map((x, i) => <li key={i}>{x}</li>)}</ul></div></details> : null}
       {analysis.actions?.length ? <div className="jd-block"><strong>行动清单</strong><ul>{analysis.actions.map((x, i) => <li key={i}>☐ {x}</li>)}</ul></div> : null}
     </section> : null}
 

@@ -44,12 +44,18 @@ export function SourcesWorkspace() {
   const latestRun = runs[0] ?? null;
 
   return <section className="platform-workspace">
-    <header className="platform-page-head"><div><h1>岗位来源</h1><p>用真实岗位链接 + JD 导入岗位，系统统一解析、去重、资格分析和画像排序，再决定投递。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
+    <header className="platform-page-head"><div><h1>岗位来源</h1><p>管理真实岗位链接；聚合后统一去重、匹配和排序。</p></div><button className="platform-refresh" onClick={() => void load()}><RefreshCw size={16}/>刷新</button></header>
     {message ? <div className="platform-message">{message}</div> : null}
 
     <section className="platform-source-summary"><article><strong>{runs.length ? runs[0]?.jobs_imported ?? 0 : 0}</strong><span>上次新增</span></article><article><strong>{runs.length ? runs[0]?.jobs_updated ?? 0 : 0}</strong><span>上次更新</span></article><article><strong>{runs.length ? runs[0]?.jobs_seen ?? 0 : 0}</strong><span>上次扫描</span></article><button className="primary-button" onClick={() => void runDiscovery()} disabled={busy === "run"}><Play size={15}/>{busy === "run" ? "正在聚合…" : "聚合我的来源"}</button></section>
 
-    <section className="platform-panel platform-import-guide">
+    <nav className="platform-priority-rail" aria-label="岗位来源优先级">
+      <a className="platform-priority-item p0" href="#source-onboarding"><span>P0 · 现在做</span><strong>聚合我的来源</strong><small>先扫描并补充岗位池</small></a>
+      <a className="platform-priority-item p1" href="/jobs#import-job"><span>P1 · 接着处理</span><strong>导入真实岗位</strong><small>没有结果时直接粘贴链接与 JD</small></a>
+      <a className="platform-priority-item p2" href="#source-history"><span>P2 · 需要时看</span><strong>平台说明与历史</strong><small>检查支持范围和运行记录</small></a>
+    </nav>
+
+    <section className="platform-panel platform-import-guide" id="source-onboarding">
       <header className="platform-panel-head"><div><h2><SearchCheck size={19}/>怎么开始</h2><p>岗位来源以“链接 / JD 导入”为核心，不需要连接任何公司 ATS，也不保存平台密码。三步即可用：</p></div></header>
       <div className="platform-onboarding-steps">
         <Link href="/jobs#import-job"><span><strong>1. 导入岗位</strong><small>在岗位发现页粘贴任意平台的真实岗位链接和 JD</small></span></Link>
@@ -58,12 +64,12 @@ export function SourcesWorkspace() {
       </div>
     </section>
 
-    <section className="platform-panel">
+    <details className="platform-secondary-fold" id="source-platforms"><summary>支持的招聘平台 · {LINK_IMPORT_PLATFORMS.length} 类</summary><section className="platform-panel">
       <header className="platform-panel-head"><div><h2>支持的招聘平台</h2><p>都通过真实岗位链接和 JD 导入，不会绕过平台登录、验证码或反机器人机制。</p></div><Link href="/jobs#import-job">去导入岗位<Link2 size={15}/></Link></header>
       <div className="platform-link-platforms">{LINK_IMPORT_PLATFORMS.map(([name, copy]) => <article key={name}><ExternalLink size={18}/><span><strong>{name}</strong><small>{copy}</small></span></article>)}</div>
       <div className="platform-compliance-note"><ShieldCheck size={18}/><span><strong>聚合边界</strong><small>系统负责解析、去重、匹配和准备材料；最终投递由你确认，并在招聘平台允许的登录状态中完成，系统从不自动提交。</small></span></div>
-    </section>
+    </section></details>
 
-    <section className="platform-panel platform-run-history"><header className="platform-panel-head"><div><h2>最近聚合任务</h2><p>可查看岗位池为什么增长、没有增长或出现错误。</p></div></header>{runs.length ? runs.slice(0, 10).map((run) => <div key={run.id}><span>{run.trigger_type === "cron" ? "定时" : "手动"}</span><strong>{run.status}</strong><small>来源 {run.source_count} · 扫描 {run.jobs_seen} · 新增 {run.jobs_imported} · 更新 {run.jobs_updated} · 跳过 {run.jobs_skipped}</small><time>{new Date(run.started_at).toLocaleString("zh-CN")}</time></div>) : <p className="platform-muted">尚未运行岗位聚合。可直接在岗位发现页导入岗位，不依赖来源任务。</p>}</section>
+    <details className="platform-secondary-fold" id="source-history"><summary>最近聚合任务 · {runs.length} 次</summary><section className="platform-panel platform-run-history"><header className="platform-panel-head"><div><h2>最近聚合任务</h2><p>需要排查岗位池变化时再展开。</p></div></header>{runs.length ? runs.slice(0, 10).map((run) => <div key={run.id}><span>{run.trigger_type === "cron" ? "定时" : "手动"}</span><strong>{run.status}</strong><small>来源 {run.source_count} · 扫描 {run.jobs_seen} · 新增 {run.jobs_imported} · 更新 {run.jobs_updated} · 跳过 {run.jobs_skipped}</small><time>{new Date(run.started_at).toLocaleString("zh-CN")}</time></div>) : <p className="platform-muted">尚未运行岗位聚合。可直接在岗位发现页导入岗位，不依赖来源任务。</p>}</section></details>
   </section>;
 }

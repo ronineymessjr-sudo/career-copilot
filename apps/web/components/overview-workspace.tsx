@@ -125,11 +125,11 @@ export function OverviewWorkspace() {
     </section>
 
     <section className="platform-flow-strip" aria-label="求职流程摘要">
-      <article><span>01 · 岗位池</span><strong>{state.pool.open ?? state.jobs.length} 个开放岗位</strong><small>{state.jobs.length ? "已进入匹配" : "导入 JD 后开始"}</small></article>
+      <article><span>P0 · 岗位池</span><strong>{state.pool.open ?? state.jobs.length} 个开放岗位</strong><small>{state.jobs.length ? "已进入匹配" : "导入 JD 后开始"}</small></article>
       <ArrowRight className="platform-flow-arrow" size={16}/>
-      <article><span>02 · 今日推荐</span><strong>{recommended.length} 个匹配结果</strong><small>{recommended.length ? "按当前画像排序" : "等待岗位或推荐"}</small></article>
+      <article><span>P1 · 今日推荐</span><strong>{recommended.length} 个匹配结果</strong><small>{recommended.length ? "按当前画像排序" : "等待岗位或推荐"}</small></article>
       <ArrowRight className="platform-flow-arrow" size={16}/>
-      <article><span>03 · 投递准备</span><strong>{ready.length} 个可投递</strong><small>{blocked.length ? `${blocked.length} 个待补齐` : "没有阻塞事项"}</small></article>
+      <article><span>P2 · 投递准备</span><strong>{ready.length} 个可投递</strong><small>{blocked.length ? `${blocked.length} 个待补齐` : "没有阻塞事项"}</small></article>
     </section>
 
     <div className="platform-overview-grid">
