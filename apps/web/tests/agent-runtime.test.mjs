@@ -104,6 +104,18 @@ test("resume draft excludes unverified evidence", () => {
   assert.equal(draft.truth_check.verified_evidence_only, true);
   assert.equal(draft.evidence_refs.some((item) => item.id === "e3"), false);
   assert.equal(draft.truth_check.automatic_submission, false);
+  assert.equal(draft.claim_map.find((item) => item.evidence_id === "e1")?.status, "confirmed");
+  assert.equal(draft.claim_map.find((item) => item.evidence_id === "e3")?.status, "pending_confirmation");
+  assert.equal(draft.draft_quality_gate.checks.verified_evidence_only, true);
+  assert.equal(draft.draft_quality_gate.status, "needs_review");
+});
+
+test("resume claim map exposes missing job requirements instead of hiding them", () => {
+  const draft = generateResumeDraft({ persona: "agent_engineer", job, evidence });
+  const requirement = draft.claim_map.find((item) => item.claim_type === "requirement" && item.claim === "mcp");
+  assert.equal(requirement?.status, "missing");
+  assert.equal(requirement?.blocking, true);
+  assert.ok(draft.draft_quality_gate.blocking_claim_count > 0);
 });
 
 test("resume alignment counts skills proven in verified project evidence", () => {

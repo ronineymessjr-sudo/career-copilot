@@ -210,6 +210,39 @@ function verifiedEvidence(evidence = []) {
   return evidence.filter((item) => item?.active !== false && (item?.verification_status ?? "verified") === "verified");
 }
 
+function buildClaimMap({ job, evidence = [], selected = [] }) {
+  const selectedIds = new Set(selected.map((item) => String(item?.id ?? "")).filter(Boolean));
+  const evidenceClaims = (evidence ?? []).filter((item) => item?.active !== false).map((item) => {
+    const verified = (item?.verification_status ?? "verified") === "verified";
+    return {
+      claim_type: "evidence",
+      claim: String(item?.evidence ?? ""),
+      project: String(item?.project ?? ""),
+      skill: String(item?.skill ?? ""),
+      evidence_id: String(item?.id ?? ""),
+      source_url: item?.source_url ?? null,
+      status: verified ? "confirmed" : "pending_confirmation",
+      used: verified && selectedIds.has(String(item?.id ?? "")),
+      blocking: false,
+    };
+  });
+  const selectedSkills = new Set(selected.flatMap((item) => [...tokenize(`${item?.skill ?? ""} ${item?.project ?? ""} ${item?.evidence ?? ""}`)]).filter((item) => item in SKILLS));
+  const requirementClaims = extractJobSkills(job).map((skill) => {
+    const supporting = (evidence ?? []).filter((item) => item?.active !== false && tokenize(`${item?.skill ?? ""} ${item?.project ?? ""} ${item?.evidence ?? ""}`).has(skill));
+    const verifiedSupporting = supporting.filter((item) => (item?.verification_status ?? "verified") === "verified");
+    const status = selectedSkills.has(skill) ? "confirmed" : verifiedSupporting.length ? "available_not_selected" : supporting.length ? "pending_confirmation" : "missing";
+    return {
+      claim_type: "requirement",
+      claim: skill,
+      evidence_id: verifiedSupporting[0]?.id ? String(verifiedSupporting[0].id) : null,
+      status,
+      used: selectedSkills.has(skill),
+      blocking: status !== "confirmed",
+    };
+  });
+  return [...evidenceClaims, ...requirementClaims];
+}
+
 export function buildJobCitation(job) {
   return {
     type: "job",
@@ -600,6 +633,8 @@ export function generateResumeDraft({ persona = "agent_engineer", job, evidence 
     source_url: item.source_url ?? null,
     confidence: Number(item.confidence ?? 0),
   })), config.projectOrder ?? [], config.prioritySkills);
+  const claimMap = buildClaimMap({ job, evidence, selected });
+  const blockingClaims = claimMap.filter((item) => item.blocking);
   return {
     persona,
     persona_label: config.label,
@@ -621,6 +656,17 @@ export function generateResumeDraft({ persona = "agent_engineer", job, evidence 
     },
     projects,
     project_order: config.projectOrder ?? [],
+    claim_map: claimMap,
+    draft_quality_gate: {
+      status: selected.length === 0 ? "blocked" : blockingClaims.length ? "needs_review" : "ready_for_review",
+      selected_evidence_count: selected.length,
+      blocking_claim_count: blockingClaims.length,
+      checks: {
+        verified_evidence_only: selected.every((item) => (item?.verification_status ?? "verified") === "verified"),
+        requirement_coverage_visible: true,
+        render_validation: "pending",
+      },
+    },
     keywords_to_amplify: [...new Set([...matched, ...config.prioritySkills])].slice(0, 6),
     recruiter_greeting: buildRecruiterGreeting({ job, persona, matchedSkills: matched, evidence: selected }),
     generation_contract: {
@@ -647,6 +693,7 @@ export function generateResumeDraft({ persona = "agent_engineer", job, evidence 
     truth_check: {
       passed: selected.length > 0,
       verified_evidence_only: true,
+      blocking_claim_count: blockingClaims.length,
       automatic_submission: false,
       final_confirmation_required: true,
     },
