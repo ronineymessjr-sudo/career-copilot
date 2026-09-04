@@ -107,6 +107,7 @@ test("resume draft excludes unverified evidence", () => {
   assert.equal(draft.claim_map.find((item) => item.evidence_id === "e1")?.status, "confirmed");
   assert.equal(draft.claim_map.find((item) => item.evidence_id === "e3")?.status, "pending_confirmation");
   assert.equal(draft.draft_quality_gate.checks.verified_evidence_only, true);
+  assert.equal(draft.draft_quality_gate.checks.render_validation, "passed");
   assert.equal(draft.draft_quality_gate.status, "needs_review");
 });
 
@@ -116,6 +117,13 @@ test("resume claim map exposes missing job requirements instead of hiding them",
   assert.equal(requirement?.status, "missing");
   assert.equal(requirement?.blocking, true);
   assert.ok(draft.draft_quality_gate.blocking_claim_count > 0);
+});
+
+test("resume render gate blocks drafts without verified evidence", () => {
+  const draft = generateResumeDraft({ persona: "agent_engineer", job, evidence: [] });
+  assert.equal(draft.draft_quality_gate.status, "blocked");
+  assert.equal(draft.draft_quality_gate.checks.render_validation, "failed");
+  assert.equal(draft.draft_quality_gate.checks.evidence_present, false);
 });
 
 test("resume alignment counts skills proven in verified project evidence", () => {

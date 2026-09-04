@@ -635,6 +635,14 @@ export function generateResumeDraft({ persona = "agent_engineer", job, evidence 
   })), config.projectOrder ?? [], config.prioritySkills);
   const claimMap = buildClaimMap({ job, evidence, selected });
   const blockingClaims = claimMap.filter((item) => item.blocking);
+  const renderChecks = {
+    summary_present: Boolean(String(config.summary ?? "").trim()),
+    headline_present: Boolean(String(job?.title ?? "").trim() && String(config.roleFamily ?? "").trim()),
+    evidence_present: selected.length > 0,
+    evidence_ids_present: selected.every((item) => Boolean(String(item?.id ?? "").trim())),
+    project_bullets_complete: projects.length > 0 && projects.every((item) => Boolean(String(item?.bullet ?? "").trim())),
+  };
+  const renderPassed = Object.values(renderChecks).every(Boolean);
   return {
     persona,
     persona_label: config.label,
@@ -664,7 +672,9 @@ export function generateResumeDraft({ persona = "agent_engineer", job, evidence 
       checks: {
         verified_evidence_only: selected.every((item) => (item?.verification_status ?? "verified") === "verified"),
         requirement_coverage_visible: true,
-        render_validation: "pending",
+        ...renderChecks,
+        render_validation: renderPassed ? "passed" : "failed",
+        render_validation_details: renderChecks,
       },
     },
     keywords_to_amplify: [...new Set([...matched, ...config.prioritySkills])].slice(0, 6),
