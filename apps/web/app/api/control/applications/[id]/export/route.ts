@@ -1,8 +1,8 @@
 import { Buffer } from "node:buffer";
 import { NextRequest, NextResponse } from "next/server";
-import { answersMarkdown, fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message, tailoredResumeHtmlWithLayout } from "@/lib/application-export.mjs";
+import { answersMarkdown, fileSlug, packetData, packetHtml, packetMarkdown, rfc2822Message, tailoredResumeHtmlWithLayout, validateRenderedResumeHtml } from "@/lib/application-export.mjs";
 import { currentApplicationSafety } from "@/lib/application-safety";
-import { tailoredResumeDocx } from "@/lib/docx-export.mjs";
+import { tailoredResumeDocx, validateRenderedResumeDocx } from "@/lib/docx-export.mjs";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -33,6 +33,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const slug = fileSlug(job);
     if (format === "docx") {
       const bytes = Buffer.from(tailoredResumeDocx(application, job, applicationPackage));
+      const renderValidation = validateRenderedResumeDocx(bytes, application, job, applicationPackage);
+      if (!renderValidation.passed) return NextResponse.json({ ok: false, error: "DOCX 渲染回读未通过，不能导出", details: renderValidation }, { status: 409 });
       return new NextResponse(bytes, {
         status: 200,
         headers: {
@@ -55,6 +57,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       extension = "html";
     } else if (format === "resume") {
       body = tailoredResumeHtmlWithLayout(application, job, applicationPackage, request.nextUrl.searchParams.get("layout") ?? "standard");
+      const renderValidation = validateRenderedResumeHtml(body, application, job, applicationPackage);
+      if (!renderValidation.passed) return NextResponse.json({ ok: false, error: "简历渲染回读未通过，不能导出", details: renderValidation }, { status: 409 });
       contentType = "text/html; charset=utf-8";
       extension = "html";
     } else if (format === "answers") {

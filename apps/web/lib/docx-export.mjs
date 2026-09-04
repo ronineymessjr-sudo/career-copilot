@@ -41,3 +41,17 @@ export function tailoredResumeDocx(application = {}, job = {}, pack = {}) {
     { name: "word/_rels/document.xml.rels", content: `<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>` },
   ]);
 }
+
+export function validateRenderedResumeDocx(bytes, application = {}, job = {}, pack = {}) {
+  const data = new TextDecoder().decode(bytes instanceof Uint8Array ? bytes : new Uint8Array());
+  const candidate = pack.tailored_resume?.candidate || pack.content_bundle?.tailored_resume?.candidate || {};
+  const resume = pack.tailored_resume || pack.content_bundle?.tailored_resume || {};
+  const requirements = {
+    zip_container: bytes instanceof Uint8Array && bytes[0] === 0x50 && bytes[1] === 0x4b,
+    document_xml_present: data.includes("<w:document") && data.includes("</w:document>"),
+    candidate_name_present: Boolean(String(candidate.name || "").trim() && data.includes(String(candidate.name))),
+    summary_present: Boolean(String(resume.summary || "").trim() && data.includes(String(resume.summary))),
+    target_title_present: Boolean(String(job.title || "").trim() && data.includes(String(job.title))),
+  };
+  return { passed: Object.values(requirements).every(Boolean), checks: requirements, missing: Object.entries(requirements).filter(([, passed]) => !passed).map(([name]) => name) };
+}

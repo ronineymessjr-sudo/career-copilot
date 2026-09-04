@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { allowedStatusTransitions, applicationStatusLabel, buildApplicationTimeline, followUpState, materialChangeSummary, nextMaterialRevision } from "../lib/application-lifecycle.mjs";
-import { tailoredResumeDocx } from "../lib/docx-export.mjs";
+import { tailoredResumeDocx, validateRenderedResumeDocx } from "../lib/docx-export.mjs";
 
 test("material versions identify changed fields and increment safely", () => {
   assert.deepEqual(materialChangeSummary({ greeting: "a", body: "b" }, { greeting: "a", body: "c" }).changed_fields, ["body"]);
@@ -28,4 +28,5 @@ test("DOCX export returns a valid zip container", () => {
   assert.equal(bytes[0], 0x50);
   assert.equal(bytes[1], 0x4b);
   assert.ok(bytes.length > 500);
+  assert.equal(validateRenderedResumeDocx(bytes, {}, { company_name: "示例公司", title: "产品实习生" }, { tailored_resume: { candidate: { name: "测试用户" }, summary: "真实简介", skills: ["分析"] } }).passed, true);
 });

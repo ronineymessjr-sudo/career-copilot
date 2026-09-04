@@ -109,6 +109,43 @@ export function tailoredResumeHtml(application, job, applicationPackage) {
   return `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>${escapeHtml(candidate.name || "候选人")} · ${escapeHtml(data.job.title)}</title><style>@page{size:A4;margin:15mm}*{box-sizing:border-box}body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;max-width:820px;margin:28px auto;padding:0 24px;color:#161616;line-height:1.55;font-size:14px}h1{font-size:30px;margin:0}h2{font-size:17px;margin:26px 0 10px;border-bottom:2px solid #161616;padding-bottom:6px}.head{display:flex;justify-content:space-between;gap:24px;align-items:flex-start}.meta{text-align:right;color:#525252}.target{margin:12px 0 18px;color:#0f62fe}.skills{display:flex;flex-wrap:wrap;gap:6px}.skills span{background:#f4f4f4;padding:4px 8px}article{padding:9px 0;border-bottom:1px solid #e0e0e0}article header{display:flex;justify-content:space-between;gap:16px}article p{white-space:pre-wrap;margin:5px 0}.summary{white-space:pre-wrap}.no-print{position:fixed;right:24px;bottom:24px;padding:10px 16px}@media print{body{margin:0;max-width:none;padding:0}.no-print{display:none}a{color:#161616;text-decoration:none}}</style></head><body><div class="head"><div><h1>${escapeHtml(candidate.name || "候选人")}</h1><div>${escapeHtml(candidate.headline || data.job.title)}</div></div><div class="meta">${[candidate.email, candidate.phone, candidate.city, candidate.education_label].filter(Boolean).map((item) => `<div>${escapeHtml(item)}</div>`).join("")}</div></div><div class="target">目标：${escapeHtml(data.job.company)} · ${escapeHtml(data.job.title)}</div><h2>个人简介</h2><div class="summary">${escapeHtml(resume.summary)}</div><h2>技能</h2><div class="skills">${(resume.skills ?? []).map((item) => `<span>${escapeHtml(item)}</span>`).join("") || "<span>请在画像或简历库补充技能</span>"}</div>${sections.map(([title, rows]) => recordHtml(rows) ? `<h2>${title}</h2>${recordHtml(rows)}` : "").join("")}${(resume.languages ?? []).length ? `<h2>语言</h2><p>${(resume.languages ?? []).map(escapeHtml).join("、")}</p>` : ""}${(resume.certifications ?? []).length ? `<h2>证书</h2><p>${(resume.certifications ?? []).map(escapeHtml).join("、")}</p>` : ""}${(resume.links ?? []).length ? `<h2>链接</h2>${(resume.links ?? []).map((item) => `<div><a href="${escapeHtml(item)}">${escapeHtml(item)}</a></div>`).join("")}` : ""}<button class="no-print" onclick="window.print()">打印或保存为 PDF</button></body></html>`;
 }
 
+function resumeRenderRequirements(application, job, applicationPackage) {
+  const data = packetData(application, job, applicationPackage);
+  const resume = data.package.tailored_resume ?? {};
+  const candidate = resume.candidate ?? {};
+  return {
+    candidate_name: String(candidate.name ?? "").trim(),
+    headline: String(candidate.headline ?? "").trim(),
+    summary: String(resume.summary ?? "").trim(),
+    skills: Array.isArray(resume.skills) ? resume.skills.map((item) => String(item ?? "").trim()).filter(Boolean) : [],
+    target_title: String(data.job.title ?? "").trim(),
+  };
+}
+
+function renderRequirementChecks(requirements, text) {
+  const source = String(text ?? "");
+  const checks = {
+    candidate_name_present: Boolean(requirements.candidate_name && source.includes(requirements.candidate_name)),
+    headline_present: Boolean(requirements.headline && source.includes(requirements.headline)),
+    summary_present: Boolean(requirements.summary && source.includes(requirements.summary)),
+    skills_present: requirements.skills.length > 0 && requirements.skills.every((item) => source.includes(item)),
+    target_title_present: Boolean(requirements.target_title && source.includes(requirements.target_title)),
+  };
+  return { checks, passed: Object.values(checks).every(Boolean), missing: Object.entries(checks).filter(([, passed]) => !passed).map(([name]) => name) };
+}
+
+export function validateRenderedResumeHtml(html, application = {}, job = {}, applicationPackage = {}) {
+  const requirements = resumeRenderRequirements(application, job, applicationPackage);
+  const structure = {
+    doctype_present: /^<!doctype html>/i.test(String(html ?? "")),
+    body_present: /<body[\s>]/i.test(String(html ?? "")),
+    text_present: String(html ?? "").replace(/<[^>]+>/g, " ").trim().length > 0,
+  };
+  const content = renderRequirementChecks(requirements, html);
+  const checks = { ...structure, ...content.checks };
+  return { passed: Object.values(checks).every(Boolean), checks, missing: [...content.missing, ...Object.entries(structure).filter(([, passed]) => !passed).map(([name]) => name)] };
+}
+
 const RESUME_LAYOUTS = new Set(["standard", "compact", "portfolio"]);
 
 export function tailoredResumeHtmlWithLayout(application, job, applicationPackage, requestedLayout = "standard") {
