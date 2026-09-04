@@ -48,6 +48,23 @@
 4. 继续保持浏览器只填表、不自动提交；遇到验证码、登录墙、未知字段、法律声明或外部消息时暂停并记录原因。
 5. 只复用许可证允许的概念和接口模式；不直接复制 AGPL/PolyForm 代码，也不引入未审查的反爬实现。
 
+## 组成、使用过程与公开效果对照
+
+| 项目 | 主要组成 | 实际使用路径 | 公开资料能证明的效果 |
+|---|---|---|---|
+| `StoneLL1/resume-builder` | `SKILL.md`、`INSTALL.md`、写作/编译参考、LaTeX 示例 | 选择模板 → 收集素材 → 确认目标 → 筛选经历 → 补问缺口 → 撰写 → XeLaTeX 编译 | 流程和防编造规则写得很完整；没有公开招聘转化率或独立 benchmark，不能把“近百篇经验帖蒸馏”理解为效果验证 |
+| `sunyet-01/ai-job-search-cn` | `core/` 搜索、评估、PDF 渲染、投递清单；`knowledge/` 方法论 | 建画像 → 粘贴 JD → 评估匹配 → 生成中文 PDF → 生成投递行动清单 → 人工执行 | README 标注为命令行 v0.1，前端仍在开发；可验证的是流程存在，不是录用效果 |
+| `shuheng-mo/career-ops-china` | `modes/` 方向配置、`portals.yml`、JD inbox 服务、浏览器 bookmarklet | 浏览器看到 JD → bookmarklet 捕获到本地 inbox → 跑 A–F 评估 → 生成定制材料 → 入库追踪 | 公开说明强调“过滤器”而非海投；国内 SPA/登录墙以用户侧捕获为主，未提供可外推的转化基准 |
+| `riwonswain-ovo/OfferLoop` | 7 个 Agent Skill、3 张业务 Base、私有知识库、同步 workflow | 先 `dry-run` → 冲突检查 → 用户确认 → 安装/校验 → 增量同步岗位、投递和复盘 | 公开的是安装与验收条件；同步是否真正 ready 取决于真实资源读写，不应只看安装成功 |
+| `shengjidaguai-china/BossHunter` | 本地面板、Chrome 连接、岗位采集、评分、回复监测、材料生成 | 启动本地面板 → 同一 Chrome 登录 → `connect` 检查 → 低频运行 → 人工确认发送 | 能证明连接/停止边界和风险提示；自动化可能触发平台限制，不能将“能跑”当成账号安全或录用保证 |
+| `artbyjazi/simply-apply` | 连接器、结构化数据、无编造 guardrail、ReportLab PDF、ATS DOCX、测试 | 搜索 → 选岗位 → `tailor()` → 无编造检查 → 导出 PDF/DOCX → 打开申请链接 | README 给出 58 个测试和两个实时连接器的验证范围；这是软件回归证据，不是面试或录用率证明 |
+
+### 当前系统的对应关系
+
+- **组成**：Career Vault、岗位池/来源适配器、混合评分、4 个简历 persona、LangGraph 运行图、MCP、异步 queue、Scheduler、trace 和分析看板已经覆盖上述主模块。
+- **使用**：当前入口是画像/证据 → 岗位导入 → 匹配与解释 → 生成岗位版草稿 → 审批/追踪；MCP 的副作用工具保持 `approval_required`。
+- **效果口径**：本地 77 项 Node 测试、14 项 API 测试和构建成功只能证明机制通过；公开 Demo 的分数、静态 smoke 或第三方 README 不能替代真实岗位反馈。下一步应把每次真实投递的“岗位快照—简历版本—审核结果—回复状态”关联起来，再评估方向和模板是否改善。
+
 ## 与当前系统的映射
 
 已经具备：
