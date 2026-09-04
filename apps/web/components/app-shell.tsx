@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, BookOpenCheck, BriefcaseBusiness, FileText, FileSearch, Home, LogOut, MessageSquare, Radar, Send, Settings, UserRound } from "lucide-react";
+import { BarChart3, BookOpenCheck, BriefcaseBusiness, ChevronDown, FileText, FileSearch, Home, LogOut, MessageSquare, Radar, Send, Settings, UserRound } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { FeedbackWidget } from "@/components/feedback-widget";
 
@@ -32,7 +32,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [resourcesOpen, setResourcesOpen] = useState(false);
+  const activeResource = resourceNav.some(([href]) => isActive(pathname, href));
   useEffect(() => { const supabase = getSupabaseBrowser(); if (!supabase) return; void supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? "")); }, []);
+  useEffect(() => { if (activeResource) setResourcesOpen(true); }, [activeResource]);
   async function signOut() { const supabase = getSupabaseBrowser(); await supabase?.auth.signOut(); router.replace("/login"); }
   return <div className="platform-frame">
     <aside className="platform-sidebar">
@@ -43,8 +46,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <nav className="platform-nav" aria-label="核心工作区">
         <span className="platform-nav-label">工作台</span>
         {primaryNav.map(([href, label, Icon]) => <Link key={href} href={href} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}
-        <span className="platform-nav-label resources">个人资料</span>
-        {resourceNav.map(([href, label, Icon]) => <Link key={href} href={href} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}
+        <details className="platform-nav-fold" open={resourcesOpen} onToggle={(event) => setResourcesOpen(event.currentTarget.open)}>
+          <summary className="platform-nav-label resources"><span>个人资料</span><ChevronDown size={14}/></summary>
+          <div>{resourceNav.map(([href, label, Icon]) => <Link key={href} href={href} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}</div>
+        </details>
       </nav>
       <div className="platform-sidebar-account"><span><UserRound size={16}/><small>{email || "当前账号"}</small></span><button type="button" onClick={() => void signOut()}><LogOut size={15}/>退出登录</button></div>
       <div className="platform-sidebar-note"><strong>完整岗位池</strong><span>浏览全部岗位，再按当前账号画像排序和解释。</span></div>

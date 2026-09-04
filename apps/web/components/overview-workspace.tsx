@@ -111,10 +111,10 @@ export function OverviewWorkspace() {
       <div className="platform-welcome-copy"><h2>欢迎来到 Career Copilot</h2><p>你的 AI 求职助手：导入岗位 → 画像匹配 → 生成简历/求职信 → 投递跟踪，一条龙帮你找工作。</p><div className="platform-welcome-actions"><Link href="/profile" className="primary-button">先完善我的画像<ArrowRight size={15}/></Link><Link href="/jobs#import-job" className="ghost-button">直接导入岗位</Link></div></div>
     </section> : null}
 
-    {!onboarding.finished ? <section className="platform-panel platform-onboarding-panel">
-      <header className="platform-panel-head"><div><h2><ListChecks size={19}/>首次使用引导</h2><p>按顺序完成下面几步，系统就能给出可信的个性化推荐与投递包。下一步：<strong className="onboarding-next-label">{onboarding.steps.find((step) => !step.done)?.label ?? "完成全部"}</strong></p></div><strong>{onboarding.score}%</strong></header>
+    {!onboarding.finished ? <details className="platform-panel platform-onboarding-panel" open={onboarding.score < 80}>
+      <summary className="platform-panel-head"><div><h2><ListChecks size={19}/>首次使用引导</h2><p>按顺序完成下面几步，系统就能给出可信的个性化推荐与投递包。下一步：<strong className="onboarding-next-label">{onboarding.steps.find((step) => !step.done)?.label ?? "完成全部"}</strong></p></div><strong>{onboarding.score}%</strong></summary>
       <div className="platform-onboarding-steps">{onboarding.steps.map((step) => <Link key={step.key} href={step.href} className={`${step.done ? "done" : "pending"}${!step.done && onboarding.steps.findIndex((s) => !s.done) === onboarding.steps.findIndex((s) => s.key === step.key) ? " next" : ""}`}><span>{step.done ? <CheckCircle2 size={16}/> : <CircleAlert size={16}/>}</span><strong>{step.label}</strong><small>{step.detail}</small><ArrowRight size={14}/></Link>)}</div>
-    </section> : null}
+    </details> : null}
 
     <section className="platform-metric-strip" aria-label="今日概览">
       <article><BriefcaseBusiness size={18}/><span>开放岗位</span><strong>{state.pool.open ?? state.jobs.length}</strong><small>完整岗位池</small></article>
@@ -149,19 +149,25 @@ export function OverviewWorkspace() {
 
     <section className="platform-panel platform-data-overview">
       <header className="platform-panel-head"><div><h2>招聘数据看板</h2><p>岗位来源、推荐覆盖和真实投递转化。</p></div><Link href="/analytics">完整数据看板<ArrowRight size={15}/></Link></header>
+      <details className="platform-subfold">
+        <summary>展开查看数据</summary>
       <div className="platform-data-grid">
         <article><span>最近来源任务</span><strong>{latestRun?.status ?? "尚未运行"}</strong><small>{latestRun ? `扫描 ${latestRun.jobs_seen ?? 0} · 新增 ${latestRun.jobs_imported ?? 0} · 更新 ${latestRun.jobs_updated ?? 0}` : "前往岗位来源运行发现"}</small></article>
         <article><span>近 30 天申请</span><strong>{metrics.applications ?? state.applications.length}</strong><small>准备、投递和后续状态</small></article>
         <article><span>回复率</span><strong>{metrics.reply_rate ?? 0}%</strong><small>以真实投递状态计算</small></article>
         <article><span>面试率</span><strong>{metrics.interview_rate ?? 0}%</strong><small>避免用模拟数据冒充结果</small></article>
       </div>
+      </details>
     </section>
 
-    <section className="platform-shortcut-grid">
+    <details className="platform-shortcuts-fold">
+      <summary>更多工作区入口 <span>按需展开</span><ArrowRight size={15}/></summary>
+      <div className="platform-shortcut-grid">
       <Link href="/sources"><DatabaseZap size={18}/><span><strong>岗位来源</strong><small>管理自动 ATS 和链接导入</small></span></Link>
       <Link href="/profile"><UserRound size={18}/><span><strong>我的画像</strong><small>决定推荐排序和资格判断</small></span></Link>
       <Link href="/resumes"><FileText size={18}/><span><strong>简历版本</strong><small>让系统自动选择最匹配版本</small></span></Link>
       <Link href="/applications"><Send size={18}/><span><strong>投递管理</strong><small>查看待投递、缺口和历史</small></span></Link>
-    </section>
+      </div>
+    </details>
   </section>;
 }

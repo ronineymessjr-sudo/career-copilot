@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Activity, Bot, Braces, CheckCircle2, FileText, Gauge, GitBranch, Play, RefreshCw, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { Activity, Bot, Braces, CheckCircle2, ChevronDown, FileText, Gauge, GitBranch, Play, RefreshCw, ShieldCheck, Sparkles, Target } from "lucide-react";
 import { controlFetch } from "@/lib/control-client";
 
 type Row = Record<string, any>;
@@ -106,8 +106,8 @@ export function AgentDashboard() {
         </div>
       </div>
 
-      <div className="agent-column">
-        <div className="panel-title"><GitBranch size={16}/><div><strong>Agent Trace</strong><span>Supervisor → 专用 Agent → Grounding Evaluator</span></div></div>
+      <details className="agent-column agent-fold-panel">
+        <summary className="panel-title"><GitBranch size={16}/><div><strong>Agent Trace</strong><span>Supervisor → 专用 Agent → Grounding Evaluator</span></div><ChevronDown size={15}/></summary>
         <div className="trace-list">
           {runs.length === 0 ? <div className="empty-state compact"><GitBranch size={22}/><strong>暂无运行记录</strong><span>每个节点都会保存输入摘要、输出摘要和引用。</span></div> : runs.slice(0, 10).map((run) => <article key={run.id}>
             <header><div><strong>{run.task_type}</strong><span>{date(run.started_at)}</span></div><span className={`status ${run.status === "completed" ? "verified" : run.status === "failed" ? "bad" : "pending"}`}>{run.status}</span></header>
@@ -115,7 +115,7 @@ export function AgentDashboard() {
             <footer><span>置信度 {pct(run.confidence)}</span><span>耗时 {run.duration_ms ?? 0}ms</span><span>人工节点 {run.requires_human ? "是" : "否"}</span></footer>
           </article>)}
         </div>
-      </div>
+      </details>
     </div>
 
     <div className="agent-lower-grid">
@@ -126,15 +126,15 @@ export function AgentDashboard() {
         <button className="primary-button" disabled={!selectedJob || Boolean(busy)}><Sparkles size={14}/>{busy === "resume" ? "生成中…" : "生成可审计草稿"}</button>
       </form>
 
-      <div className="agent-resume-list">
-        <div className="panel-title"><FileText size={16}/><div><strong>最新简历版本</strong><span>草稿不等于投递材料已批准</span></div></div>
+      <details className="agent-resume-list agent-fold-panel">
+        <summary className="panel-title"><FileText size={16}/><div><strong>最新简历版本</strong><span>草稿不等于投递材料已批准</span></div><ChevronDown size={15}/></summary>
         {resumes.length === 0 ? <div className="empty-state compact"><FileText size={22}/><strong>暂无 Agent 简历</strong></div> : resumes.slice(0, 8).map((resume) => <article key={resume.id}><div><strong>{resume.name}</strong><span>v{resume.version_no} · {resume.status}</span></div><span>{resume.alignment?.alignment_score ?? resume.alignment_summary?.score ?? 0} 分</span></article>)}
-      </div>
+      </details>
 
-      <div className="agent-evaluation-list">
-        <div className="panel-title"><CheckCircle2 size={16}/><div><strong>Evaluation</strong><span>引用覆盖、Grounding 与幻觉检查</span></div></div>
+      <details className="agent-evaluation-list agent-fold-panel">
+        <summary className="panel-title"><CheckCircle2 size={16}/><div><strong>Evaluation</strong><span>引用覆盖、Grounding 与幻觉检查</span></div><ChevronDown size={15}/></summary>
         {evaluations.length === 0 ? <div className="empty-state compact"><CheckCircle2 size={22}/><strong>暂无评测记录</strong></div> : evaluations.slice(0, 8).map((item) => <article key={item.id}><div><strong>{item.evaluation_type}</strong><span>{date(item.created_at)}</span></div><span className={`status ${item.status === "passed" ? "verified" : "bad"}`}>{item.status}</span><small>引用覆盖 {pct(item.metrics?.citation_coverage ?? 0)}</small></article>)}
-      </div>
+      </details>
     </div>
   </section>;
 }
