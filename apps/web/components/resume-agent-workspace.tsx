@@ -55,6 +55,8 @@ function ResumeCard({ resume, busy, onReload, compareSelected, onToggleCompare, 
   }
 
   const skills = resume.content?.skills ?? [];
+  const qualityGate = resume.content?.draft_quality_gate;
+  const qualityLabel = ({ blocked: "已阻塞", needs_review: "待复核", ready_for_review: "可复核" } as Record<string, string>)[String(qualityGate?.status ?? "")] ?? "未评估";
   return <article className={`resume-library-card ${resume.is_master ? "master" : ""}`}>
     <header>
       <div className="resume-library-title"><span className="resume-source">{sourceLabel(String(resume.source_type ?? "legacy"))}</span><h3>{resume.name}</h3><p>{resume.role_family || "通用方向"}</p></div>
@@ -70,6 +72,7 @@ function ResumeCard({ resume, busy, onReload, compareSelected, onToggleCompare, 
     {resume.content?.summary ? <p className="resume-library-summary">{resume.content.summary}</p> : resume.notes ? <p className="resume-library-summary">{resume.notes}</p> : <p className="resume-library-summary muted">该版本尚未填写结构化摘要，可通过“编辑信息”补充。</p>}
     {skills.length ? <div className="resume-library-skills">{skills.slice(0, 10).map((skill: string) => <span key={skill}>{skill}</span>)}</div> : null}
     {resume.alignment?.alignment_score != null ? <div className="resume-alignment-line"><CheckCircle2 size={15}/><span>最近岗位匹配度 {resume.alignment.alignment_score}%</span></div> : null}
+    {qualityGate ? <div className={`resume-claim-line ${String(qualityGate.status ?? "")}`}><FileCheck2 size={15}/><span>证据门禁：{qualityLabel} · 已选 {Number(qualityGate.selected_evidence_count ?? 0)} 条 · 待复核 {Number(qualityGate.blocking_claim_count ?? 0)} 项</span></div> : null}
 
     {editing ? <form className="resume-edit-form" onSubmit={async (event) => { event.preventDefault(); await patch({ name: draft.name, role_family: draft.role_family, notes: draft.notes, content: { ...(resume.content ?? {}), summary: draft.summary, skills: draft.skills.split(/[,，\n、]/).map((item: string) => item.trim()).filter(Boolean) } }, "已保存"); setEditing(false); }}>
       <label>版本名称<input value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })}/></label>
