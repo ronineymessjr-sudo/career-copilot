@@ -49,7 +49,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {primaryNav.map(([href, label, Icon]) => <Link key={href} href={href} aria-label={href === "/jobs" ? "岗位发现，完整岗位池" : undefined} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}
         <details className="platform-nav-fold" open={resourcesOpen} onToggle={(event) => setResourcesOpen(event.currentTarget.open)}>
           <summary className="platform-nav-label resources"><span>资料与工具</span><ChevronDown size={14}/></summary>
-          <div>{resourceNav.map(([href, label, Icon]) => <Link key={href} href={href} aria-label={href === "/jobs" ? "岗位发现，完整岗位池" : undefined} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}</div>
+          <div>{resourceNav.map(([href, label, Icon]) => <Link key={href} href={href} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{label}</span></Link>)}</div>
         </details>
       </nav>
       <div className="platform-sidebar-account"><span><UserRound size={16}/><small>{email || "当前账号"}</small></span><button type="button" onClick={() => void signOut()}><LogOut size={15}/>退出登录</button></div>
@@ -60,7 +60,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <nav id="workspace-mobile-links" aria-label="移动端工作区" hidden={!mobileOpen}>
           {primaryNav.map(([href, label, Icon]) => <Link key={href} href={href} onClick={() => setMobileOpen(false)} aria-label={href === "/jobs" ? "岗位发现，完整岗位池" : undefined} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/>{label}</Link>)}
           <small>资料与工具</small>
-          {resourceNav.map(([href, label, Icon]) => <Link key={href} href={href} onClick={() => setMobileOpen(false)} aria-label={href === "/jobs" ? "岗位发现，完整岗位池" : undefined} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/>{label}</Link>)}
+          {resourceNav.map(([href, label, Icon]) => <Link key={href} href={href} onClick={() => setMobileOpen(false)} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/>{label}</Link>)}
           <button className="cc-button" type="button" onClick={() => void signOut()}><LogOut size={16}/>退出登录</button>
         </nav>
       </header>
