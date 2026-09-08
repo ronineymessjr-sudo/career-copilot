@@ -121,7 +121,7 @@ export function AgentPlayground() {
     </header>
     <section className="cc-public-intro">
       <WorkspaceHeading title="把合适的岗位，变成下一步。" description="读懂岗位要求，核对项目证据，再准备投递材料。"/>
-      <p className="cc-note"><ShieldCheck size={16}/>公开体验 · 使用示例资料，不读取私人信息，不会真实投递。</p>
+      <p className="cc-note"><ShieldCheck size={16}/>Agent Playground · SAFE DEMO · 使用示例资料，不读取私人信息；不自动发送，不自动投递。</p>
     </section>
     <section className="cc-analysis" id="demo" aria-labelledby="analysis-title">
       <header className="cc-analysis-header"><h2 id="analysis-title">分析一个岗位</h2><div className="cc-steps" aria-label="使用步骤"><span>01 输入岗位</span><span>02 核对结果</span><span>03 准备材料</span></div></header>
