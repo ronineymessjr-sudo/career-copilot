@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { ArrowRight, BarChart3, BriefcaseBusiness, CheckCircle2, CircleAlert, Clock3, DatabaseZap, FileText, ListChecks, Radar, RefreshCw, Send, Sparkles, UserRound } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import { ArrowRight, BriefcaseBusiness, CheckCircle2, CircleAlert, ClipboardCheck, Clock3, DatabaseZap, FileText, ListChecks, ListFilter, Send, Sparkles, Target, UserRound } from "lucide-react";
+import { WorkspaceHeading, WorkspaceState } from "@/components/workspace-ui";
 import { controlFetch } from "@/lib/control-client";
 import { buildOnboardingChecklist, groupDailyRecommendations } from "@/lib/recommendation-experience.mjs";
 
@@ -21,6 +22,11 @@ type OverviewState = {
   notifications: Row[];
   unread: number;
 };
+
+function jobScore(job: Row) {
+  const value = Number(job.recommendation?.score ?? job.evaluation?.total_score);
+  return Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : null;
+}
 
 export function OverviewWorkspace() {
   const [state, setState] = useState<OverviewState>({ jobs: [], pool: {}, sources: [], runs: [], applications: [], profile: null, completeness: {}, analytics: null, daily: null, resumes: [], notifications: [], unread: 0 });
@@ -71,7 +77,6 @@ export function OverviewWorkspace() {
 
   const ready = state.applications.filter((item) => item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true);
   const blocked = state.applications.filter((item) => item.status !== "submitted" && !(item.status === "ready_to_submit" && item.readiness?.ready_to_submit === true));
-  const enabledSources = state.sources.filter((source) => source.enabled !== false);
   const latestRun = state.runs[0] ?? null;
   const metrics = state.analytics?.analytics?.metrics ?? {};
 
@@ -96,12 +101,19 @@ export function OverviewWorkspace() {
   }
 
   async function markNotificationsRead() {
-    await controlFetch("/api/control/notifications", { method: "PATCH", body: JSON.stringify({}) });
-    await load();
+    try {
+      await controlFetch("/api/control/notifications", { method: "PATCH", body: JSON.stringify({}) });
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "消息状态更新失败，请重试。");
+    }
   }
 
+  if (loading) return <WorkspaceState tone="loading" title="正在整理今日简报" description="正在读取岗位、画像和投递进度，请稍候。"/>;
+  if (message && !state.profile) return <WorkspaceState tone="error" title="今日简报暂时无法加载" description={message} action={<button type="button" className="cc-button" onClick={() => void load()}>重新加载</button>}/>;
+
   return <section className="platform-workspace">
-    <header className="platform-page-head overview"><div><h1>今日简报</h1><p>今天只看三件事：推荐什么、缺什么、下一步做什么。</p></div><button className="platform-refresh" onClick={() => void refresh()} disabled={loading}><RefreshCw size={16}/>{loading ? "生成中" : "重新生成推荐"}</button></header>
+    <WorkspaceHeading title="今日简报" description="先看推荐，再补缺口。一次完成最重要的一步。" action={<button className="platform-refresh" onClick={() => void refresh()} disabled={loading}><Sparkles size={16}/>{loading ? "生成中" : "重新生成推荐"}</button>}/>
     {message ? <div className="platform-message">{message}</div> : null}
 
     {state.unread > 0 ? <section className="platform-notification-strip"><div><strong>{state.unread} 条新消息</strong><span>{state.notifications.filter((item) => !item.read_at).slice(0, 3).map((item) => item.body || item.title).join(" · ")}</span>{state.notifications.find((item) => !item.read_at && item.type === "profile_search_review")?.action_url ? <Link href={state.notifications.find((item) => !item.read_at && item.type === "profile_search_review")?.action_url}>查看岗位复核报告</Link> : null}</div><button type="button" onClick={() => void markNotificationsRead()}>标记已读</button></section> : null}
@@ -111,25 +123,23 @@ export function OverviewWorkspace() {
       <div className="platform-welcome-copy"><h2>欢迎来到 Career Copilot</h2><p>先补齐画像，再导入岗位；系统会生成可审核的推荐和投递材料。</p><div className="platform-welcome-actions"><Link href="/profile" className="primary-button">先完善我的画像<ArrowRight size={15}/></Link><Link href="/jobs#import-job" className="ghost-button">直接导入岗位</Link></div></div>
     </section> : null}
 
-    {!onboarding.finished ? <details className="platform-panel platform-onboarding-panel" open={onboarding.score < 80}>
+    {!onboarding.finished ? <details className="platform-panel platform-onboarding-panel">
       <summary className="platform-panel-head"><div><h2><ListChecks size={19}/>首次使用引导</h2><p>完成画像、简历和岗位来源后，推荐才有依据。下一步：<strong className="onboarding-next-label">{onboarding.steps.find((step) => !step.done)?.label ?? "完成全部"}</strong></p></div><strong>{onboarding.score}%</strong></summary>
       <div className="platform-onboarding-steps">{onboarding.steps.map((step) => <Link key={step.key} href={step.href} className={`${step.done ? "done" : "pending"}${!step.done && onboarding.steps.findIndex((s) => !s.done) === onboarding.steps.findIndex((s) => s.key === step.key) ? " next" : ""}`}><span>{step.done ? <CheckCircle2 size={16}/> : <CircleAlert size={16}/>}</span><strong>{step.label}</strong><small>{step.detail}</small><ArrowRight size={14}/></Link>)}</div>
     </details> : null}
 
-    <section className="platform-metric-strip" aria-label="今日概览">
-      <article><BriefcaseBusiness size={18}/><span>开放岗位</span><strong>{state.pool.open ?? state.jobs.length}</strong><small>完整岗位池</small></article>
-      <article><BarChart3 size={18}/><span>今日推荐</span><strong>{(state.daily?.ranked_job_ids ?? []).length || state.pool.recommended || recommended.filter((job) => Number(job.recommendation?.score ?? 0) >= 70).length}</strong><small>{state.daily?.recommendation_date ? `${state.daily.recommendation_date} 已生成` : "等待首次每日生成"}</small></article>
-      <article><Radar size={18}/><span>自动来源</span><strong>{enabledSources.length}</strong><small>3 类公开 ATS 可接入</small></article>
-      <article><Send size={18}/><span>待投递</span><strong>{ready.length}</strong><small>等待最终确认</small></article>
-      <article><UserRound size={18}/><span>画像完整度</span><strong>{state.completeness.score ?? 0}%</strong><small>每个账号独立推荐</small></article>
-    </section>
+    <div className="cc-overview-stats" aria-label="今日概览">
+      <span>开放岗位<strong>{state.pool.open ?? state.jobs.length}</strong></span>
+      <span>今日推荐<strong>{recommended.length}</strong></span>
+      <span>可投递<strong>{ready.length}</strong></span>
+    </div>
 
     <section className="platform-flow-strip" aria-label="求职流程摘要">
-      <article><span>P0 · 岗位池</span><strong>{state.pool.open ?? state.jobs.length} 个开放岗位</strong><small>{state.jobs.length ? "已进入匹配" : "导入 JD 后开始"}</small></article>
+      <article className="p0"><span className="platform-flow-icon" aria-hidden="true"><ListFilter size={16}/></span><div><span>P0 · 岗位池</span><strong>{state.pool.open ?? state.jobs.length} 个开放岗位</strong><small>{state.jobs.length ? "已进入匹配" : "导入 JD 后开始"}</small></div></article>
       <ArrowRight className="platform-flow-arrow" size={16}/>
-      <article><span>P1 · 今日推荐</span><strong>{recommended.length} 个匹配结果</strong><small>{recommended.length ? "按当前画像排序" : "等待岗位或推荐"}</small></article>
+      <article className="p1 active"><span className="platform-flow-icon" aria-hidden="true"><Target size={16}/></span><div><span>P1 · 今日推荐</span><strong>{recommended.length} 个匹配结果</strong><small>{recommended.length ? "按当前画像排序" : "等待岗位或推荐"}</small></div></article>
       <ArrowRight className="platform-flow-arrow" size={16}/>
-      <article><span>P2 · 投递准备</span><strong>{ready.length} 个可投递</strong><small>{blocked.length ? `${blocked.length} 个待补齐` : "没有阻塞事项"}</small></article>
+      <article className="p2"><span className="platform-flow-icon" aria-hidden="true"><ClipboardCheck size={16}/></span><div><span>P2 · 投递准备</span><strong>{ready.length} 个可投递</strong><small>{blocked.length ? `${blocked.length} 个待补齐` : "没有阻塞事项"}</small></div></article>
     </section>
 
     <div className="platform-overview-grid">
@@ -137,7 +147,7 @@ export function OverviewWorkspace() {
         <header className="platform-panel-head"><div><h2>今日推荐</h2><p>{state.daily?.recommendation_date ? `${state.daily.recommendation_date} 已按当前画像完成推荐。` : "按当前画像显示岗位、分数和匹配理由。"}</p></div><Link href="/applications">推荐设置<ArrowRight size={15}/></Link></header>
         <div className="platform-recommendation-groups">
           {Object.values(recommendationGroups).filter((group) => group.jobs.length).map((group) => <section key={group.key}><header><strong>{group.label}</strong><small>{group.jobs.length} 个</small></header><div className="platform-priority-list">{group.jobs.map((job) => <Link href={`/jobs?job=${encodeURIComponent(String(job.id))}`} key={job.id} className="platform-priority-row">
-            <span className={`platform-score fit-${job.recommendation?.fit ?? "possible"}`}>{job.recommendation?.score ?? job.evaluation?.total_score ?? "--"}</span>
+            <span className={`platform-score fit-${job.recommendation?.fit ?? "possible"}`} style={{ "--score": `${jobScore(job) ?? 0}%` } as CSSProperties}>{jobScore(job) ?? "--"}</span>
             <span className="platform-priority-copy"><small>{job.company_name || "待核验公司"}</small><strong>{job.title}</strong><em>{[job.city, job.workplace, job.source_name].filter(Boolean).join(" · ") || "岗位信息待完善"}</em></span>
             <span className="platform-priority-fit">{job.recommendation?.label ?? "待推荐"}</span>
           </Link>)}</div></section>)}

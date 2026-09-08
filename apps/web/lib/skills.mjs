@@ -76,10 +76,10 @@ export const SKILLS = {
   "mechatronics": ["机电", "机电一体化", "mechatronics"],
   "electronic engineering": ["电子", "电子工程", "嵌入式", "单片机", "fpga", "pcb", "电路设计", "electronics"],
   communication_eng: ["通信", "5g", "lte", "信号", "射频", "antenna", "telecom", "communication engineering"],
-  materials: ["材料", "金属材料", "高分子", "材料科学", "materials", "热处理"],
+  materials: ["材料科学", "材料工程", "材料研发", "材料性能", "材料基础", "材料与制造", "金属材料", "高分子", "materials", "热处理"],
   chemistry: ["化学", "化工", "应用化学", "chemistry", "chemical"],
   energy: ["能源", "新能源", "光伏", "储能", "电力", "energy", "solar"],
-  "civil engineering": ["土木", "结构", "岩土", "道路桥梁", "civil engineering", "construction engineering"],
+  "civil engineering": ["土木", "建筑结构", "钢结构", "结构工程", "岩土", "道路桥梁", "civil engineering", "construction engineering"],
   manufacturing: ["制造", "生产工艺", "工业工程", "ie", "manufacturing", "生产管理", "质量管理", "qe"],
   "quality management": ["质量管理", "品质", "qc", "qa", "质量体系", "iso", "质量工程师"],
   photography: ["摄影", "拍摄", "人像摄影", "商业摄影", "photography", "相机", "构图"],
@@ -101,6 +101,8 @@ export function normalized(value) {
 export function matchAlias(text, alias) {
   const term = String(alias ?? "").toLowerCase().trim();
   if (!term) return false;
+  // “可视化工具/自动化工具” describe tools, not chemical-engineering skills.
+  if (term === "化工") return /化工(?!具)/u.test(text);
   if (/^[\p{L}]+$/u.test(term) && /^[a-z]+$/i.test(term)) {
     const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i").test(text);

@@ -3,34 +3,12 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, KeyRound, Sparkles, UserPlus } from "lucide-react";
+import { ArrowRight, KeyRound, UserPlus } from "lucide-react";
+import { WorkspaceBrand } from "@/components/workspace-ui";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 function safeNext(value: string | null) {
   if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
   return value;
-}
-
-const SLOGANS = ["导入岗位 · 匹配画像 · 生成材料", "求职一条龙，AI 全流程辅助", "从发现到投递，一个工作台"];
-
-function useTypewriter(texts: string[]) {
-  const [index, setIndex] = useState(0);
-  const [count, setCount] = useState(0);
-  const [deleting, setDeleting] = useState(false);
-  useEffect(() => {
-    const current = texts[index % texts.length];
-    const speed = deleting ? 35 : 90;
-    const timer = setTimeout(() => {
-      if (!deleting) {
-        if (count < current.length) { setCount((c) => c + 1); return; }
-        setDeleting(true); return;
-      }
-      if (count > 0) { setCount((c) => c - 1); return; }
-      setDeleting(false);
-      setIndex((i) => (i + 1) % texts.length);
-    }, deleting && count === 0 ? 400 : speed);
-    return () => clearTimeout(timer);
-  }, [count, deleting, index, texts]);
-  return texts[index % texts.length].slice(0, count);
 }
 
 type Mode = "login" | "register" | "reset" | "update_password";
@@ -136,40 +114,34 @@ export default function LoginPage() {
         ? "输入并确认新密码，保存后即可返回工作台。"
         : "进入你的个人招聘聚合与投递工作台。";
 
-  return <main className="login-screen login-screen-focus">
-    <div className="login-aurora" aria-hidden="true"><i/><i/><i/></div>
-    <div className="login-float" aria-hidden="true"><span/><span/><span/><span/><span/></div>
-    <section className="login-brand-panel">
-      <div className="login-brand-lockup"><div className="brand-mark brand-mark-hero"><Sparkles size={22}/></div><strong>Career Copilot</strong><em>AI 求职助手</em></div>
-      <h1>每天推荐岗位，自动匹配简历并准备投递</h1>
-      <p className="login-slogan">{useTypewriter(SLOGANS)}<span className="login-caret"/></p>
-      <div className="login-benefits">
-        <span><CheckCircle2 size={17}/>每天为每个用户独立生成推荐</span>
-        <span><CheckCircle2 size={17}/>自动选择最匹配的简历版本</span>
-        <span><CheckCircle2 size={17}/>材料缺口与最终投递状态集中管理</span>
-      </div>
+  return <main className="cc-app cc-auth">
+    <section className="cc-auth-intro">
+      <WorkspaceBrand href="/playground"/>
+      <h1>下一份机会，<br/>从准备好这一步开始。</h1>
+      <p>岗位、简历和投递进度放在一起。先看清差距，再准备有依据的材料。</p>
+      <ol className="cc-auth-steps"><li><span>01</span>找到值得申请的岗位</li><li><span>02</span>用项目证据准备材料</li><li><span>03</span>记录投递与后续进展</li></ol>
     </section>
-    <form className="login-card" onSubmit={submit}>
+    <form className="cc-auth-form" onSubmit={submit}>
       <div><h2>{title}</h2><p>{copy}</p></div>
       {mode !== "update_password" ? <label>邮箱<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required/></label> : null}
       {mode !== "reset" ? <label>{mode === "update_password" ? "新密码" : "密码"}<input type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required/></label> : null}
       {mode === "register" || mode === "update_password" ? <label>确认密码<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required/></label> : null}
-      {notice ? <div className="login-proof">{notice}</div> : null}
-      {error ? <div className="form-error">{error}</div> : null}
-      <button className="primary-button" type="submit" disabled={busy}>
+      {notice ? <div className="cc-notice" role="status">{notice}</div> : null}
+      {error ? <div className="cc-error" role="alert">{error}</div> : null}
+      <button className="cc-button cc-button-primary" type="submit" disabled={busy}>
         {mode === "register" ? <UserPlus size={17}/> : mode === "reset" || mode === "update_password" ? <KeyRound size={17}/> : null}
         {busy ? "处理中…" : mode === "register" ? "创建账号" : mode === "reset" ? "发送重置邮件" : mode === "update_password" ? "保存新密码" : "进入工作台"}
         {mode === "login" ? <ArrowRight size={17}/> : null}
       </button>
-      {mode !== "update_password" ? <div className="login-mode-switch">
+      {mode !== "update_password" ? <div className="cc-auth-switch">
         <button type="button" aria-pressed={mode === "login"} onClick={() => switchMode("login")}>登录</button>
         <button type="button" aria-pressed={mode === "register"} onClick={() => switchMode("register")}>注册</button>
         <button type="button" aria-pressed={mode === "reset"} onClick={() => switchMode("reset")}>找回密码</button>
       </div> : null}
-      {mode !== "update_password" ? <div className="login-demo-handoff">
+      {mode !== "update_password" ? <div className="cc-auth-demo">
         <span>想先了解系统？</span>
-        <Link href="/playground">体验公开 Demo <ArrowRight size={14}/></Link>
-        <small>无需登录，不读取私人资料，也不会自动投递。</small>
+        <Link className="cc-link" href="/playground">体验公开 Demo <ArrowRight size={14}/></Link>
+        <p className="cc-note">无需登录，不读取私人资料，也不会自动投递。</p>
       </div> : null}
     </form>
   </main>;

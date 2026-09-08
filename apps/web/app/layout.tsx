@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./workspace-design.css";
 
 export const metadata: Metadata = {
   title: "Career Copilot | 实习投递工作台",

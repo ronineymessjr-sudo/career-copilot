@@ -25,6 +25,16 @@ test("generic compensation wording is not misreported as payroll experience", ()
   assert.equal(extractJobSkills({ title: "人力资源实习生", description: "负责薪资核算、薪酬管理和员工关系。" }).includes("payroll"), true);
 });
 
+test("business wording does not invent science or construction requirements", () => {
+  const skills = extractJobSkills({ title: "解决方案与数据分析实习生", description: "使用可视化工具和自动化工具，准备演示材料，具备结构化表达能力。" });
+  for (const skill of ["chemistry", "materials", "civil engineering"]) assert.equal(skills.includes(skill), false, skill);
+});
+
+test("specific traditional engineering requirements are still recognized", () => {
+  const skills = extractJobSkills({ title: "材料与制造研发实习生", description: "材料性能测试、金属材料、石油化工、建筑结构与土木工程。" });
+  for (const skill of ["chemistry", "materials", "civil engineering"]) assert.equal(skills.includes(skill), true, skill);
+});
+
 test("portfolio playground blocks full-time graduate role", () => {
   const job = demoJobFromText("2027届提前批全职岗位，仅毕业生可投，负责Python开发。");
   const result = analyzePortfolioDemo(job.description);

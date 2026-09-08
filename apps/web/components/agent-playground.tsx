@@ -2,17 +2,14 @@
 
 import Link from "next/link";
 import { useMemo, useRef, useState } from "react";
-import { ArrowRight, Bot, Braces, CheckCircle2, ChevronDown, Clipboard, FileCheck2, Gauge, GitBranch, Play, ShieldCheck, Sparkles, Target } from "lucide-react";
+import { ArrowRight, Check, Clipboard, ShieldCheck } from "lucide-react";
+import { WorkspaceBrand, WorkspaceDisclosure, WorkspaceHeading, WorkspaceState } from "@/components/workspace-ui";
+import { skillLabel, workplaceLabel } from "@/lib/workspace-presentation.mjs";
 import { analyzePortfolioDemo, DEFAULT_PLAYGROUND_JD, DEMO_BATCH_JOBS, DEMO_FILTER_POLICY, DEMO_SCENARIOS, runPortfolioBatchDemo } from "@/lib/portfolio-demo.mjs";
 
 type Row = Record<string, any>;
 type AnalysisState = "ready" | "dirty" | "loading" | "error";
-const FEATURED_SCENARIOS = DEMO_SCENARIOS.slice(0, 6);
-const MORE_SCENARIOS = DEMO_SCENARIOS.slice(6);
-
-function Metric({ label, value, note }: { label: string; value: string | number; note: string }) {
-  return <article className="playground-metric"><span>{label}</span><strong>{value}</strong><small>{note}</small></article>;
-}
+const RESULT_TABS = ["岗位匹配", "简历与招呼语"] as const;
 
 export function AgentPlayground() {
   const [jd, setJd] = useState(DEFAULT_PLAYGROUND_JD);
@@ -23,26 +20,15 @@ export function AgentPlayground() {
   const [analysisState, setAnalysisState] = useState<AnalysisState>("ready");
   const [analysisError, setAnalysisError] = useState("");
   const analysisToken = useRef(0);
-  const trace = useMemo(() => ["Supervisor", "JD Analyst", "Hybrid Ranker", "Resume Agent", "Grounding Evaluator"], []);
-  const traceCopy = useMemo(() => [
-    "理解目标，编排任务并监控执行",
-    "解析 JD 结构、要求与隐含约束",
-    "融合规则、证据和历史信号",
-    "按证据生成差异化材料",
-    "检查引用覆盖与事实一致性",
-  ], []);
+  const [resultTab, setResultTab] = useState(0);
+  const tabButtons = useRef<Array<HTMLButtonElement | null>>([]);
   const batch = useMemo(() => runPortfolioBatchDemo(DEMO_BATCH_JOBS), []);
-  const runtimeStatus = analysisState === "loading"
-    ? { label: "ANALYZING", tone: "busy", log: "[Agent] running deterministic analysis" }
-    : analysisState === "error"
-      ? { label: "REVIEW", tone: "review", log: "[Agent] run stopped · input needs review" }
-      : analysisState === "dirty"
-        ? { label: "READY", tone: "ready", log: "[Supervisor] waiting for a new analysis run" }
-        : { label: "COMPLETE", tone: "complete", log: "[Evaluator] result grounded · awaiting human review" };
+  const selectedScenario = DEMO_SCENARIOS.find((scenario) => scenario.jd === jd);
 
-  function selectScenario(scenario: (typeof DEMO_SCENARIOS)[number]) {
+  function changeJd(value: string) {
     analysisToken.current += 1;
-    setJd(scenario.jd);
+    setJd(value);
+    setResultTab(0);
     setResult(null);
     setAnalysisState("dirty");
     setAnalysisError("");
@@ -64,6 +50,7 @@ export function AgentPlayground() {
     setInputError("");
     setAnalysisError("");
     setAnalysisState("loading");
+    setResultTab(0);
     setResult(null);
     setCopied(false);
     setCopyError("");
@@ -119,104 +106,69 @@ export function AgentPlayground() {
     }
   }
 
-  return <main className="portfolio-page">
-    <header className="portfolio-nav">
-      <Link href="/playground" className="portfolio-brand"><span><Sparkles size={16}/></span><div><strong>Career Copilot</strong><small>Evidence-driven AI career workspace</small></div></Link>
-      <nav className="portfolio-nav-links" aria-label="公开展示导航"><a href="#proof">产品能力</a><a href="#workflow">工作原理</a><a href="#safety">安全与透明</a></nav>
-      <div><Link href="/updates" className="ghost-button">更新日志</Link><Link href="/login" className="ghost-button">登录控制台</Link><a href="#demo" className="primary-button">体验 Demo <ArrowRight size={14}/></a></div>
+  const risks = result ? [
+    ...(result.score?.missing_skills ?? []).slice(0, 6).map(skillLabel),
+    ...(result.trace?.checks ?? []).filter((check: Row) => check.status !== "pass").map((check: Row) => `${check.label}：${check.detail}`),
+    ...(result.score?.blockers ?? []),
+  ] as string[] : [];
+
+  return <main className="cc-app cc-public">
+    <a className="cc-skip" href="#demo">跳到岗位分析</a>
+    <header className="cc-public-nav">
+      <WorkspaceBrand href="/playground"/>
+      <nav aria-label="公开体验导航"><a href="#demo">岗位分析</a><a href="#methods" onClick={() => { const details = document.getElementById("methods") as HTMLDetailsElement | null; if (details) details.open = true; }}>使用说明</a></nav>
+      <Link href="/login" className="cc-button cc-button-primary">登录工作台 <ArrowRight size={16}/></Link>
     </header>
-
-    <section className="portfolio-hero" id="product">
-      <div>
-        <h1>把求职流程变成一个<br/><em>有证据、可评测、可人工接管</em>的 AI Agent 系统</h1>
-        <p>面向 AI Agent、LLM 应用、RAG、AI 产品和解决方案实习：输入 JD，得到评分、证据、简历和面试准备；不自动投递或发送。</p>
-        <div className="hero-proof-row" aria-label="核心工作流"><span><CheckCircle2 size={14}/>JD → 证据 → 简历</span><span><CheckCircle2 size={14}/>结果可追溯</span><span><ShieldCheck size={14}/>关键动作人工确认</span></div>
-        <div className="portfolio-actions"><a href="#demo" className="primary-button"><Play size={14}/>分析一条真实 JD</a><Link href="/agents" className="ghost-button">查看 Agent 控制台</Link></div>
-        <div className="hero-note"><ShieldCheck size={15}/><span>公开演示环境：不连接邮箱、不读取私人资料、不自动投递。</span></div>
-      </div>
-      <div className="architecture-card" id="workflow">
-        <div className="architecture-kicker"><span>AGENT RUNTIME MAP</span><b className={`runtime-status ${runtimeStatus.tone}`} aria-live="polite"><i/>{runtimeStatus.label}</b></div>
-        <div className="architecture-title"><Bot size={18}/><div><strong>Grounded Agent Runtime</strong><span>输入、输出、引用都保留</span></div></div>
-        <div className="architecture-flow">{trace.map((node, index) => <div key={node}><span>{index + 1}</span><div><strong>{node}</strong><small>{traceCopy[index]}</small></div><b>{index === 0 ? (analysisState === "loading" ? "运行中" : analysisState === "error" ? "需复核" : analysisState === "dirty" ? "待运行" : "已完成") : "已完成"}</b></div>)}</div>
-        <div className="architecture-log"><span>RUNTIME LOG</span><code>{runtimeStatus.log}</code><a href="#demo">VIEW LOGS <ArrowRight size={12}/></a></div>
-        <div className="architecture-safety"><ShieldCheck size={16}/><span>Human-in-the-loop：发送、提交、面试与 Offer 动作必须独立确认</span></div>
-      </div>
+    <section className="cc-public-intro">
+      <WorkspaceHeading title="把合适的岗位，变成下一步。" description="读懂岗位要求，核对项目证据，再准备投递材料。"/>
+      <p className="cc-note"><ShieldCheck size={16}/>公开体验 · 使用示例资料，不读取私人信息，不会真实投递。</p>
     </section>
-
-    <section className="portfolio-capabilities" id="proof">
-      <article><GitBranch size={18}/><strong>Multi-Agent Workflow</strong><p>5 个节点：发现、分析、简历、面试、评测。</p></article>
-      <article><Braces size={18}/><strong>MCP-compatible Tools</strong><p>读操作直达；投递等写操作只生成审批请求。</p></article>
-      <article><Target size={18}/><strong>Hybrid Ranking</strong><p>规则 40% · 证据 40% · 历史 20%。</p></article>
-      <article><CheckCircle2 size={18}/><strong>Agent Evaluation</strong><p>Recall@K · MRR · Citation Coverage · Grounding。</p></article>
-    </section>
-
-    <section className="playground-shell" id="demo">
-      <header><div><span className="eyebrow">Public portfolio demo</span><h2>Agent Playground</h2><p>粘贴 JD，查看评分、匹配证据和对应简历。公开 Demo 不读取私人数据。</p></div><span className="demo-badge">SAFE DEMO</span></header>
-      <div className="playground-command-rail" aria-label="演示工作台视图"><span className="is-active">输入 JD</span><span>评分与风险</span><span>证据与缺口</span><span>简历与招呼语</span></div>
-      <div className="playground-grid">
-        <div className="playground-input">
-          <div className="playground-scenarios" aria-label="公开演示场景">
-            <div><strong>先选一个实操场景</strong><small>6 个常用场景；更多场景按需展开</small></div>
-            <div className="playground-scenario-list">{FEATURED_SCENARIOS.map((scenario) => <button key={scenario.id} type="button" className={jd === scenario.jd ? "active" : ""} aria-pressed={jd === scenario.jd} onClick={() => selectScenario(scenario)}><span>{scenario.label}</span><small>{scenario.note}</small></button>)}</div>
-            {MORE_SCENARIOS.length ? <details className="playground-scenarios-more"><summary>更多场景（{MORE_SCENARIOS.length}）<ChevronDown size={13}/></summary><div className="playground-scenario-list">{MORE_SCENARIOS.map((scenario) => <button key={scenario.id} type="button" className={jd === scenario.jd ? "active" : ""} aria-pressed={jd === scenario.jd} onClick={() => selectScenario(scenario)}><span>{scenario.label}</span><small>{scenario.note}</small></button>)}</div></details> : null}
-            <p className="playground-scenario-status" aria-live="polite">{analysisState === "dirty" ? "场景已切换，请点击“运行 Agent 分析”查看结果。" : "默认展示公开示例结果；你可以切换场景后重新分析。"}</p>
-          </div>
-          <label>岗位 JD<textarea value={jd} aria-describedby={inputError ? "playground-input-error" : undefined} onChange={(event) => { analysisToken.current += 1; setJd(event.target.value); setResult(null); setAnalysisState("dirty"); setAnalysisError(""); setCopyError(""); if (inputError) setInputError(""); }} rows={16}/></label>
-          <div className="playground-input-meta"><span>{jd.length} 个字符</span><span>满 20 个字符即可分析</span></div>
-          {inputError ? <p id="playground-input-error" className="playground-input-error" role="alert">{inputError}</p> : null}
-          <button className="primary-button" onClick={() => void analyze()} disabled={analysisState === "loading"} aria-busy={analysisState === "loading"}><Sparkles size={14}/>{analysisState === "loading" ? "正在分析…" : "运行 Agent 分析"}</button>
-          <small>{result?.disclaimer ?? "修改岗位描述后，请运行 Agent 分析；公开 Demo 不读取私人数据。"}</small>
-        </div>
-        <div className="playground-output">
+    <section className="cc-analysis" id="demo" aria-labelledby="analysis-title">
+      <header className="cc-analysis-header"><h2 id="analysis-title">分析一个岗位</h2><div className="cc-steps" aria-label="使用步骤"><span>01 输入岗位</span><span>02 核对结果</span><span>03 准备材料</span></div></header>
+      <div className="cc-analysis-grid">
+        <form className="cc-jd-form" onSubmit={(event) => { event.preventDefault(); void analyze(); }}>
+          <label>选择示例<select value={selectedScenario?.id ?? "custom"} onChange={(event) => { const scenario = DEMO_SCENARIOS.find((item) => item.id === event.target.value); if (scenario) changeJd(scenario.jd); }}><option value="custom" disabled>自定义岗位描述</option>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>
+          <label htmlFor="jd-input">岗位描述<textarea id="jd-input" value={jd} rows={10} aria-invalid={Boolean(inputError)} aria-describedby={inputError ? "jd-input-error" : "jd-input-help"} onChange={(event) => changeJd(event.target.value)}/></label>
+          <div className="cc-input-meta" id="jd-input-help"><span>{jd.trim().length} 个字符</span><span>至少 20 个字符</span></div>
+          {inputError ? <p id="jd-input-error" className="cc-error" role="alert">{inputError}</p> : null}
+          <button className="cc-button cc-button-primary" type="submit" disabled={analysisState === "loading"} aria-busy={analysisState === "loading"}>{analysisState === "loading" ? "正在分析…" : "分析岗位"}<ArrowRight size={16}/></button>
+          <p className="cc-note" role="status">{analysisState === "dirty" ? "输入已修改，重新分析后显示新结果。" : analysisState === "ready" ? "示例分析已就绪。登录后可换成你自己的资料。" : analysisState === "loading" ? "正在分析当前岗位描述。" : "请修改输入后重试。"}</p>
+        </form>
+        <section className="cc-result" aria-labelledby="result-title" aria-busy={analysisState === "loading"}>
+          <h2 id="result-title">分析结果</h2>
           {result ? <>
-          <div className="playground-score-head">
-            <div className={`grade grade-${String(result.score?.grade ?? "c").toLowerCase()}`}>{result.score?.grade}</div>
-            <div><span>{result.job?.company_name}</span><h3>{result.job?.title}</h3><p>{[result.job?.workplace, result.job?.city, result.job?.district].filter(Boolean).join(" · ") || "地点待核验"}</p></div>
-            <strong>{result.score?.final_score}</strong>
-          </div>
-          <div className="playground-analysis-context"><strong>公开示例结果已生成</strong><span>{result.job?.title}</span><small>默认结果可直接查看；点击“运行 Agent 分析”可重新计算当前输入。仅使用当前岗位文本与公开示例证据，不代表个人经历。</small></div>
-          <div className="playground-demo-disclosure"><strong>公开示例 · 不可直接投递</strong><span>下一步：核验原岗位，再登录控制台使用个人证据生成材料。</span></div>
-          <div className={`playground-decision ${result.trace?.decision === "keep" ? "keep" : "review"}`}><strong>{result.trace?.decision === "keep" ? "建议保留供人工复核" : "建议跳过或人工复核"}</strong><span>分数只是排序信号，不代表录用概率；最终动作仍需人工确认。</span></div>
-          <div className="playground-metrics">
-            <Metric label="规则分" value={result.score?.rule_score ?? 0} note="届别、实习、地点与周期"/>
-            <Metric label="证据分" value={result.score?.semantic_score ?? 0} note="示例项目与 JD 重合"/>
-            <Metric label="历史分" value={result.score?.history_score ?? 0} note="无样本时使用中性基线"/>
-          </div>
-          <div className="playground-section"><strong>已匹配</strong><div className="tag-row">{(result.score?.matched_skills ?? []).map((item: string) => <span key={item}>{item}</span>)}</div></div>
-          <div className="playground-section"><strong>缺口与风险</strong><ul>{(result.score?.missing_skills ?? []).slice(0, 6).map((item: string) => <li key={item}>{item}</li>)}{(result.trace?.checks ?? []).filter((check: Row) => check.status !== "pass").map((check: Row) => <li key={`check-${check.key}`}>{check.label}：{check.detail}</li>)}{(result.score?.blockers ?? []).map((item: string) => <li key={item}>{item}</li>)}</ul></div>
-          <div className="resume-recommendation"><FileCheck2 size={17}/><div><span>推荐简历</span><strong>{result.resume?.persona_label}</strong><p>{(result.resume?.emphasis ?? []).join("；")}</p><small>{(result.resume?.alignment?.explanation ?? []).slice(1, 3).join("；")}</small></div></div>
-          <div className="greeting-draft"><div><span>公开示例招呼语</span><small>仅演示文案，不代表你的个人经历</small><p>{result.greeting?.greeting}</p>{copyError ? <small className="playground-copy-error" role="alert">{copyError}</small> : null}</div><button className="ghost-button" onClick={() => void copyGreeting()}><Clipboard size={13}/>{copied ? "已复制" : "复制"}</button></div>
-          <div className="playground-safety"><ShieldCheck size={15}/><span>状态：等待人工确认 · 不自动发送 · 不自动投递</span></div>
-          </> : <div className="playground-empty-state" role={analysisState === "error" ? "alert" : undefined}>
-            <strong>{analysisState === "loading" ? "正在运行 Agent 分析…" : analysisState === "error" ? "这次分析没有完成" : "尚未分析当前输入"}</strong>
-            <p>{analysisError || (analysisState === "dirty" ? "岗位描述已修改；点击“运行 Agent 分析”后才会生成新的结果。" : "粘贴至少 20 个字符的岗位描述，再运行分析。")}</p>
-            {analysisState === "error" ? <button className="ghost-button" type="button" onClick={() => void analyze()}>重试分析</button> : null}
-          </div>}
-        </div>
+            <div className="cc-result-job"><p>公开示例 · {result.job?.company_name || "公司待核验"}</p><h3>{result.job?.title}</h3><p>{[workplaceLabel(result.job?.workplace), result.job?.city, result.job?.district].filter(Boolean).join(" · ") || "地点待核验"}</p></div>
+            <div className="cc-verdict"><div className="cc-score"><strong>{result.score?.final_score}</strong><small>匹配分 / 100</small></div><div><strong>{result.trace?.decision === "keep" ? "建议保留，继续核对条件" : "建议跳过或人工复核"}</strong><p>用于排序，不代表录用概率。{risks.length ? `还有 ${new Set(risks).size} 项缺口或风险需要核对。` : "未发现规则缺口，仍需核验原岗位。"}</p></div></div>
+            <div className="cc-result-tabs" role="tablist" aria-label="分析结果内容">{RESULT_TABS.map((label, index) => <button key={label} ref={(node) => { tabButtons.current[index] = node; }} type="button" role="tab" id={`result-tab-${index}`} aria-controls={`result-panel-${index}`} aria-selected={resultTab === index} tabIndex={resultTab === index ? 0 : -1} onClick={() => setResultTab(index)} onKeyDown={(event) => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const next = event.key === "Home" ? 0 : event.key === "End" ? RESULT_TABS.length - 1 : (index + (event.key === "ArrowRight" ? 1 : -1) + RESULT_TABS.length) % RESULT_TABS.length;
+              setResultTab(next);
+              tabButtons.current[next]?.focus();
+            }}>{label}</button>)}</div>
+            <div role="tabpanel" id="result-panel-0" aria-labelledby="result-tab-0" tabIndex={0} hidden={resultTab !== 0}>
+              <section className="cc-result-section"><h4>已匹配的能力</h4><div className="cc-tags">{(result.score?.matched_skills ?? []).map((item: string) => <span key={item}>{skillLabel(item)}</span>)}</div>{!result.score?.matched_skills?.length ? <p className="cc-note">当前示例证据尚未匹配到明确能力。</p> : null}</section>
+              <section className="cc-result-section"><h4>需要核对的缺口</h4>{risks.length ? <ul className="cc-risk-list">{[...new Set(risks)].map((risk) => <li key={risk}>{risk}</li>)}</ul> : <p className="cc-note">暂无规则缺口。请核验岗位来源和个人经历后再准备投递。</p>}</section>
+              <details className="cc-score-details"><summary>分数怎么算？</summary><dl><dt>规则分 · 届别、地点、周期</dt><dd>{result.score?.rule_score ?? 0}</dd><dt>证据分 · 示例项目与岗位重合</dt><dd>{result.score?.semantic_score ?? 0}</dd><dt>历史分 · 无样本用中性基线</dt><dd>{result.score?.history_score ?? 0}</dd></dl><p>规则 40% · 证据 40% · 历史 20%。仅使用确定性演示逻辑，不调用个人模型或账号。</p></details>
+            </div>
+            <div className="cc-material" role="tabpanel" id="result-panel-1" aria-labelledby="result-tab-1" tabIndex={0} hidden={resultTab !== 1}>
+              <p className="cc-note">推荐简历方向</p><h4>{result.resume?.persona_label}</h4><p>{(result.resume?.emphasis ?? []).join("；")}</p><p className="cc-note">{(result.resume?.alignment?.explanation ?? []).slice(1, 3).join("；")}</p>
+              <section className="cc-greeting"><strong>招呼语示例</strong><p>{result.greeting?.greeting}</p><button className="cc-button" type="button" onClick={() => void copyGreeting()}>{copied ? <Check size={16}/> : <Clipboard size={16}/>}{copied ? "已复制" : "复制招呼语"}</button><p className="cc-note">示例内容不代表你的经历，不可直接投递。</p>{copyError ? <p className="cc-error" role="alert">{copyError}</p> : null}</section>
+            </div>
+            <div className="cc-result-next"><Link href="/login" className="cc-link">登录后使用个人资料 <ArrowRight size={16}/></Link><span className="cc-note">核验经历，再生成正式材料。</span></div>
+          </> : <WorkspaceState tone={analysisState === "loading" ? "loading" : analysisState === "error" ? "error" : "empty"} title={analysisState === "loading" ? "正在分析当前岗位" : analysisState === "error" ? "这次分析没有完成" : "等待分析新输入"} description={analysisError || "岗位描述已修改。点击“分析岗位”，再查看新的匹配结果。"} action={analysisState === "error" ? <button className="cc-button" type="button" onClick={() => void analyze()}>重试分析</button> : undefined}/>}</section>
       </div>
     </section>
-
-    <details className="batch-lab">
-      <summary className="batch-fold-summary"><div><span className="eyebrow">BATCH FILTER SIMULATION</span><h2>一次看懂“保留、跳过、待复核”。</h2><p>公开示例模拟批量筛选逻辑；展开后查看每条岗位的保留、跳过和复核原因。</p></div><span className="demo-badge">查看筛选明细 <ChevronDown size={13}/></span></summary>
-      <div className="batch-fold-body"><p className="batch-fold-policy">当前策略：薪资 {DEMO_FILTER_POLICY.salary_min}-{DEMO_FILTER_POLICY.salary_max} 元/天（区间重叠） · 公司成立年份 ≥ {DEMO_FILTER_POLICY.company_founded_from} · 屏蔽词 {DEMO_FILTER_POLICY.blocked_keywords.join("、")}</p>
-      <div className="batch-summary"><Metric label="保留" value={batch.kept_count} note="通过当前示例规则"/><Metric label="跳过" value={batch.skipped_count} note="条件不符或重复"/><Metric label="重复保护" value={batch.duplicate_count} note="同公司同岗位"/><Metric label="节奏预览" value={`${batch.pacing.min_seconds}-${batch.pacing.max_seconds}s`} note="不会实际等待或点击"/></div>
-      <div className="batch-rows">{batch.rows.map((row: Row) => {
-        const decision = row.decision === "keep" ? { label: "保留", tone: "keep" } : row.decision === "skip_duplicate" ? { label: "跳过重复", tone: "duplicate" } : { label: "跳过条件", tone: "filtered" };
-        return <article className={`batch-row ${decision.tone}`} key={row.id}><div className="batch-row-score"><strong>{row.score?.final_score ?? 0}</strong><span>{row.score?.grade ?? "-"}</span></div><div className="batch-row-copy"><span>{row.company}</span><strong>{row.title}</strong><small>{[row.job?.workplace, row.job?.city, row.job?.salary].filter(Boolean).join(" · ") || "岗位条件待核验"}</small><div className="batch-tags"><em className={decision.tone}>{decision.label}</em>{(row.trace?.checks ?? []).filter((check: Row) => check.status !== "pass").slice(0, 2).map((check: Row) => <em key={check.key}>{check.label}：{check.detail}</em>)}</div></div><details className="batch-row-details"><summary>查看判定链路</summary><div>{(row.trace?.checks ?? []).map((check: Row) => <p key={check.key}><strong>{check.status === "pass" ? "通过" : check.status === "review" ? "复核" : check.status === "warn" ? "风险" : "拦截"}</strong><span>{check.label} · {check.detail}</span></p>)}<p><strong>{row.trace?.dedupe?.status === "skip" ? "跳过" : "去重"}</strong><span>{row.trace?.dedupe?.detail}</span></p><p><strong>历史</strong><span>{row.trace?.history?.detail}</span></p><p><strong>节奏</strong><span>{row.trace?.pacing?.detail}</span></p></div></details></article>;
-      })}</div></div>
-    </details>
-
-    <details className="evaluation-preview">
-      <summary className="evaluation-fold-summary"><div><span className="eyebrow">Evaluation fixture</span><h2>评测不是装饰，而是发布门禁</h2><p>小型确定性数据集验证检索命中、引用覆盖和不受支持声明。</p></div><span>查看评测基线 <ChevronDown size={14}/></span></summary>
-      <div className="evaluation-cards">
-        <Metric label="Recall@5" value="1.000" note="受控 fixture"/>
-        <Metric label="MRR" value="1.000" note="首位命中"/>
-        <Metric label="Citation Coverage" value="1.000" note="预期证据全覆盖"/>
-        <Metric label="Unsupported Claims" value="0" note="Grounding 门禁"/>
-      </div>
-      <p className="evaluation-source">详细结果见仓库中的 <code>docs/agent-evaluation-report.md</code>。</p>
-    </details>
-
-    <footer className="portfolio-footer"><div><strong>Career Copilot V2</strong><span>Evidence-driven AI internship operating system</span></div><div><Gauge size={14}/><span>Portfolio demo · no autonomous submission</span><Link href="/updates">查看更新日志</Link><Link href="/privacy">隐私边界</Link></div></footer>
+    <div className="cc-public-details">
+      <WorkspaceDisclosure title="批量筛选示例" description="查看保留、跳过与重复保护的判断依据。">
+        <div className="cc-batch-summary"><span>保留<strong>{batch.kept_count}</strong></span><span>跳过<strong>{batch.skipped_count}</strong></span><span>重复保护<strong>{batch.duplicate_count}</strong></span></div>
+        <p className="cc-note">示例策略：{DEMO_FILTER_POLICY.salary_min}–{DEMO_FILTER_POLICY.salary_max} 元/天，公司成立年份 ≥ {DEMO_FILTER_POLICY.company_founded_from}；屏蔽词：{DEMO_FILTER_POLICY.blocked_keywords.join("、")}。仅模拟筛选，不点击招聘平台。</p>
+        {batch.rows.map((row: Row) => <article className="cc-batch-row" key={row.id}><div><strong>{row.title}</strong><p>{row.company} · {[row.job?.city, row.job?.salary].filter(Boolean).join(" · ")}</p></div><span>{row.decision === "keep" ? "保留" : row.decision === "skip_duplicate" ? "跳过重复" : "跳过条件"}</span><details><summary>查看判断依据</summary>{(row.trace?.checks ?? []).map((check: Row) => <p key={check.key}>{check.label}：{check.detail}</p>)}<p>去重：{row.trace?.dedupe?.detail}</p><p>历史：{row.trace?.history?.detail}</p><p>节奏：{row.trace?.pacing?.detail}</p></details></article>)}
+      </WorkspaceDisclosure>
+      <WorkspaceDisclosure id="methods" title="使用方法与评测说明" description="了解演示边界，以及如何开始正式投递准备。">
+        <div className="cc-methods"><section><h3>从示例到个人工作台</h3><ol><li>粘贴岗位描述，核对要求和风险。</li><li>登录后补充个人画像、简历与项目证据。</li><li>检查生成材料，再确认实际投递方式。</li></ol><p>公开页只演示岗位匹配与材料方向，不代表已执行多 Agent 任务、生成完整简历或真实投递。</p><Link className="cc-link" href="/login">进入个人工作台 <ArrowRight size={16}/></Link></section><section><h3>技术与评测</h3><p>正式系统包含 JD 分析、混合排序、简历准备、引用核验与 MCP 工具；写操作受审批控制。</p><p>仓库内的受控评测覆盖 Recall@K、MRR、引用覆盖和不受支持声明。测试基线不是生产用户成功率。</p><a className="cc-link" href="https://github.com/ronineymessjr-sudo/career-copilot/blob/main/docs/agent-evaluation-report.md" target="_blank" rel="noreferrer">查看评测文档 <ArrowRight size={16}/></a></section></div>
+      </WorkspaceDisclosure>
+    </div>
+    <footer className="cc-public-footer"><span>Career Copilot · 让每一步求职都有依据。</span><Link href="/updates">更新日志</Link><Link href="/privacy">隐私与数据边界</Link></footer>
   </main>;
 }
