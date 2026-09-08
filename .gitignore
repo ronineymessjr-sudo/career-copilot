@@ -18,6 +18,7 @@ workers/scheduler/worker-configuration.d.ts
 career-data/
 apps/web/tsconfig.tsbuildinfo
 .career-copilot-patch-backups/
+.workbuddy/
 supabase/.temp/
 ci-artifact/
 apps/web/ci-build/
@@ -65,3 +66,11 @@ docs/PROJECT_STATUS.md
 # Local browser session data used only by the posting helper; never commit.
 twitter-poster/browser-data/
 supabase/.temp/
+
+# Generated deployment and evaluation outputs; CI keeps these as artifacts.
+DEPLOYED_URLS.json
+SMOKE_RESULT_*.json
+RELEASE_EVIDENCE_*.json
+AGENT_EVALUATION_RESULT_*.json
+career-copilot.zip
+cf-worker-deploy.zip
