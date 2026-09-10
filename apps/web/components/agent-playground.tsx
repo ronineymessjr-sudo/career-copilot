@@ -116,15 +116,15 @@ export function AgentPlayground() {
     <a className="cc-skip" href="#demo">跳到岗位分析</a>
     <header className="cc-public-nav">
       <WorkspaceBrand href="/playground"/>
-      <nav aria-label="公开体验导航"><a href="#demo">岗位分析</a><a href="#methods" onClick={() => { const details = document.getElementById("methods") as HTMLDetailsElement | null; if (details) details.open = true; }}>使用说明</a></nav>
-      <Link href="/login" className="cc-button cc-button-primary">登录工作台 <ArrowRight size={16}/></Link>
+      <div className="cc-public-availability"><span aria-hidden="true"/>无需登录 · 示例已准备好</div>
+      <a href="#demo" className="cc-button cc-button-primary">开始体验 <ArrowRight size={16}/></a>
     </header>
     <section className="cc-public-intro">
-      <WorkspaceHeading title="把一个岗位，变成明确的下一步。" description="粘贴 JD，快速查看匹配能力、风险缺口和简历方向。"/>
+      <WorkspaceHeading title="先判断值不值得投，再决定怎么写。" description="粘贴岗位描述，马上看到匹配能力、风险缺口和简历方向。"/>
       <p className="cc-note" aria-label="Agent Playground · SAFE DEMO · 不自动发送，不自动投递"><ShieldCheck size={16}/><span>公开演示 · 使用示例资料 · 不读取私人信息，不发送或投递</span></p>
     </section>
     <section className="cc-analysis" id="demo" aria-labelledby="analysis-title">
-      <header className="cc-analysis-header"><div><h2 id="analysis-title">先跑一个岗位</h2><p>选一个示例，或粘贴自己的岗位描述。</p></div><div className="cc-steps" aria-label="使用步骤"><span>01 分析</span><span>02 核对</span><span>03 准备</span></div></header>
+      <header className="cc-analysis-header"><div><h2 id="analysis-title">岗位分析</h2><p>示例已填好，也可以替换成你看到的 JD。</p></div><span className="cc-demo-state">无需登录</span></header>
       <div className="cc-analysis-grid">
         <form className="cc-jd-form" onSubmit={(event) => { event.preventDefault(); void analyze(); }}>
           <label>先选一个示例<select value={selectedScenario?.id ?? "custom"} onChange={(event) => { const scenario = DEMO_SCENARIOS.find((item) => item.id === event.target.value); if (scenario) changeJd(scenario.jd); }}><option value="custom" disabled>自定义岗位描述</option>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>
