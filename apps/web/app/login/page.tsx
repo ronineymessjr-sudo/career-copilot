@@ -118,7 +118,7 @@ export default function LoginPage() {
     <section className="cc-auth-intro">
       <WorkspaceBrand href="/playground"/>
       <h1>下一份机会，<br/>从准备好这一步开始。</h1>
-      <p>岗位、简历和投递进度放在一起。先看清差距，再准备有依据的材料。</p>
+      <p>公开 Demo 无需登录；登录后再保存个人资料、简历和投递进度。</p>
       <ol className="cc-auth-steps"><li><span>01</span>找到值得申请的岗位</li><li><span>02</span>用项目证据准备材料</li><li><span>03</span>记录投递与后续进展</li></ol>
     </section>
     <form className="cc-auth-form" onSubmit={submit}>
