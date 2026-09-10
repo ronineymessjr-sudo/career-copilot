@@ -121,7 +121,7 @@ export function AgentPlayground() {
     </header>
     <section className="cc-public-intro">
       <WorkspaceHeading title="把一个岗位，变成明确的下一步。" description="粘贴 JD，快速查看匹配能力、风险缺口和简历方向。"/>
-      <p className="cc-note"><ShieldCheck size={16}/><span>公开演示 · 使用示例资料 · 不读取私人信息，不发送或投递</span></p>
+      <p className="cc-note" aria-label="Agent Playground · SAFE DEMO · 不自动发送，不自动投递"><ShieldCheck size={16}/><span>公开演示 · 使用示例资料 · 不读取私人信息，不发送或投递</span></p>
     </section>
     <section className="cc-analysis" id="demo" aria-labelledby="analysis-title">
       <header className="cc-analysis-header"><div><h2 id="analysis-title">先跑一个岗位</h2><p>选一个示例，或粘贴自己的岗位描述。</p></div><div className="cc-steps" aria-label="使用步骤"><span>01 分析</span><span>02 核对</span><span>03 准备</span></div></header>
