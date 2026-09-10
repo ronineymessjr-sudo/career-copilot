@@ -116,8 +116,9 @@ export function AgentPlayground() {
     <a className="cc-skip" href="#demo">跳到岗位分析</a>
     <header className="cc-public-nav">
       <WorkspaceBrand href="/playground"/>
+      <nav aria-label="公开体验导航"><a href="#demo">岗位分析</a><a href="#methods" onClick={() => { const details = document.getElementById("methods") as HTMLDetailsElement | null; if (details) details.open = true; }}>使用说明</a></nav>
       <div className="cc-public-availability"><span aria-hidden="true"/>无需登录 · 示例已准备好</div>
-      <a href="#demo" className="cc-button cc-button-primary">开始体验 <ArrowRight size={16}/></a>
+      <Link href="/login" className="cc-button cc-button-primary">登录工作台 <ArrowRight size={16}/></Link>
     </header>
     <section className="cc-public-intro">
       <WorkspaceHeading title="先判断值不值得投，再决定怎么写。" description="粘贴岗位描述，马上看到匹配能力、风险缺口和简历方向。"/>
