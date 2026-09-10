@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { ArrowRight, Check, Clipboard, ShieldCheck } from "lucide-react";
 import { WorkspaceBrand, WorkspaceDisclosure, WorkspaceHeading, WorkspaceState } from "@/components/workspace-ui";
 import { skillLabel, workplaceLabel } from "@/lib/workspace-presentation.mjs";
@@ -120,25 +120,26 @@ export function AgentPlayground() {
       <Link href="/login" className="cc-button cc-button-primary">登录工作台 <ArrowRight size={16}/></Link>
     </header>
     <section className="cc-public-intro">
-      <WorkspaceHeading title="把合适的岗位，变成下一步。" description="读懂岗位要求，核对项目证据，再准备投递材料。"/>
-      <p className="cc-note"><ShieldCheck size={16}/>Agent Playground · SAFE DEMO · 使用示例资料，不读取私人信息；不自动发送，不自动投递。</p>
+      <WorkspaceHeading title="把一个岗位，变成明确的下一步。" description="粘贴 JD，快速查看匹配能力、风险缺口和简历方向。"/>
+      <p className="cc-note"><ShieldCheck size={16}/><span>公开演示 · 使用示例资料 · 不读取私人信息，不发送或投递</span></p>
     </section>
     <section className="cc-analysis" id="demo" aria-labelledby="analysis-title">
-      <header className="cc-analysis-header"><h2 id="analysis-title">分析一个岗位</h2><div className="cc-steps" aria-label="使用步骤"><span>01 输入岗位</span><span>02 核对结果</span><span>03 准备材料</span></div></header>
+      <header className="cc-analysis-header"><div><h2 id="analysis-title">先跑一个岗位</h2><p>选一个示例，或粘贴自己的岗位描述。</p></div><div className="cc-steps" aria-label="使用步骤"><span>01 分析</span><span>02 核对</span><span>03 准备</span></div></header>
       <div className="cc-analysis-grid">
         <form className="cc-jd-form" onSubmit={(event) => { event.preventDefault(); void analyze(); }}>
-          <label>选择示例<select value={selectedScenario?.id ?? "custom"} onChange={(event) => { const scenario = DEMO_SCENARIOS.find((item) => item.id === event.target.value); if (scenario) changeJd(scenario.jd); }}><option value="custom" disabled>自定义岗位描述</option>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>
-          <label htmlFor="jd-input">岗位描述<textarea id="jd-input" value={jd} rows={10} aria-invalid={Boolean(inputError)} aria-describedby={inputError ? "jd-input-error" : "jd-input-help"} onChange={(event) => changeJd(event.target.value)}/></label>
+          <label>先选一个示例<select value={selectedScenario?.id ?? "custom"} onChange={(event) => { const scenario = DEMO_SCENARIOS.find((item) => item.id === event.target.value); if (scenario) changeJd(scenario.jd); }}><option value="custom" disabled>自定义岗位描述</option>{DEMO_SCENARIOS.map((scenario) => <option key={scenario.id} value={scenario.id}>{scenario.label}</option>)}</select></label>
+          <label htmlFor="jd-input">岗位描述<textarea id="jd-input" value={jd} rows={8} aria-invalid={Boolean(inputError)} aria-describedby={inputError ? "jd-input-error" : "jd-input-help"} onChange={(event) => changeJd(event.target.value)}/></label>
           <div className="cc-input-meta" id="jd-input-help"><span>{jd.trim().length} 个字符</span><span>至少 20 个字符</span></div>
           {inputError ? <p id="jd-input-error" className="cc-error" role="alert">{inputError}</p> : null}
           <button className="cc-button cc-button-primary" type="submit" disabled={analysisState === "loading"} aria-busy={analysisState === "loading"}>{analysisState === "loading" ? "正在分析…" : "分析岗位"}<ArrowRight size={16}/></button>
-          <p className="cc-note" role="status">{analysisState === "dirty" ? "输入已修改，重新分析后显示新结果。" : analysisState === "ready" ? "示例分析已就绪。登录后可换成你自己的资料。" : analysisState === "loading" ? "正在分析当前岗位描述。" : "请修改输入后重试。"}</p>
+          <p className="cc-note" role="status">{analysisState === "dirty" ? "输入已修改，点击分析查看新结论。" : analysisState === "ready" ? "示例分析已就绪，先看右侧结论。" : analysisState === "loading" ? "正在分析当前岗位描述。" : "请修改输入后重试。"}</p>
         </form>
         <section className="cc-result" aria-labelledby="result-title" aria-busy={analysisState === "loading"}>
           <h2 id="result-title">分析结果</h2>
           {result ? <>
             <div className="cc-result-job"><p>公开示例 · {result.job?.company_name || "公司待核验"}</p><h3>{result.job?.title}</h3><p>{[workplaceLabel(result.job?.workplace), result.job?.city, result.job?.district].filter(Boolean).join(" · ") || "地点待核验"}</p></div>
-            <div className="cc-verdict"><div className="cc-score"><strong>{result.score?.final_score}</strong><small>匹配分 / 100</small></div><div><strong>{result.trace?.decision === "keep" ? "建议保留，继续核对条件" : "建议跳过或人工复核"}</strong><p>用于排序，不代表录用概率。{risks.length ? `还有 ${new Set(risks).size} 项缺口或风险需要核对。` : "未发现规则缺口，仍需核验原岗位。"}</p></div></div>
+            <div className="cc-verdict"><div className="cc-score"><div className="cc-score-ring" style={{ "--score": `${Number(result.score?.final_score ?? 0)}%` } as CSSProperties} aria-label={`匹配分 ${Number(result.score?.final_score ?? 0)} / 100`}><strong>{result.score?.final_score}</strong></div><small>匹配分 / 100</small></div><div><strong>{result.trace?.decision === "keep" ? "建议保留，继续核对条件" : "建议跳过或人工复核"}</strong><p>用于排序，不代表录用概率。{risks.length ? `还有 ${new Set(risks).size} 项缺口或风险需要核对。` : "未发现规则缺口，仍需核验原岗位。"}</p></div></div>
+            <div className="cc-result-highlights" aria-label="关键结论"><span><strong>{result.score?.matched_skills?.length ?? 0}</strong><small>匹配能力</small></span><span><strong>{new Set(risks).size}</strong><small>待核对项</small></span><span className="cc-result-highlight-persona"><strong>{result.resume?.persona_label || "待定"}</strong><small>简历方向</small></span></div>
             <div className="cc-result-tabs" role="tablist" aria-label="分析结果内容">{RESULT_TABS.map((label, index) => <button key={label} ref={(node) => { tabButtons.current[index] = node; }} type="button" role="tab" id={`result-tab-${index}`} aria-controls={`result-panel-${index}`} aria-selected={resultTab === index} tabIndex={resultTab === index ? 0 : -1} onClick={() => setResultTab(index)} onKeyDown={(event) => {
               if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
               event.preventDefault();
@@ -155,7 +156,7 @@ export function AgentPlayground() {
               <p className="cc-note">推荐简历方向</p><h4>{result.resume?.persona_label}</h4><p>{(result.resume?.emphasis ?? []).join("；")}</p><p className="cc-note">{(result.resume?.alignment?.explanation ?? []).slice(1, 3).join("；")}</p>
               <section className="cc-greeting"><strong>招呼语示例</strong><p>{result.greeting?.greeting}</p><button className="cc-button" type="button" onClick={() => void copyGreeting()}>{copied ? <Check size={16}/> : <Clipboard size={16}/>}{copied ? "已复制" : "复制招呼语"}</button><p className="cc-note">示例内容不代表你的经历，不可直接投递。</p>{copyError ? <p className="cc-error" role="alert">{copyError}</p> : null}</section>
             </div>
-            <div className="cc-result-next"><Link href="/login" className="cc-link">登录后使用个人资料 <ArrowRight size={16}/></Link><span className="cc-note">核验经历，再生成正式材料。</span></div>
+            <div className="cc-result-next"><button className="cc-button" type="button" onClick={() => { setResultTab(1); tabButtons.current[1]?.focus(); }}>查看材料方向 <ArrowRight size={16}/></button><Link href="/login" className="cc-link">登录后使用个人资料 <ArrowRight size={16}/></Link><span className="cc-note">核验经历，再生成正式材料。</span></div>
           </> : <WorkspaceState tone={analysisState === "loading" ? "loading" : analysisState === "error" ? "error" : "empty"} title={analysisState === "loading" ? "正在分析当前岗位" : analysisState === "error" ? "这次分析没有完成" : "等待分析新输入"} description={analysisError || "岗位描述已修改。点击“分析岗位”，再查看新的匹配结果。"} action={analysisState === "error" ? <button className="cc-button" type="button" onClick={() => void analyze()}>重试分析</button> : undefined}/>}</section>
       </div>
     </section>
