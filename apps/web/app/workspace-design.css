@@ -337,3 +337,51 @@
   .cc-public .cc-jd-form { border-right: 1px solid var(--cc-line); border-bottom: 0; }
   .cc-public .cc-app textarea { min-height: 180px; }
 }
+
+/* Auth entry v2: make the two entry paths explicit and keep the form calm. */
+.cc-auth {
+  --cc-canvas: #f4f3ef;
+  --cc-surface: #fff;
+  --cc-ink: #202622;
+  --cc-muted: #68726b;
+  --cc-line: #dfe4df;
+  --cc-accent: #1d6a55;
+  --cc-accent-hover: #155441;
+  --cc-tint: #eaf3ee;
+  background: radial-gradient(circle at 0% 0%, rgb(29 106 85 / 8%), transparent 34%), var(--cc-canvas);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 460px);
+  gap: clamp(56px, 9vw, 132px);
+}
+.cc-auth .cc-brand > span { width: 30px; height: 30px; border-radius: 50%; background: #202622; font-size: 18px; }
+.cc-auth .cc-brand strong { letter-spacing: -.025em; }
+.cc-auth-intro { align-self: center; }
+.cc-auth-intro .cc-brand { margin-bottom: 48px; }
+.cc-auth-intro h1 { max-width: 620px; font-size: clamp(40px, 5vw, 68px); line-height: 1.08; letter-spacing: -.055em; font-weight: 600; margin-bottom: 24px; }
+.cc-auth-intro p { max-width: 500px; font-size: 17px; line-height: 1.7; }
+.cc-auth-steps { max-width: 500px; margin-top: 38px; }
+.cc-auth-steps li { min-height: 42px; margin-top: 14px; color: var(--cc-ink); }
+.cc-auth-steps span { display: grid; flex: 0 0 28px; place-items: center; width: 28px; height: 28px; border: 1px solid #bed3c6; border-radius: 50%; color: var(--cc-accent); background: var(--cc-tint); font-size: 12px; }
+.cc-auth-form { width: 100%; max-width: 460px; gap: 18px; padding: 32px; border: 1px solid var(--cc-line); border-radius: 18px; background: var(--cc-surface); box-shadow: 0 20px 48px rgb(31 43 35 / 8%); }
+.cc-auth-form h2 { font-size: 28px; letter-spacing: -.035em; }
+.cc-auth-form > div > p { font-size: 14px; line-height: 1.65; }
+.cc-auth-form label { gap: 7px; font-size: 13px; }
+.cc-auth-form input { min-height: 48px; border: 1px solid #cbd6ce; border-radius: 8px; background: #fbfcfb; }
+.cc-auth-form input:focus { border-color: var(--cc-accent); box-shadow: 0 0 0 3px rgb(29 106 85 / 12%); }
+.cc-auth-form .cc-button-primary { width: 100%; min-height: 48px; background: #202622; border-color: #202622; }
+.cc-auth-form .cc-button-primary:hover { background: #0f1511; border-color: #0f1511; }
+.cc-auth-switch { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 4px; border-radius: 9px; background: #f1f4f1; }
+.cc-auth-switch button { min-height: 38px; border-radius: 6px; color: var(--cc-muted); }
+.cc-auth-switch button:hover { color: var(--cc-ink); background: #fff; }
+.cc-auth-switch button[aria-pressed="true"] { color: var(--cc-accent); text-decoration: none; background: #fff; box-shadow: 0 1px 3px rgb(31 43 35 / 10%); }
+.cc-auth-demo { display: grid; gap: 6px; margin-top: 2px; padding: 16px; border: 1px solid #cfe0d4; border-radius: 10px; background: var(--cc-tint); }
+.cc-auth-demo > span { color: var(--cc-ink); font-size: 13px; font-weight: 600; }
+.cc-auth-demo .cc-link { min-height: 32px; color: var(--cc-accent); font-size: 14px; }
+.cc-auth-demo .cc-note { font-size: 12px; }
+.cc-notice { border-left-color: var(--cc-accent); background: var(--cc-tint); }
+@media (max-width: 760px) {
+  .cc-auth { gap: 28px; padding: 32px 20px; }
+  .cc-auth-intro .cc-brand { margin-bottom: 28px; }
+  .cc-auth-intro h1 { font-size: 38px; }
+  .cc-auth-intro p { font-size: 16px; }
+  .cc-auth-form { padding: 24px; }
+}
