@@ -42,8 +42,14 @@ export default function LoginPage() {
         setNotice("身份验证成功，请设置新密码。");
       }
     });
-    void supabase.auth.getSession().then(({ data }) => {
-      if (data.session && !recoveryRequested) router.replace(next);
+    void supabase.auth.getSession().then(async ({ data }) => {
+      let session = data.session;
+      const expiresSoon = session?.expires_at ? session.expires_at * 1000 <= Date.now() + 60_000 : false;
+      if (session && expiresSoon) {
+        const refreshed = await supabase.auth.refreshSession();
+        session = refreshed.data.session;
+      }
+      if (session && !recoveryRequested) router.replace(next);
     });
     return () => listener.subscription.unsubscribe();
   }, [router, supabase]);

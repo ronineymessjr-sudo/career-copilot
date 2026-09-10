@@ -68,14 +68,20 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     let active = true;
     setState("checking");
     setError("");
-    void supabase.auth.getSession().then(({ data, error: sessionError }) => {
+    void supabase.auth.getSession().then(async ({ data, error: sessionError }) => {
       if (!active) return;
       if (sessionError) {
         setError(sessionError.message);
         setState("failed");
         return;
       }
-      void validateSession(data.session, () => active);
+      let session = data.session;
+      const expiresSoon = session?.expires_at ? session.expires_at * 1000 <= Date.now() + 60_000 : false;
+      if (session && expiresSoon) {
+        const refreshed = await supabase.auth.refreshSession();
+        session = refreshed.data.session;
+      }
+      void validateSession(session, () => active);
     });
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
