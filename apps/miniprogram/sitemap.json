@@ -1,8 +1,9 @@
 {
-  "desc": "Career Copilot 小程序页面索引",
+  "desc": "Career Copilot 内部小程序页面索引",
   "rules": [
-    { "action": "allow", "page": "pages/index/index" },
-    { "action": "allow", "page": "pages/demo/demo" },
-    { "action": "allow", "page": "pages/login/login" }
+    { "action": "deny", "page": "pages/index/index" },
+    { "action": "deny", "page": "pages/demo/demo" },
+    { "action": "deny", "page": "pages/login/login" },
+    { "action": "deny", "page": "pages/privacy/privacy" }
   ]
 }

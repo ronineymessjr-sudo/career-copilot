@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "微信登录凭证校验失败" }, { status: 401, headers: { "Cache-Control": "no-store" } });
   }
 
-  // Review mode deliberately returns capability status only. No openid/session_key
+  // Internal mode deliberately returns capability status only. No openid/session_key
   // is exposed to the mini-program and private Supabase data stays behind Web Auth.
-  return NextResponse.json({ ok: true, mode: "review", capabilities: { publicDemo: true, privateWorkspace: false } }, { headers: { "Cache-Control": "no-store" } });
+  return NextResponse.json({ ok: true, mode: "internal", capabilities: { publicDemo: false, privateWorkspace: false } }, { headers: { "Cache-Control": "no-store" } });
 }
