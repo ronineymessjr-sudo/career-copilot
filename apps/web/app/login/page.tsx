@@ -121,6 +121,12 @@ export default function LoginPage() {
         : "进入你的个人招聘聚合与投递工作台。";
 
   return <main className="cc-app cc-auth">
+    <div className="cc-auth-hero" aria-hidden="true">
+      <div className="cc-auth-hero-grid" />
+      <div className="cc-auth-hero-light cc-auth-hero-light-a" />
+      <div className="cc-auth-hero-light cc-auth-hero-light-b" />
+      <div className="cc-auth-hero-scan" />
+    </div>
     <section className="cc-auth-intro">
       <WorkspaceBrand href="/playground"/>
       <h1>下一份机会，<br/>从准备好这一步开始。</h1>
