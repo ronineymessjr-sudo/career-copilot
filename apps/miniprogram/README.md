@@ -10,6 +10,8 @@
 4. 在微信公众平台把 `career-copilot-v2.photomagic.workers.dev` 加入 request 合法域名。
 5. 使用真机或开发者工具预览 `pages/index/index`，公开 Demo 不依赖登录即可体验。
 
+`app.json` 已打开微信隐私检查；登录前同时经过页面勾选和 `wx.requirePrivacyAuthorize`（旧基础库会自动降级为页面勾选）。
+
 ## 登录链路
 
 小程序调用 `wx.login()` 获取短期 code，然后 POST 到 `/api/wechat/session`。服务端用 `WECHAT_MINIPROGRAM_APP_ID` 和 `WECHAT_MINIPROGRAM_SECRET` 调用微信 `code2Session`，只返回审核版会话状态，不把 openid 或 session_key 返回客户端。
