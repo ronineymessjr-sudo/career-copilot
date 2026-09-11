@@ -51,10 +51,10 @@ Career Copilot 是一个面向求职者的 AI 工作台，把岗位搜索、JD �
 
 | 入口 | 适合场景 | 位置 |
 | --- | --- | --- |
-| Web 公开 Demo | 第一次体验，不登录 | [`/playground`](https://career-copilot-v2.photomagic.workers.dev/playground) |
-| Web 个人工作台 | 保存画像、简历、岗位和投递进度 | [`/login`](https://career-copilot-v2.photomagic.workers.dev/login) |
+| Web 公开 Demo | 第一次体验，不登录 | [career-copilot-v2.photomagic.workers.dev/playground](https://career-copilot-v2.photomagic.workers.dev/playground) |
+| Web 个人工作台 | 保存画像、简历、岗位和投递进度 | [career-copilot-v2.photomagic.workers.dev/login](https://career-copilot-v2.photomagic.workers.dev/login) |
 | CLI | 本地搜索、排序、生成材料 | [`cli/index.mjs`](cli/index.mjs) |
-| MCP | 接入支持 MCP 的 Agent | [`/api/mcp`](https://career-copilot-v2.photomagic.workers.dev/api/mcp) |
+| MCP | 接入支持 MCP 的 Agent | [career-copilot-v2.photomagic.workers.dev/api/mcp](https://career-copilot-v2.photomagic.workers.dev/api/mcp) |
 | GitHub Actions | 构建、校验、部署和公开 Smoke | [`.github/workflows`](.github/workflows) |
 
 兼容的 AI 入口包括 WorkBuddy、Claude Code、OpenAI Codex、OpenCode 和其他 MCP 客户端。入口不同，但使用的是同一套岗位分析和材料工作流。
