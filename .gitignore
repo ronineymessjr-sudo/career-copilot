@@ -74,3 +74,12 @@ RELEASE_EVIDENCE_*.json
 AGENT_EVALUATION_RESULT_*.json
 career-copilot.zip
 cf-worker-deploy.zip
+
+# Local test logs and historical release snapshots stay out of the source tree.
+SMOKE_RESULT.json
+PRODUCTION_E2E_*.json
+AGENT_EVALUATION_MATRIX_RESULT.json
+*.log
+*.out
+*.tmp
+docs/history/legacy-releases/
