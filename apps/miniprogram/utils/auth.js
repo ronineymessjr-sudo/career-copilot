@@ -1,7 +1,12 @@
 const { request } = require("./api");
 
+function requirePrivacy() {
+  if (typeof wx.requirePrivacyAuthorize !== "function") return Promise.resolve();
+  return new Promise((resolve, reject) => wx.requirePrivacyAuthorize({ success: resolve, fail: reject }));
+}
+
 function login() {
-  return new Promise((resolve, reject) => {
+  return requirePrivacy().then(() => new Promise((resolve, reject) => {
     wx.login({
       success: ({ code }) => {
         if (!code) return reject(new Error("微信未返回登录凭证"));
@@ -16,7 +21,7 @@ function login() {
       },
       fail: reject,
     });
-  });
+  }));
 }
 
 function clearSession() {
