@@ -69,7 +69,7 @@
 | MCP | 接入支持 MCP 的 Agent | [`/api/mcp`](https://career-copilot-v2.photomagic.workers.dev/api/mcp) |
 | GitHub Actions | 构建、校验、部署和公开 Smoke | [`.github/workflows`](.github/workflows) |
 
-兼容的 AI 入口包括 WorkBuddy、Claude Code、OpenAI Codex、OpenCode 和其他 MCP 客户端。入口不同，底层规则和安全边界保持一致。
+兼容的 AI 入口包括 WorkBuddy、Claude Code、OpenAI Codex、OpenCode 和其他 MCP 客户端。入口不同，但使用的是同一套岗位分析和材料工作流。
 
 ## 本地 CLI：最快开始
 
@@ -128,13 +128,7 @@ Next.js / React Web
         └── CLI / MCP / WorkBuddy / 其他 Agent 入口
 ```
 
-关键设计：
-
-- `career_copilot` 独立 schema，避免和其他应用的 `public` 表冲突；
-- 画像、证据、简历和投递记录按用户隔离，并由 RLS 保护；
-- 只有已核验证据才能进入个性化材料；
-- 外部平台登录、验证码、邮件发送和最终提交不由系统代替用户完成；
-- 公开 Demo 与私有工作台分离，演示数据不会混入个人数据。
+所有入口共享同一套岗位发现、证据匹配、材料准备和复盘能力。
 
 ## 测试与校验
 
@@ -148,28 +142,7 @@ python scripts/verify_deployment_adaptations.py
 python scripts/verify_complete_package.py
 ```
 
-生产部署由 GitHub Actions 执行构建、Cloudflare 配置校验、公开 Smoke 和工程证据收集。线上运行状态可查看 [`/api/runtime`](https://career-copilot-v2.photomagic.workers.dev/api/runtime)。
-
-## 仓库结构
-
-```text
-apps/web/              Next.js Web 应用、控制台和公开 Demo
-apps/api/              FastAPI 证据服务与 API 测试
-workers/scheduler/     Cloudflare 定时 Worker
-cli/                   本地 CLI 入口
-supabase/migrations/   数据库迁移（按编号顺序执行）
-scripts/               构建、部署、Smoke 和校验脚本
-assets/                README、架构图和演示素材
-docs/                  架构、里程碑、评测与研究记录
-```
-
-## 安全与数据边界
-
-- 不要提交 `.env`、Supabase Secret、OAuth Secret、第三方 token、招聘平台密码或验证码；
-- 不把“打开招聘页面”描述成“已经投递”；
-- 不使用未授权抓取、验证码绕过或批量自动提交；
-- 删除或修改个人材料前，先确认目标版本和影响范围；
-- 发现安全问题，请不要公开贴出凭据，改走私下报告。
+生产部署由 GitHub Actions 自动执行构建、Cloudflare 校验和公开 Smoke 检查。
 
 ## 反馈与贡献
 
@@ -177,7 +150,7 @@ docs/                  架构、里程碑、评测与研究记录
 - [提出功能建议](https://github.com/ronineymessjr-sudo/career-copilot/issues/new?template=feature_request.yml)
 - [提交综合反馈](https://github.com/ronineymessjr-sudo/career-copilot/issues/new?template=feedback.yml)
 
-欢迎围绕可复现的岗位解析、证据匹配、简历质量和安全边界提交改进建议。
+欢迎围绕可复现的岗位解析、证据匹配、简历质量和使用体验提交改进建议。
 
 ## 路线图
 
