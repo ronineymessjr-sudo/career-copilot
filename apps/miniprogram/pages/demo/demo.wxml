@@ -1,0 +1,11 @@
+<view class="page demo-page">
+  <view class="brand"><view class="brand-mark">C</view><text>公开 Demo</text></view>
+  <view class="demo-header"><text class="eyebrow">不登录也能体验</text><text class="title">先看清岗位，再决定是否投递。</text><text class="intro">这是只读演示数据，不读取你的私人资料，也不会自动发送或提交任何申请。</text></view>
+  <view class="demo-card" wx:if="{{runtime}}">
+    <view class="card-row"><text>运行版本</text><text class="value">{{runtime.version || "1.0.1"}}</text></view>
+    <view class="card-row"><text>部署环境</text><text class="value">Cloudflare Workers</text></view>
+    <view class="card-row"><text>控制方式</text><text class="value">人工确认优先</text></view>
+  </view>
+  <view class="flow-card"><text class="flow-title">体验流程</text><view class="flow-step"><text>01</text><view><text>粘贴一条岗位描述</text><text class="muted">提取职责、地点、薪资与风险信号</text></view></view><view class="flow-step"><text>02</text><view><text>选择你的项目证据</text><text class="muted">只展示与岗位相关的可验证经验</text></view></view><view class="flow-step"><text>03</text><view><text>生成准备清单</text><text class="muted">给出简历、面试和投递前检查项</text></view></view></view>
+  <button class="button-primary" bindtap="openWeb">打开完整体验</button>
+</view>

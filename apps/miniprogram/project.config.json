@@ -1,0 +1,11 @@
+{
+  "description": "Career Copilot 微信小程序",
+  "packOptions": { "ignore": [] },
+  "setting": { "es6": true, "minified": true, "urlCheck": true, "postcss": true },
+  "compileType": "miniprogram",
+  "appid": "touristappid",
+  "projectname": "career-copilot-miniprogram",
+  "miniprogramRoot": "./",
+  "libVersion": "3.8.8",
+  "condition": {}
+}

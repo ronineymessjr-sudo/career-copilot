@@ -1,0 +1,13 @@
+.demo-header { padding: 90rpx 0 48rpx; }
+.eyebrow { display: block; color: #1d6a55; font-size: 25rpx; font-weight: 700; }
+.title { display: block; margin-top: 20rpx; font-size: 50rpx; line-height: 1.22; font-weight: 700; letter-spacing: -0.05em; }
+.intro { display: block; margin-top: 26rpx; color: #66736a; font-size: 28rpx; line-height: 1.7; }
+.demo-card, .flow-card { display: grid; gap: 22rpx; padding: 28rpx; border: 1px solid #d9e3dc; border-radius: 18rpx; background: #fff; }
+.card-row { display: flex; justify-content: space-between; color: #66736a; font-size: 26rpx; }
+.value { color: #202622; font-weight: 650; }
+.flow-card { margin-top: 24rpx; }
+.flow-title { font-size: 30rpx; font-weight: 700; }
+.flow-step { display: flex; gap: 22rpx; color: #1d6a55; font-size: 26rpx; }
+.flow-step view { display: grid; gap: 5rpx; color: #202622; }
+.flow-step .muted { font-size: 24rpx; }
+.button-primary { margin-top: 28rpx; }

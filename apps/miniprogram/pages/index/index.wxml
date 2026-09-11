@@ -1,0 +1,21 @@
+<view class="page index-page">
+  <view class="brand"><view class="brand-mark">C</view><text>Career Copilot</text></view>
+  <view class="hero">
+    <text class="eyebrow">AI 求职工作台</text>
+    <text class="title">把项目证据，变成下一次机会。</text>
+    <text class="intro">岗位分析、项目匹配和简历准备集中在一个可复核的流程里。公开演示无需登录，登录只用于保存个人进度。</text>
+  </view>
+  <view class="actions">
+    <button class="button-primary" bindtap="openLogin">微信登录</button>
+    <button class="button-secondary" bindtap="openDemo">直接体验公开 Demo</button>
+  </view>
+  <view class="status-card" wx:if="{{session}}">
+    <text class="status-title">已完成微信身份校验</text>
+    <text class="muted">当前审核版本只开放公开演示，个人工作台能力将在管理员配置后启用。</text>
+  </view>
+  <view class="feature-list">
+    <view class="feature"><text class="feature-index">01</text><view><text class="feature-title">岗位理解</text><text class="muted">提取职责、条件和风险信号</text></view></view>
+    <view class="feature"><text class="feature-index">02</text><view><text class="feature-title">证据匹配</text><text class="muted">用真实项目支持简历表述</text></view></view>
+    <view class="feature"><text class="feature-index">03</text><view><text class="feature-title">人工确认</text><text class="muted">不自动投递，不替用户做决定</text></view></view>
+  </view>
+</view>
