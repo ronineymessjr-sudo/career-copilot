@@ -69,8 +69,17 @@ supabase/.temp/
 
 # Generated deployment and evaluation outputs; CI keeps these as artifacts.
 DEPLOYED_URLS.json
+SMOKE_RESULT.json
 SMOKE_RESULT_*.json
+PRODUCTION_E2E_*.json
 RELEASE_EVIDENCE_*.json
 AGENT_EVALUATION_RESULT_*.json
+AGENT_EVALUATION_MATRIX_RESULT.json
 career-copilot.zip
 cf-worker-deploy.zip
+
+# Local test logs and historical release snapshots stay out of the source tree.
+*.log
+*.out
+*.tmp
+docs/history/legacy-releases/
