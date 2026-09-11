@@ -1,0 +1,8 @@
+.login-copy { padding: 112rpx 0 64rpx; }
+.eyebrow { display: block; color: #1d6a55; font-size: 25rpx; font-weight: 700; }
+.title { display: block; margin-top: 20rpx; font-size: 52rpx; line-height: 1.22; font-weight: 700; letter-spacing: -0.05em; }
+.intro { display: block; margin-top: 28rpx; color: #66736a; font-size: 28rpx; line-height: 1.7; }
+.back { margin-top: 20rpx; }
+.error { display: block; margin-top: 28rpx; color: #b3473f; font-size: 26rpx; line-height: 1.5; }
+.agreement { display: flex; flex-wrap: wrap; align-items: center; gap: 10rpx; margin-top: 50rpx; color: #7b857d; font-size: 23rpx; line-height: 1.6; }
+.agreement-link { color: #1d6a55; }

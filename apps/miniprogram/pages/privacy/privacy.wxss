@@ -1,0 +1,3 @@
+.content { display: grid; gap: 28rpx; padding: 100rpx 0 40rpx; }
+.title { font-size: 50rpx; line-height: 1.2; font-weight: 700; letter-spacing: -0.05em; }
+.paragraph { color: #66736a; font-size: 28rpx; line-height: 1.8; }

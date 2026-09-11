@@ -1,0 +1,13 @@
+.hero { padding: 112rpx 0 64rpx; }
+.eyebrow { display: block; color: #1d6a55; font-size: 25rpx; font-weight: 700; }
+.title { display: block; max-width: 620rpx; margin-top: 20rpx; font-size: 60rpx; line-height: 1.16; font-weight: 700; letter-spacing: -0.06em; }
+.intro { display: block; margin-top: 30rpx; color: #66736a; font-size: 29rpx; line-height: 1.7; }
+.actions { display: grid; gap: 20rpx; }
+.status-card { display: grid; gap: 12rpx; margin-top: 34rpx; padding: 26rpx; border: 1px solid #c9ddd0; border-radius: 18rpx; background: #edf5ef; }
+.status-title { color: #1d6a55; font-size: 28rpx; font-weight: 700; }
+.feature-list { display: grid; gap: 26rpx; margin-top: 64rpx; }
+.feature { display: flex; gap: 22rpx; align-items: flex-start; }
+.feature-index { color: #1d6a55; font-size: 23rpx; font-weight: 700; }
+.feature-title, .feature .muted { display: block; }
+.feature-title { margin-bottom: 5rpx; font-size: 29rpx; font-weight: 650; }
+.feature .muted { font-size: 25rpx; }

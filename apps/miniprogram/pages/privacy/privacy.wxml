@@ -1,0 +1,10 @@
+<view class="page privacy-page">
+  <view class="brand"><view class="brand-mark">C</view><text>隐私保护指引</text></view>
+  <view class="content">
+    <text class="title">我们如何使用信息</text>
+    <text class="paragraph">Career Copilot 仅在你主动点击微信登录并同意本指引后，接收微信登录凭证用于建立当前小程序会话。</text>
+    <text class="paragraph">审核版本不读取微信好友、通讯录、相册、麦克风或精准位置；公开 Demo 使用脱敏的固定演示数据。</text>
+    <text class="paragraph">如需保存简历、岗位或投递进度，我们会在正式开启个人工作台前再次说明用途，并提供删除、注销和解绑入口。</text>
+    <text class="paragraph">隐私问题可通过仓库主页的反馈入口联系项目维护者。</text>
+  </view>
+</view>
