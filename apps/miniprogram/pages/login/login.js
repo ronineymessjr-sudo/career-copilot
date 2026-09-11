@@ -8,9 +8,8 @@ Page({
     if (!this.data.agreed) return this.setData({ error: "请先阅读并同意隐私保护指引。" });
     this.setData({ busy: true, error: "" });
     login()
-      .then(() => wx.showModal({ title: "登录完成", content: "当前为审核演示版本，可先体验公开 Demo。", showCancel: false, success: () => wx.navigateBack() }))
+      .then(() => wx.showModal({ title: "登录完成", content: "已进入内部使用模式，可以打开工作台。", showCancel: false, success: () => wx.navigateBack() }))
       .catch((error) => this.setData({ error: error.message || "登录暂不可用，请稍后再试。" }))
       .finally(() => this.setData({ busy: false }));
   },
-  back() { wx.navigateTo({ url: "/pages/demo/demo" }); },
 });

@@ -12,9 +12,10 @@ test("微信小程序登录接口在未配置密钥时失败关闭", () => {
   assert.doesNotMatch(route, /session_key\s*:/);
 });
 
-test("审核模式只返回能力状态，不把微信身份返回客户端", () => {
-  assert.match(route, /mode: "review"/);
+test("内部模式只返回能力状态，不把微信身份返回客户端", () => {
+  assert.match(route, /mode: "internal"/);
   assert.match(route, /privateWorkspace: false/);
+  assert.match(route, /publicDemo: false/);
   assert.doesNotMatch(route, /openid:\s*payload\.openid/);
   assert.doesNotMatch(route, /unionid:\s*payload\.unionid/);
 });

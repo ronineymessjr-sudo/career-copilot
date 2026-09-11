@@ -6,7 +6,6 @@
     <text class="intro">登录仅用于识别当前小程序会话。审核版本不会读取微信好友、通讯录或精准位置。</text>
   </view>
   <button class="button-primary" bindtap="handleLogin" loading="{{busy}}" disabled="{{!agreed || busy}}">{{busy ? "正在校验…" : "微信登录"}}</button>
-  <button class="button-secondary back" bindtap="back">先体验公开 Demo</button>
   <text class="error" wx:if="{{error}}">{{error}}</text>
-  <view class="agreement"><checkbox-group bindchange="toggleConsent"><label><checkbox value="agreed" checked="{{agreed}}"/>我已阅读并同意</label></checkbox-group><navigator url="/pages/privacy/privacy" class="agreement-link">《用户协议》和《隐私保护指引》</navigator></view>
+  <view class="agreement"><checkbox-group bindchange="toggleConsent"><label><checkbox value="agreed" checked="{{agreed}}"/>我已阅读并同意</label></checkbox-group><navigator url="/pages/privacy/privacy" class="agreement-link">《用户协议》和《隐私保护指引》</navigator><text class="muted">仅限授权成员使用</text></view>
 </view>

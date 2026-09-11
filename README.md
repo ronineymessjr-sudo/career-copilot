@@ -53,7 +53,7 @@ Career Copilot 是一个面向求职者的 AI 工作台，把岗位搜索、JD �
 | --- | --- | --- |
 | Web 公开 Demo | 第一次体验，不登录 | [career-copilot-v2.photomagic.workers.dev/playground](https://career-copilot-v2.photomagic.workers.dev/playground) |
 | Web 个人工作台 | 保存画像、简历、岗位和投递进度 | [career-copilot-v2.photomagic.workers.dev/login](https://career-copilot-v2.photomagic.workers.dev/login) |
-| 微信小程序审核版 | 微信登录、公开 Demo 和审核路径 | [`apps/miniprogram`](apps/miniprogram) · [`docs/WECHAT_MINIPROGRAM_REVIEW.md`](docs/WECHAT_MINIPROGRAM_REVIEW.md) |
+| 微信小程序内部版 | 微信登录、内部工作台和隐私边界 | [`apps/miniprogram`](apps/miniprogram) · [`docs/WECHAT_MINIPROGRAM_REVIEW.md`](docs/WECHAT_MINIPROGRAM_REVIEW.md) |
 | CLI | 本地搜索、排序、生成材料 | [`cli/index.mjs`](cli/index.mjs) |
 | MCP | 接入支持 MCP 的 Agent | [career-copilot-v2.photomagic.workers.dev/api/mcp](https://career-copilot-v2.photomagic.workers.dev/api/mcp) |
 | GitHub Actions | 构建、校验、部署和公开 Smoke | [`.github/workflows`](.github/workflows) |
