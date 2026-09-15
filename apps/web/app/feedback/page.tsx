@@ -80,6 +80,32 @@ export default function FeedbackPage() {
     });
   }, []);
 
+  const loadHistory = useCallback(async () => {
+    if (!isLoggedIn) {
+      setHistoryError("需要登录后查看反馈历史");
+      return;
+    }
+    setHistoryLoading(true);
+    setHistoryError("");
+    try {
+      const params = new URLSearchParams();
+      params.set("limit", "50");
+      if (historyFilter) params.set("type", historyFilter);
+      const data = await controlFetch<{ ok: boolean; data?: FeedbackEntry[]; error?: string }>(
+        `/api/control/feedback?${params.toString()}`
+      );
+      if (data.ok && Array.isArray(data.data)) {
+        setFeedbackList(data.data);
+      } else {
+        setHistoryError(data.error || "获取反馈历史失败");
+      }
+    } catch (err) {
+      setHistoryError(err instanceof Error ? err.message : "加载失败");
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, [isLoggedIn, historyFilter]);
+
   const activeType = FEEDBACK_TYPES.find((t) => t.value === type) || FEEDBACK_TYPES[4];
 
   const handleSubmit = useCallback(
@@ -108,7 +134,7 @@ export default function FeedbackPage() {
           setContent("");
           setType("general");
           // Switch to history after successful submit
-          loadHistory();
+          void loadHistory();
           setTab("history");
         }, 1500);
       } catch (err) {
@@ -116,34 +142,8 @@ export default function FeedbackPage() {
         setErrorMsg(err instanceof Error ? err.message : "发送失败，请稍后再试");
       }
     },
-    [content, email, type]
+    [content, email, loadHistory, type]
   );
-
-  const loadHistory = useCallback(async () => {
-    if (!isLoggedIn) {
-      setHistoryError("需要登录后查看反馈历史");
-      return;
-    }
-    setHistoryLoading(true);
-    setHistoryError("");
-    try {
-      const params = new URLSearchParams();
-      params.set("limit", "50");
-      if (historyFilter) params.set("type", historyFilter);
-      const data = await controlFetch<{ ok: boolean; data?: FeedbackEntry[]; error?: string }>(
-        `/api/control/feedback?${params.toString()}`
-      );
-      if (data.ok && Array.isArray(data.data)) {
-        setFeedbackList(data.data);
-      } else {
-        setHistoryError(data.error || "获取反馈历史失败");
-      }
-    } catch (err) {
-      setHistoryError(err instanceof Error ? err.message : "加载失败");
-    } finally {
-      setHistoryLoading(false);
-    }
-  }, [isLoggedIn, historyFilter]);
 
   useEffect(() => {
     if (tab === "history") loadHistory();
@@ -356,7 +356,7 @@ export default function FeedbackPage() {
                 <div className="feedback-page__empty">
                   <Meh size={48} />
                   <h3>还没有反馈记录</h3>
-                  <p>切换到"发送反馈"标签，给我们留下第一条反馈吧！</p>
+                  <p>切换到“发送反馈”标签，给我们留下第一条反馈吧！</p>
                 </div>
               ) : (
                 <div className="feedback-page__list">

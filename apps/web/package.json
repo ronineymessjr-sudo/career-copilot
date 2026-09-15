@@ -6,17 +6,13 @@
     "dev": "next dev -p 3737",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "check": "tsc --noEmit",
-    "cf:build": "opennextjs-cloudflare build",
-    "test:portfolio": "node --test apps/web/tests/portfolio-demo.test.mjs",
-    "test:m08.1": "npm run test:m08 && npm run test:portfolio",
-    "smoke:m08.1": "node scripts/smoke_m08_1.mjs SMOKE_RESULT_M08_1.json",
-    "evaluation:m08.1": "node scripts/generate_agent_evaluation_report.mjs"
+    "cf:build": "opennextjs-cloudflare build"
   },
   "dependencies": {
     "@langchain/core": "1.2.3",

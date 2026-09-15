@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./workspace-design.css";
+import { LocaleProvider } from "@/components/locale-provider";
 
 export const metadata: Metadata = {
   title: "Career Copilot | 实习投递工作台",
@@ -17,5 +18,5 @@ export default function RootLayout({children}:{children:React.ReactNode}) {
     supabaseUrl: process.env.SUPABASE_URL ?? "",
     supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY ?? "",
   };
-  return <html lang="zh-CN"><body><script dangerouslySetInnerHTML={{ __html: `globalThis.__CAREER_COPILOT_PUBLIC_CONFIG__=${JSON.stringify(publicConfig)};` }}/>{children}</body></html>;
+  return <html lang="zh-CN"><body><script dangerouslySetInnerHTML={{ __html: `globalThis.__CAREER_COPILOT_PUBLIC_CONFIG__=${JSON.stringify(publicConfig)};` }}/><LocaleProvider>{children}</LocaleProvider></body></html>;
 }

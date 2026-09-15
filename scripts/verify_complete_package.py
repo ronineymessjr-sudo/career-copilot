@@ -47,8 +47,10 @@ for rel in required:
     assert (ROOT / rel).exists(), f"missing required file: {rel}"
 
 shell = (ROOT / "apps/web/components/app-shell.tsx").read_text(encoding="utf-8")
-for label in ["今日简报", "岗位发现", "岗位来源", "投递管理", "数据看板", "我的画像", "简历版本", "项目证据"]:
-    assert label in shell, f"missing navigation: {label}"
+# Navigation labels are translated at runtime; assert the stable message keys
+# and route destinations instead of coupling the package check to one locale.
+for token in ["brief", "jobs", "sources", "applications", "analytics", "profile", "resumes", '"vault"', 'href="/dashboard"']:
+    assert token in shell, f"missing navigation token: {token}"
 
 profile = (ROOT / "apps/web/lib/recommendation-profile.mjs").read_text(encoding="utf-8")
 assert "target_roles: []" in profile
@@ -119,7 +121,7 @@ for token in ["buildApplicationContentBundle", "buildTailoredResume", "detectSub
     assert token in application_kit
 
 applications_ui = (ROOT / "apps/web/components/applications-workspace.tsx").read_text(encoding="utf-8")
-for token in ["打开完整材料包", "定制简历 / 保存 PDF", "真实申请页已经打开", "一键投递在这里表示"]:
+for token in ["打开完整材料包", "打开排版简历 / 保存 PDF", "真实申请页已经打开", "一键投递在这里表示"]:
     assert token in applications_ui
 
 login = (ROOT / "apps/web/app/login/page.tsx").read_text(encoding="utf-8")
@@ -135,7 +137,7 @@ assert "profiles?select=user_id" in cron
 assert "runDailyRecommendationForUser" in cron
 assert "automatic_external_submission: false" in cron
 
-transient_names = ["node_modules", ".next", ".open-next", ".wrangler", ".pytest_cache", "__pycache__"]
+transient_names = ["node_modules", ".next", ".open-next", ".wrangler", ".pytest_cache", "__pycache__", "browser-data"]
 transient_found = sorted({p.name for p in ROOT.rglob("*") if p.name in transient_names})
 if os.environ.get("VERIFY_SOURCE_ARCHIVE") == "1":
     assert not transient_found, f"transient directories included in source archive: {', '.join(transient_found)}"
@@ -146,11 +148,11 @@ secret_patterns = [
     re.compile(r"github_pat_[A-Za-z0-9_]{20,}"),
 ]
 for path in ROOT.rglob("*"):
+    if any(part in transient_names for part in path.parts):
+        continue
     if not path.is_file() or path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip"}:
         continue
     if path.name in {"PACKAGE_MANIFEST.json"}:
-        continue
-    if any(part in transient_names for part in path.parts):
         continue
     text = path.read_text(encoding="utf-8", errors="ignore")
     for pattern in secret_patterns:
