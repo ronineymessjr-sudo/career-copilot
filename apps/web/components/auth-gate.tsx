@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
@@ -15,23 +14,18 @@ function loginUrl(reason = "session_expired") {
 }
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const [state, setState] = useState<GateState>("checking");
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
-  const isHome = () => typeof window !== "undefined" && window.location.pathname === "/";
 
   const validateSession = useCallback(async (session: any, active: () => boolean) => {
     const supabase = getSupabaseBrowser();
     if (!supabase || !active()) {
-      if (active() && isHome()) setState("public");
+      if (active()) setState("public");
       return;
     }
     if (!session?.access_token) {
-      if (active()) {
-        if (isHome()) setState("public");
-        else router.replace(loginUrl("login_required"));
-      }
+      if (active()) setState("public");
       return;
     }
     try {
@@ -41,7 +35,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       });
       if (response.status === 401 || response.status === 403) {
         await supabase.auth.signOut().catch(() => undefined);
-        if (active()) router.replace(loginUrl("session_expired"));
+        if (active()) setState("public");
         return;
       }
       if (!response.ok) {
@@ -57,12 +51,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       setError(validationError instanceof Error ? validationError.message : "控制台验证失败");
       setState("failed");
     }
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     const supabase = getSupabaseBrowser();
     if (!supabase) {
-      setState(isHome() ? "public" : "unconfigured");
+      setState("public");
       return;
     }
     let active = true;
@@ -86,8 +80,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
       if (event === "SIGNED_OUT" || !session) {
-        if (isHome()) setState("public");
-        else router.replace(loginUrl("login_required"));
+        setState("public");
         return;
       }
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
@@ -98,19 +91,19 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       active = false;
       listener.subscription.unsubscribe();
     };
-  }, [retry, router, validateSession]);
+  }, [retry, validateSession]);
 
   if (state === "ready") return <>{children}</>;
   if (state === "public") {
     return <section className="auth-state-card auth-public-card">
       <ShieldCheck size={24}/>
       <div>
-        <strong className="auth-state-label">公开入口</strong>
-        <h2>先体验公开 Demo</h2>
-        <p>无需登录即可粘贴岗位描述，查看确定性评分、项目证据和简历适配。公开 Demo 不读取私人资料，也不会发送或投递。</p>
+        <strong className="auth-state-label">公开工作台</strong>
+        <h2>无需账号即可开始</h2>
+        <p>直接粘贴岗位描述，查看确定性评分、项目证据和简历适配。公开体验不读取私人资料，也不会发送或投递。</p>
         <div className="card-actions">
-          <Link className="primary-button" href="/playground">体验公开 Demo</Link>
-          <Link className="ghost-button" href={loginUrl("login_required")}>登录控制台</Link>
+          <Link className="primary-button" href="/playground">打开工作台</Link>
+          <Link className="ghost-button" href={loginUrl("login_required")}>进入私有控制台</Link>
           <Link className="link-button" href="/privacy">隐私与数据边界</Link>
         </div>
       </div>
