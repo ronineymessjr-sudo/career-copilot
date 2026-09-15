@@ -1,2 +1,4 @@
 import { AgentDashboard } from "@/components/agent-dashboard";
-export default function Page(){ return <AgentDashboard/>; }
+import { AuthGate } from "@/components/auth-gate";
+
+export default function Page(){ return <AuthGate><AgentDashboard/></AuthGate>; }
