@@ -5,15 +5,17 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, KeyRound, UserPlus } from "lucide-react";
 import { WorkspaceBrand } from "@/components/workspace-ui";
+import { LanguageToggle, useLocale } from "@/components/locale-provider";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 function safeNext(value: string | null) {
-  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/";
+  if (!value || !value.startsWith("/") || value.startsWith("//")) return "/dashboard";
   return value;
 }
 
 type Mode = "login" | "register" | "reset" | "update_password";
 
 export default function LoginPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -21,7 +23,7 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [nextPath, setNextPath] = useState("/");
+  const [nextPath, setNextPath] = useState("/dashboard");
   const [busy, setBusy] = useState(false);
   const supabase = getSupabaseBrowser();
 
@@ -32,14 +34,14 @@ export default function LoginPage() {
     setNextPath(next);
     if (recoveryRequested) setMode("update_password");
     const reason = params.get("reason");
-    if (reason === "session_expired") setNotice("登录已过期，请重新登录后继续。");
-    if (reason === "login_required") setNotice("请先登录 Career Copilot。");
+    if (reason === "session_expired") setNotice(t("noticeSessionExpired"));
+    if (reason === "login_required") setNotice(t("noticeLoginRequired"));
     if (!supabase) return;
 
     const { data: listener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setMode("update_password");
-        setNotice("身份验证成功，请设置新密码。");
+        setNotice(t("noticeRecovery"));
       }
     });
     void supabase.auth.getSession().then(async ({ data }) => {
@@ -52,7 +54,7 @@ export default function LoginPage() {
       if (session && !recoveryRequested) router.replace(next);
     });
     return () => listener.subscription.unsubscribe();
-  }, [router, supabase]);
+  }, [router, supabase, t]);
 
   function switchMode(nextMode: Mode) {
     setMode(nextMode);
@@ -66,30 +68,30 @@ export default function LoginPage() {
     event.preventDefault();
     setError("");
     setNotice("");
-    if (!supabase) { setError("Supabase 尚未配置，请先完成 Cloudflare 环境变量和数据库迁移。"); return; }
+    if (!supabase) { setError(t("supabaseMissing")); return; }
     const normalizedEmail = email.trim();
-    if (mode !== "update_password" && !normalizedEmail) { setError("请输入邮箱"); return; }
+    if (mode !== "update_password" && !normalizedEmail) { setError(t("emailRequired")); return; }
     setBusy(true);
     try {
       if (mode === "reset") {
         const redirectTo = `${window.location.origin}/login?mode=update-password`;
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, { redirectTo });
         if (resetError) throw resetError;
-        setNotice("密码重置邮件已发送，请打开邮箱继续。若没有收到，请检查垃圾邮件。");
+        setNotice(t("noticeResetSent"));
         setMode("login");
         return;
       }
-      if (password.length < 8) throw new Error("密码至少需要 8 位");
+      if (password.length < 8) throw new Error(t("passwordMin"));
       if (mode === "update_password") {
-        if (password !== confirmPassword) throw new Error("两次输入的新密码不一致");
+        if (password !== confirmPassword) throw new Error(t("passwordMismatch"));
         const { error: updateError } = await supabase.auth.updateUser({ password });
         if (updateError) throw updateError;
-        setNotice("密码已更新，正在进入工作台。");
+        setNotice(t("noticePasswordUpdated"));
         router.replace(nextPath);
         return;
       }
       if (mode === "register") {
-        if (password !== confirmPassword) throw new Error("两次输入的密码不一致");
+        if (password !== confirmPassword) throw new Error(t("passwordMismatch"));
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
@@ -97,7 +99,7 @@ export default function LoginPage() {
         });
         if (signUpError) throw signUpError;
         if (data.session) { router.replace(nextPath); return; }
-        setNotice("账号已创建。请打开验证邮件，完成验证后登录。");
+        setNotice(t("noticeRegistered"));
         setMode("login");
         setPassword("");
         setConfirmPassword("");
@@ -107,18 +109,18 @@ export default function LoginPage() {
       if (signInError) throw signInError;
       router.replace(nextPath);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "操作失败");
+      setError(submitError instanceof Error ? submitError.message : t("operationFailed"));
     } finally { setBusy(false); }
   }
 
-  const title = mode === "register" ? "创建账号" : mode === "reset" ? "找回密码" : mode === "update_password" ? "设置新密码" : "登录";
+  const title = mode === "register" ? t("registerTitle") : mode === "reset" ? t("resetTitle") : mode === "update_password" ? t("updatePasswordTitle") : t("loginTitle");
   const copy = mode === "register"
-    ? "每个账号拥有独立画像、简历、推荐和投递记录。"
+    ? t("registerCopy")
     : mode === "reset"
-      ? "输入注册邮箱，我们会发送密码重置邮件。"
+      ? t("resetCopy")
       : mode === "update_password"
-        ? "输入并确认新密码，保存后即可返回工作台。"
-        : "进入你的个人招聘聚合与投递工作台。";
+        ? t("updatePasswordCopy")
+        : t("loginCopy");
 
   return <main className="cc-app cc-auth">
     <div className="cc-auth-hero" aria-hidden="true">
@@ -128,32 +130,32 @@ export default function LoginPage() {
       <div className="cc-auth-hero-scan" />
     </div>
     <section className="cc-auth-intro">
-      <WorkspaceBrand href="/playground"/>
-      <h1>下一份机会，从准备好这一步开始。</h1>
-      <p>公开 Demo 无需登录；登录后再保存个人资料、简历和投递进度。</p>
-      <ol className="cc-auth-steps"><li><span>01</span>找到值得申请的岗位</li><li><span>02</span>用项目证据准备材料</li><li><span>03</span>记录投递与后续进展</li></ol>
+      <WorkspaceBrand href="/playground"/><LanguageToggle/>
+      <h1>{t("authHero")}</h1>
+      <p>{t("authIntro")}</p>
+      <ol className="cc-auth-steps"><li><span>01</span>{t("authStep1")}</li><li><span>02</span>{t("authStep2")}</li><li><span>03</span>{t("authStep3")}</li></ol>
     </section>
     <form className="cc-auth-form" onSubmit={submit}>
       <div><h2>{title}</h2><p>{copy}</p></div>
-      {mode !== "update_password" ? <label>邮箱<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required/></label> : null}
-      {mode !== "reset" ? <label>{mode === "update_password" ? "新密码" : "密码"}<input type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required/></label> : null}
-      {mode === "register" || mode === "update_password" ? <label>确认密码<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required/></label> : null}
+      {mode !== "update_password" ? <label>{t("email")}<input type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required/></label> : null}
+      {mode !== "reset" ? <label>{mode === "update_password" ? t("newPassword") : t("password")}<input type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} required/></label> : null}
+      {mode === "register" || mode === "update_password" ? <label>{t("confirmPassword")}<input type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required/></label> : null}
       {notice ? <div className="cc-notice" role="status">{notice}</div> : null}
       {error ? <div className="cc-error" role="alert">{error}</div> : null}
       <button className="cc-button cc-button-primary" type="submit" disabled={busy}>
         {mode === "register" ? <UserPlus size={17}/> : mode === "reset" || mode === "update_password" ? <KeyRound size={17}/> : null}
-        {busy ? "处理中…" : mode === "register" ? "创建账号" : mode === "reset" ? "发送重置邮件" : mode === "update_password" ? "保存新密码" : "进入工作台"}
+        {busy ? t("processing") : mode === "register" ? t("createAccount") : mode === "reset" ? t("sendReset") : mode === "update_password" ? t("savePassword") : t("enterWorkspaceButton")}
         {mode === "login" ? <ArrowRight size={17}/> : null}
       </button>
       {mode !== "update_password" ? <div className="cc-auth-switch">
-        <button type="button" aria-pressed={mode === "login"} onClick={() => switchMode("login")}>登录</button>
-        <button type="button" aria-pressed={mode === "register"} onClick={() => switchMode("register")}>注册</button>
-        <button type="button" aria-pressed={mode === "reset"} onClick={() => switchMode("reset")}>找回密码</button>
+        <button type="button" aria-pressed={mode === "login"} onClick={() => switchMode("login")}>{t("loginTitle")}</button>
+        <button type="button" aria-pressed={mode === "register"} onClick={() => switchMode("register")}>{t("registerTitle")}</button>
+        <button type="button" aria-pressed={mode === "reset"} onClick={() => switchMode("reset")}>{t("forgotPassword")}</button>
       </div> : null}
       {mode !== "update_password" ? <div className="cc-auth-demo">
-        <span>想先了解系统？</span>
-        <Link className="cc-link" href="/playground">体验公开 Demo <ArrowRight size={14}/></Link>
-        <p className="cc-note">无需登录，不读取私人资料，也不会自动投递。</p>
+        <span>{t("wantToLearn")}</span>
+        <Link className="cc-link" href="/playground">{t("tryPublic")} <ArrowRight size={14}/></Link>
+        <p className="cc-note">{t("publicNoLogin")}</p>
       </div> : null}
     </form>
   </main>;

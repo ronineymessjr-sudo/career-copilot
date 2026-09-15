@@ -8,6 +8,8 @@ export const PORTFOLIO_EVIDENCE = [
 
 export const DEFAULT_PLAYGROUND_JD = `AI Agent 应用研发实习生（上海/可远程）\n职责：使用 Python、FastAPI、LangGraph、RAG 和 Function Calling 构建企业知识助手；参与 Prompt 优化、Agent Evaluation、Docker 部署和前端联调。\n要求：在校本科生，接受2028届；每周至少3天，至少3个月；有 Next.js、PostgreSQL、MCP 或产品化项目经验优先。`;
 
+export const DEFAULT_PLAYGROUND_JD_EN = `AI Agent Engineering Intern (Shanghai / remote-friendly)\nResponsibilities: build enterprise knowledge assistants with Python, FastAPI, LangGraph, RAG, and function calling; contribute to prompt design, agent evaluation, Docker deployment, and frontend integration.\nRequirements: current undergraduate, 2028 graduates welcome; at least 3 days per week for 3 months; experience with Next.js, PostgreSQL, MCP, or a shipped product is a plus.`;
+
 // Public, deterministic scenarios make the demo useful for a real walkthrough:
 // each chip demonstrates one job-seeking question without reading private data.
 export const DEMO_SCENARIOS = Object.freeze([
@@ -121,6 +123,15 @@ export const DEMO_SCENARIOS = Object.freeze([
   },
 ]);
 
+export const DEMO_SCENARIOS_EN = Object.freeze([
+  { id: "agent-engineer", label: "AI Agent engineering", note: "Fit score + project evidence", jd: DEFAULT_PLAYGROUND_JD_EN },
+  { id: "ai-product", label: "AI product", note: "Product capability gaps", jd: `AI Product Intern (Nanjing / hybrid)\nResponsibilities: support AI product discovery, user interviews, prompt design, dashboards, and cross-functional delivery; write PRDs and iteration reviews.\nRequirements: current undergraduate, 2028 graduates welcome; 3+ days per week for 3 months; AI application, analytics, or product project experience preferred.` },
+  { id: "ai-research", label: "AI research / algorithms", note: "Transformers, experiments, evaluation", jd: `Machine Learning Research Intern (Nanjing / hybrid)\nResponsibilities: run Transformer and deep-learning experiments, reproduce papers, prepare datasets, and document reproducible offline evaluations.\nRequirements: current undergraduate, 2028 graduates welcome; 3+ days per week for 3 months; Python, machine learning, and experiment design experience.` },
+  { id: "data-analytics", label: "Data analytics", note: "Metrics, SQL, business insight", jd: `Business Data Analyst Intern (remote-friendly)\nResponsibilities: build metric dashboards with SQL, Python, and visualization tools; analyze A/B tests and write business reviews.\nRequirements: current undergraduate, 3+ days per week for 3 months; data cleaning, statistics, and stakeholder communication skills.` },
+  { id: "remote-backend", label: "Remote backend", note: "Cloud delivery and debugging", jd: `Python Backend Engineering Intern (remote)\nResponsibilities: develop APIs with Python, FastAPI, PostgreSQL, and Docker; contribute to tests, deployments, and production debugging.\nRequirements: students and 2028 graduates welcome; 3+ days per week for 3 months; cloud deployment or open-source experience preferred.` },
+  { id: "photo-video", label: "Photo / video", note: "Capture, edit, deliver", jd: `Photo and Video Production Intern (remote-friendly)\nResponsibilities: shoot products and people, edit short videos, color grade, retouch, and deliver portfolio assets on schedule.\nRequirements: current undergraduate, 3+ days per week for 3 months; camera, Premiere, Photoshop, or equivalent tools.` },
+]);
+
 export const DEMO_FILTER_POLICY = Object.freeze({
   salary_min: 150,
   salary_max: 300,
@@ -144,28 +155,29 @@ export const DEMO_BATCH_JOBS = Object.freeze([
 ]);
 
 function parseBoolean(text, positive, negative) {
-  if (negative.some((term) => text.includes(term))) return false;
-  if (positive.some((term) => text.includes(term))) return true;
+  const normalized = String(text).toLowerCase();
+  if (negative.some((term) => normalized.includes(String(term).toLowerCase()))) return false;
+  if (positive.some((term) => normalized.includes(String(term).toLowerCase()))) return true;
   return null;
 }
 
 function parseSalary(text) {
-  const match = text.match(/(\d+(?:\.\d+)?)\s*[-~至]\s*(\d+(?:\.\d+)?)\s*元?\s*\/\s*(天|月)/);
+  const match = text.match(/(?:¥|￥|CNY|\$)?\s*(\d+(?:\.\d+)?)\s*[-~至–]\s*(\d+(?:\.\d+)?)\s*(?:元|CNY|USD|\$)?\s*\/\s*(天|月|day|month)/i);
   if (!match) return { min: null, max: null, period: null };
-  return { min: Number(match[1]), max: Number(match[2]), period: match[3] === "天" ? "day" : "month" };
+  return { min: Number(match[1]), max: Number(match[2]), period: /天|day/i.test(match[3]) ? "day" : "month" };
 }
 
 function parseWorkSignals(text) {
   return {
-    two_day_weekend: /双休|周末双休|周六日休/.test(text),
-    single_day_off: /单休|大小周/.test(text),
-    overtime_risk: /经常加班|加班过多|高强度加班|频繁加班/.test(text) ? "high" : /偶尔加班|加班情况待确认/.test(text) ? "unknown" : "low",
-    recruiter_signal: /沟通量很高|邀请量很高|高邀请量|招聘者近期/.test(text) ? "review" : "unknown",
+    two_day_weekend: /双休|周末双休|周六日休|two[- ]day weekend|weekends off/i.test(text),
+    single_day_off: /单休|大小周|single day off|alternate weekends/i.test(text),
+    overtime_risk: /经常加班|加班过多|高强度加班|频繁加班|frequent overtime|heavy overtime/i.test(text) ? "high" : /偶尔加班|加班情况待确认|occasional overtime|overtime to confirm/i.test(text) ? "unknown" : "low",
+    recruiter_signal: /沟通量很高|邀请量很高|高邀请量|招聘者近期|high recruiter response|many recruiter invites/i.test(text) ? "review" : "unknown",
   };
 }
 
 function parseSourceFreshness(text, referenceDate = "2026-08-24") {
-  const match = text.match(/(?:发布于|更新于|发布时间[:：]?|更新时间[:：]?)\s*(20\d{2})[-年](\d{1,2})[-月](\d{1,2})日?/);
+  const match = text.match(/(?:发布于|更新于|发布时间[:：]?|更新时间[:：]?|posted on|updated on|published on)\s*(20\d{2})[-年\/]\s*(\d{1,2})[-月\/]\s*(\d{1,2})日?/i);
   if (!match) return { status: "unknown", days_old: null, source_date: null, detail: "来源未提供发布时间，无法断言新旧" };
   const sourceDate = `${match[1]}-${String(match[2]).padStart(2, "0")}-${String(match[3]).padStart(2, "0")}`;
   const daysOld = Math.max(0, Math.floor((Date.parse(`${referenceDate}T00:00:00Z`) - Date.parse(`${sourceDate}T00:00:00Z`)) / 86_400_000));
@@ -176,7 +188,7 @@ function parseWorkplace(text) {
   const remote = /可远程|全国远程|远程办公|线上办公|居家办公|远程|remote/i.test(text);
   const hybrid = /混合办公|部分远程|hybrid/i.test(text);
   const onsite = /坐班|到岗|线下办公|现场办公|现场到岗|onsite/i.test(text);
-  if (/(?:不接受|不支持|不提供|不能|无法|禁止)[^。；;，,\n]{0,6}远程/i.test(text)) return "onsite";
+  if (/(?:不接受|不支持|不提供|不能|无法|禁止)[^。；;，,\n]{0,6}远程/i.test(text) || /(?:does not|do not|not)\s+(?:accept|support|offer)\s+remote/i.test(text)) return "onsite";
   if (remote && (hybrid || onsite)) return "unknown";
   if (remote) return "remote";
   if (hybrid) return "hybrid";
@@ -193,12 +205,12 @@ export function demoJobFromText(jdText, overrides = {}) {
   const lower = text.toLowerCase();
   const salary = parseSalary(text);
   const workSignals = parseWorkSignals(text);
-  const city = ["上海", "南京", "南通", "苏州", "杭州"].find((item) => text.includes(item)) ?? "";
-  const district = ["崇川", "建邺", "建业", "浦口", "通州", "工业园区"].find((item) => text.includes(item)) ?? "";
-  const daysMatch = text.match(/每周(?:至少)?\s*(\d)\s*天/);
-  const monthsMatch = text.match(/(?:至少|持续)\s*(\d+)\s*个?月/);
-  const foundedMatch = text.match(/(?:成立于|创立于|成立年份?[:：]?)\s*(20\d{2})/);
-  const isFulltime = ["正式岗", "全职", "校招", "提前批"].some((term) => text.includes(term));
+  const city = ["上海", "南京", "南通", "苏州", "杭州", "Shanghai", "Nanjing", "Nantong", "Suzhou", "Hangzhou"].find((item) => text.includes(item)) ?? "";
+  const district = ["崇川", "建邺", "建业", "浦口", "通州", "工业园区", "Chongchuan", "Pukou"].find((item) => text.includes(item)) ?? "";
+  const daysMatch = text.match(/每周(?:至少)?\s*(\d)\s*天|(?:at least )?(\d)\s*days?\s*(?:per week|\/week)/i);
+  const monthsMatch = text.match(/(?:至少|持续)\s*(\d+)\s*个?月|(?:for|over)\s*(\d+)\s*months?/i);
+  const foundedMatch = text.match(/(?:成立于|创立于|成立年份?[:：]?|founded in|established in)\s*(20\d{2})/i);
+  const isFulltime = ["正式岗", "全职", "校招", "提前批", "full-time", "full time", "early career"].some((term) => lower.includes(term.toLowerCase()));
   return {
     id: overrides.id ?? "portfolio-demo-job",
     company_name: overrides.company_name ?? "Demo Company",
@@ -208,12 +220,12 @@ export function demoJobFromText(jdText, overrides = {}) {
     city,
     district,
     workplace: parseWorkplace(text),
-    accepts_students: parseBoolean(text, ["在校", "实习生"], ["仅毕业生", "毕业后"]),
-    accepts_2028: parseBoolean(text, ["2028", "不限届别"], ["仅2027", "2027届专属"]),
+    accepts_students: parseBoolean(text, ["在校", "实习生", "student", "undergraduate", "current undergraduate"], ["仅毕业生", "毕业后", "graduates only"]),
+    accepts_2028: parseBoolean(text, ["2028", "不限届别", "2028 graduates"], ["仅2027", "2027届专属", "2027 graduates only"]),
     is_internship: !isFulltime && (text.includes("实习") || lower.includes("intern")),
-    days_per_week: daysMatch ? Number(daysMatch[1]) : null,
-    minimum_months: monthsMatch ? Number(monthsMatch[1]) : null,
-    salary: salary.min == null ? "" : `${salary.min}-${salary.max}元/${salary.period === "day" ? "天" : "月"}`,
+    days_per_week: daysMatch ? Number(daysMatch[1] ?? daysMatch[2]) : null,
+    minimum_months: monthsMatch ? Number(monthsMatch[1] ?? monthsMatch[2]) : null,
+    salary: salary.min == null ? "" : `${salary.min}-${salary.max}${/[a-z$]/i.test(text) ? " CNY" : "元"}/${salary.period === "day" ? (/day/i.test(text) ? "day" : "天") : (/month/i.test(text) ? "month" : "月")}`,
     salary_min: salary.min,
     salary_max: salary.max,
     salary_period: salary.period,

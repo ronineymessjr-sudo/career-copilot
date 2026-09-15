@@ -23,7 +23,8 @@ export function AnalyticsWorkspace({ compact = false }: { compact?: boolean }) {
     } catch (error) { setMessage(error instanceof Error ? error.message : "加载失败"); }
   }, [days]);
   useEffect(() => { void load(); }, [load]);
-  const metrics = data?.analytics?.metrics ?? {}; const funnel = data?.analytics?.funnel ?? [];
+  const metrics = data?.analytics?.metrics ?? {};
+  const funnel = useMemo(() => data?.analytics?.funnel ?? [], [data?.analytics?.funnel]);
   const maxCount = useMemo(() => Math.max(1, ...funnel.map((item: Row) => Number(item.count ?? 0))), [funnel]);
   async function generateReview() { setBusy(true); try { await controlFetch("/api/control/weekly-review", { method: "POST" }); setMessage("本周复盘已重新生成。"); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : "生成失败"); } finally { setBusy(false); } }
   return <section className={compact ? "analytics-workspace compact" : "control-panel analytics-workspace"}>

@@ -391,9 +391,10 @@ assert "打开完整材料包" in applications_workspace
 assert "Gmail" not in applications_workspace
 
 complete_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text(encoding="utf-8")
-for label in ["今日简报", "岗位发现", "岗位来源", "投递管理", "数据看板", "我的画像", "简历版本", "项目证据"]:
-    assert label in complete_shell
-assert "完整岗位池" in complete_shell
+# Navigation is locale-aware; validate stable route/key tokens instead of one
+# rendered language so the release gate remains valid for zh and en builds.
+for token in ["brief", "jobs", "sources", "applications", "analytics", "profile", "resumes", '"vault"', 'href="/dashboard"', '"/career-vault"']:
+    assert token in complete_shell, f"missing navigation token: {token}"
 
 root_package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
 web_package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
@@ -543,8 +544,11 @@ for script in ["test:m08", "smoke:m08", "test:m08.1", "smoke:m08.1", "evaluation
     assert script in root_scripts
 
 playground = (ROOT / "apps/web/components/agent-playground.tsx").read_text(encoding="utf-8")
-for required in ["Agent Playground", "SAFE DEMO", "不自动发送", "不自动投递"]:
-    assert required in playground
+for required in ["AgentPlayground", "LanguageToggle", "DEMO_FILTER_POLICY", "analyzePortfolioDemo", "demoNotPersonal", "copyGreeting"]:
+    assert required in playground, f"missing playground token: {required}"
+i18n = (ROOT / "apps/web/lib/i18n.ts").read_text(encoding="utf-8")
+for required in ["无需登录，不读取私人资料，也不会自动投递。", "No sign-in, no private data, and no automatic submissions."]:
+    assert required in i18n, f"missing localized safety boundary: {required}"
 
 compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
 for required in ["pgvector/pgvector:pg16", "web:", "api:", "postgres:"]:

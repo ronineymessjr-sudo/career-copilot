@@ -137,7 +137,7 @@ export function ResumeAgentWorkspace() {
         controlFetch<{ jobs: Row[] }>("/api/control/jobs"),
       ]);
       setResumes(resumePayload.resumes ?? []);
-      setStorage(resumePayload.storage ?? storage);
+      setStorage((current) => resumePayload.storage ?? current);
       setJobs(jobPayload.jobs ?? []);
       setJobId((current) => current || String(jobPayload.jobs?.[0]?.id ?? ""));
       setMessage("");
