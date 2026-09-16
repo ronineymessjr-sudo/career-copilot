@@ -468,6 +468,8 @@
 .platform-sidebar-account > button { color: #d7e1ef; border-color: rgb(255 255 255 / 16%); background: rgb(255 255 255 / 6%); }
 .platform-sidebar-account > button:hover { color: #fff; border-color: #7da8ff; background: rgb(255 255 255 / 10%); }
 .platform-main { padding: 40px 48px 72px; }
+.runtime-banner { margin-bottom: 18px; padding: 11px 14px; border: 1px solid #c9dafc; border-radius: 9px; color: #234f96; background: #edf4ff; font-size: 13px; line-height: 1.55; }
+.runtime-banner::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; vertical-align: 1px; background: #2563eb; box-shadow: 0 0 0 4px #dbe8ff; }
 .platform-frame .platform-main { color: var(--workspace-ink); }
 .platform-frame .platform-page-head h1,
 .platform-frame .platform-page-head h2,
