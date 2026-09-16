@@ -1,10 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ReactNode } from "react";
 import { ChevronDown } from "lucide-react";
 
 /** Shared presentation only: authentication and data fetching stay with each page. */
 export function WorkspaceBrand({ href = "/" }: { href?: string }) {
-  return <Link className="cc-brand" href={href} aria-label="Career Copilot 首页"><span aria-hidden="true">C</span><strong>Career Copilot</strong></Link>;
+  return <Link className="cc-brand" href={href} aria-label="Career Copilot 首页"><span className="cc-brand-mark" aria-hidden="true"><Image src="/career-copilot-mark.png" alt="" width={34} height={34} priority /></span><strong>Career Copilot</strong></Link>;
 }
 
 export function WorkspaceHeading({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
