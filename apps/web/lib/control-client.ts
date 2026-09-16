@@ -4,17 +4,11 @@ import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 const REFRESH_MARGIN_SECONDS = 90;
 
-function loginUrl() {
-  if (typeof window === "undefined") return "/login";
-  const next = `${window.location.pathname}${window.location.search}`;
-  return `/login?reason=session_expired&next=${encodeURIComponent(next)}`;
-}
-
 async function expireSession(message = "登录已失效，请重新登录"): Promise<never> {
   const supabase = getSupabaseBrowser();
   await supabase?.auth.signOut().catch(() => undefined);
   if (typeof window !== "undefined" && window.location.pathname !== "/login") {
-    window.location.assign(loginUrl());
+    window.location.assign("/playground");
   }
   throw new Error(message);
 }

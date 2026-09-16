@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => { const supabase = getSupabaseBrowser(); if (!supabase) return; void supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? "")); }, []);
   useEffect(() => { if (activeResource) setResourcesOpen(true); }, [activeResource]);
   useEffect(() => { setMobileOpen(false); }, [pathname]);
-  async function signOut() { const supabase = getSupabaseBrowser(); await supabase?.auth.signOut(); router.replace("/login"); }
+  async function signOut() { const supabase = getSupabaseBrowser(); await supabase?.auth.signOut(); router.replace("/playground"); }
   return <div className="platform-frame">
     <a href="#workspace-content" className="cc-skip">{t("skipToMain")}</a>
     <aside className="platform-sidebar">
