@@ -24,8 +24,8 @@ export const engineeringMetrics = [
 ];
 
 export const deliveryRuns = [
-  {id:1,project:"Career Copilot V2",task:"模型网关与工程证据模块",tool:"ChatGPT coding workflow",duration:"2h 00m",filesChanged:14,tests:"6 / 6",acceptance:"6 / 6",humanEditShare:"25.7%",status:"已验证" as const},
-  {id:2,project:"Career Copilot V2",task:"审批优先投递闭环",tool:"Codex review workflow",duration:"1h 20m",filesChanged:8,tests:"4 / 4",acceptance:"5 / 5",humanEditShare:"31.4%",status:"已验证" as const},
+  {id:1,project:"Career Copilot",task:"模型网关与工程证据模块",tool:"ChatGPT coding workflow",duration:"2h 00m",filesChanged:14,tests:"6 / 6",acceptance:"6 / 6",humanEditShare:"25.7%",status:"已验证" as const},
+  {id:2,project:"Career Copilot",task:"审批优先投递闭环",tool:"Codex review workflow",duration:"1h 20m",filesChanged:8,tests:"4 / 4",acceptance:"5 / 5",humanEditShare:"31.4%",status:"已验证" as const},
   {id:3,project:"PhotoAtelier",task:"AI 内容工作流设计",tool:"Manual + AI pair",duration:"—",filesChanged:0,tests:"待采集",acceptance:"待定义",humanEditShare:"—",status:"待复盘" as const},
 ];
 

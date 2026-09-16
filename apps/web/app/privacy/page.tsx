@@ -35,6 +35,6 @@ export default function PrivacyPage() {
     <section className="release-section"><header><span className="eyebrow">WHAT HAPPENS TO DATA</span><h2>四个边界，覆盖一次完整使用。</h2><p>以下说明对应当前线上功能，不把演示数据包装成真实投递结果。</p></header><div className="release-workflow">{boundaries.map(([title, detail], index) => <article key={title}><span>0{index + 1}</span><strong>{title}</strong><p>{detail}</p></article>)}</div></section>
 
     <section className="release-boundary"><ShieldCheck size={20}/><div><strong>请勿粘贴敏感信息</strong><p>公开 Demo 不需要身份证号、银行卡、密码或招聘平台登录信息。涉及账号数据的操作请使用登录后的控制台，并在提交前检查生成材料。</p></div></section>
-    <footer className="release-footer"><span>Career Copilot V2 · 隐私与数据边界</span><Link href="/updates">查看更新日志 <ArrowRight size={14}/></Link></footer>
+    <footer className="release-footer"><span>Career Copilot · 隐私与数据边界</span><Link href="/updates">查看更新日志 <ArrowRight size={14}/></Link></footer>
   </main>;
 }

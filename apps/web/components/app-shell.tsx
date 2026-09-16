@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { BarChart3, BookOpenCheck, BriefcaseBusiness, ChevronDown, FileText, FileSearch, Home, LogOut, Menu, MessageSquare, Radar, Send, Settings, UserRound, X } from "lucide-react";
+import { BarChart3, BookOpenCheck, ChevronDown, FileText, FileSearch, Home, LogOut, Menu, MessageSquare, Radar, Search, Send, Settings, UserRound, X } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 import { FeedbackWidget } from "@/components/feedback-widget";
 import { WorkspaceBrand } from "@/components/workspace-ui";
@@ -11,7 +11,7 @@ import { LanguageToggle, useLocale } from "@/components/locale-provider";
 
 const primaryNav = [
   ["/dashboard", "brief", Home],
-  ["/jobs", "jobs", BriefcaseBusiness],
+  ["/jobs", "jobs", Search],
   ["/jd", "jd", FileSearch],
   ["/applications", "applications", Send],
 ] as const;
