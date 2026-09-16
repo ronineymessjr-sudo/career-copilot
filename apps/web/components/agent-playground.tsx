@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { ArrowRight, Check, Clipboard, ShieldCheck } from "lucide-react";
+import { ArrowRight, Check, Clipboard, Search, ShieldCheck } from "lucide-react";
 import { WorkspaceBrand, WorkspaceDisclosure, WorkspaceHeading, WorkspaceState } from "@/components/workspace-ui";
 import { LanguageToggle, useLocale } from "@/components/locale-provider";
 import { interpolate } from "@/lib/i18n";
@@ -195,7 +195,7 @@ export function AgentPlayground() {
     <a className="cc-skip" href="#demo">{t("publicNavAnalysis")}</a>
     <header className="cc-public-nav">
       <WorkspaceBrand href="/playground"/>
-      <nav aria-label={t("publicExperience")}><a href="#demo">{t("publicNavAnalysis")}</a><a href="#methods" onClick={() => { const details = document.getElementById("methods") as HTMLDetailsElement | null; if (details) details.open = true; }}>{t("publicNavMethods")}</a></nav>
+      <nav aria-label={t("publicExperience")}><a className="cc-public-nav-link" href="#demo"><Search size={15} aria-hidden="true"/>{t("publicNavAnalysis")}</a><a href="#methods" onClick={() => { const details = document.getElementById("methods") as HTMLDetailsElement | null; if (details) details.open = true; }}>{t("publicNavMethods")}</a></nav>
       <div className="cc-public-availability"><span aria-hidden="true"/>{t("publicReady")}</div>
       <span className="cc-public-actions"><LanguageToggle/></span>
     </header>

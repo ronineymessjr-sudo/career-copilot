@@ -35,6 +35,6 @@ export function ReleaseNotesPage() {
     <section className="release-section"><header><span className="eyebrow">CHANGELOG</span><h2>公开更新</h2><p>每个版本只讲清楚实际变化，不把打开页面包装成已投递。</p></header><div className="release-timeline">{PUBLIC_RELEASE_NOTES.map((release) => <article key={release.version}><div className="release-version"><strong>{release.version}</strong><small>{release.date}</small></div><div><h3>{release.title}</h3><p>{release.summary}</p><ul>{release.highlights.map((highlight) => <li key={highlight}><CheckCircle2 size={14}/>{highlight}</li>)}</ul></div></article>)}</div></section>
 
     <section className="release-boundary"><ShieldCheck size={20}/><div><strong>安全边界</strong><p>公开 Demo 不读取私人资料；生产工作台只使用已保存画像和已核验项目证据；外部消息、邮件发送、岗位提交、面试和 Offer 状态都需要人工确认。</p></div></section>
-    <footer className="release-footer"><span>Career Copilot V2 · Evidence-driven AI internship operating system</span><span><Link href="/privacy">隐私边界</Link> <Link href="/playground">回到公开体验 <ArrowRight size={14}/></Link></span></footer>
+    <footer className="release-footer"><span>Career Copilot · Evidence-driven AI internship operating system</span><span><Link href="/privacy">隐私边界</Link> <Link href="/playground">回到公开体验 <ArrowRight size={14}/></Link></span></footer>
   </main>;
 }
