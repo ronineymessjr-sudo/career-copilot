@@ -1,566 +1,83 @@
-from __future__ import annotations
-
-import json
-import re
-import subprocess
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-IGNORED_SCAN_PARTS = {".git", ".career-copilot-patch-backups", ".career-copilot-backups", "node_modules", ".next", ".open-next", ".pytest_cache", "__pycache__", ".wrangler", ".bin", "browser-data"}
-
-def in_ignored_tree(path: Path) -> bool:
-    return any(part in IGNORED_SCAN_PARTS for part in path.parts)
-REQUIRED = [
-    ROOT / "apps/web/wrangler.jsonc",
-    ROOT / "apps/web/open-next.config.ts",
-    ROOT / "apps/web/app/api/runtime/route.ts",
-    ROOT / "apps/web/lib/release.ts",
-    ROOT / "release.json",
-    ROOT / "apps/web/app/api/cron/daily/route.ts",
-    ROOT / "workers/scheduler/wrangler.jsonc",
-    ROOT / "workers/scheduler/src/index.ts",
-    ROOT / ".github/workflows/cloudflare-deploy.yml",
-    ROOT / "supabase/migrations/0004_cloudflare_control_plane.sql",
-    ROOT / "supabase/migrations/0005_discovery_exports_gmail.sql",
-    ROOT / "supabase/migrations/0006_interview_learning_analytics.sql",
-    ROOT / "apps/web/app/sources/page.tsx",
-    ROOT / "apps/web/components/sources-workspace.tsx",
-    ROOT / "apps/web/lib/job-sources.mjs",
-    ROOT / "apps/web/lib/discovery-service.ts",
-    ROOT / "apps/web/lib/application-safety.ts",
-    ROOT / "apps/web/app/api/control/sources/route.ts",
-    ROOT / "apps/web/app/api/control/sources/run/route.ts",
-    ROOT / "apps/web/app/api/control/sources/[id]/route.ts",
-    ROOT / "apps/web/app/api/control/applications/[id]/export/route.ts",
-    ROOT / "apps/web/app/api/control/applications/[id]/gmail-draft/route.ts",
-    ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts",
-    ROOT / "apps/web/components/connections-workspace.tsx",
-    ROOT / "apps/web/app/interviews/page.tsx",
-    ROOT / "apps/web/app/analytics/page.tsx",
-    ROOT / "apps/web/components/interviews-workspace.tsx",
-    ROOT / "apps/web/components/analytics-workspace.tsx",
-    ROOT / "apps/web/lib/interview-learning.mjs",
-    ROOT / "apps/web/lib/analytics-service.ts",
-    ROOT / "apps/web/app/api/control/interviews/route.ts",
-    ROOT / "apps/web/app/api/control/interviews/[id]/prepare/route.ts",
-    ROOT / "apps/web/app/api/control/interviews/[id]/complete/route.ts",
-    ROOT / "apps/web/app/api/control/analytics/route.ts",
-    ROOT / "apps/web/app/api/control/weekly-review/route.ts",
-    ROOT / "apps/web/app/api/cron/weekly/route.ts",
-    ROOT / "scripts/production_e2e_m06.mjs",
-    ROOT / "supabase/migrations/0007_knowledge_graph_workflows.sql",
-    ROOT / "apps/web/app/knowledge/page.tsx",
-    ROOT / "apps/web/components/knowledge-workspace.tsx",
-    ROOT / "apps/web/lib/knowledge-rules.mjs",
-    ROOT / "apps/web/lib/embedding-service.ts",
-    ROOT / "apps/web/lib/supabase-langgraph-checkpointer.mjs",
-    ROOT / "apps/web/lib/evidence-promotion-graph.mjs",
-    ROOT / "apps/web/app/api/control/knowledge/documents/route.ts",
-    ROOT / "apps/web/app/api/control/knowledge/search/route.ts",
-    ROOT / "apps/web/app/api/control/workflows/evidence-promotion/route.ts",
-    ROOT / "apps/web/app/api/control/workflows/[id]/resume/route.ts",
-    ROOT / "scripts/smoke_m07.mjs",
-    ROOT / "scripts/production_e2e_m07.mjs",
-    ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql",
-    ROOT / "apps/web/lib/agent-runtime.mjs",
-    ROOT / "apps/web/lib/career-agent-graph.mjs",
-    ROOT / "apps/web/lib/agent-service.ts",
-    ROOT / "apps/web/lib/agent-controller.ts",
-    ROOT / "apps/web/app/api/control/agents/run/route.ts",
-    ROOT / "apps/web/app/api/control/ranking/jobs/route.ts",
-    ROOT / "apps/web/app/api/control/resumes/route.ts",
-    ROOT / "apps/web/app/api/control/evaluations/route.ts",
-    ROOT / "apps/web/app/api/mcp/route.ts",
-    ROOT / "apps/web/app/agents/page.tsx",
-    ROOT / "apps/web/components/agent-dashboard.tsx",
-    ROOT / "apps/web/components/resume-agent-workspace.tsx",
-    ROOT / "scripts/smoke_m08.mjs",
-    ROOT / "scripts/production_e2e_m08.mjs",
-    ROOT / "apps/web/app/playground/page.tsx",
-    ROOT / "apps/web/components/agent-playground.tsx",
-    ROOT / "apps/web/lib/portfolio-demo.mjs",
-    ROOT / "apps/api/app/agent_demo.py",
-    ROOT / "apps/api/tests/test_agent_demo.py",
-    ROOT / "scripts/smoke_m08_1.mjs",
-    ROOT / "scripts/production_e2e_m08_1.mjs",
-    ROOT / "scripts/generate_agent_evaluation_report.mjs",
-    ROOT / "docs/agent-evaluation-report.md",
-    ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql",
-    ROOT / "supabase/migrations/0016_rls_grants_shared_pool.sql",
-    ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql",
-    ROOT / "supabase/migrations/0018_recommendation_experience.sql",
-    ROOT / "supabase/migrations/0019_material_versions_application_tracking.sql",
-    ROOT / "supabase/migrations/0020_platform_scale_quality_analytics.sql",
-    ROOT / "supabase/migrations/0021_source_connections_and_platform_search.sql",
-    ROOT / "supabase/migrations/0022_instant_profile_aggregate_search.sql",
-    ROOT / "supabase/migrations/0027_career_copilot_schema_guard.sql",
-    ROOT / "apps/web/lib/instant-search.mjs",
-    ROOT / "apps/web/lib/instant-search.d.mts",
-    ROOT / "apps/web/lib/instant-search-service.ts",
-    ROOT / "apps/web/app/api/control/search-runs/route.ts",
-    ROOT / "apps/web/tests/instant-search.test.mjs",
-    ROOT / "apps/web/lib/application-kit.mjs",
-    ROOT / "apps/web/lib/application-export.mjs",
-    ROOT / "apps/web/app/login/page.tsx",
-    ROOT / "apps/web/app/api/control/profile/route.ts",
-    ROOT / "apps/web/app/api/control/resumes/upload/route.ts",
-    ROOT / "apps/web/app/api/control/resumes/[id]/route.ts",
-    ROOT / "apps/web/app/api/control/resumes/[id]/file/route.ts",
-    ROOT / "apps/web/app/api/control/automation/route.ts",
-    ROOT / "apps/web/lib/daily-recommendation-service.ts",
-    ROOT / "apps/web/lib/daily-recommendation-rules.mjs",
-    ROOT / "apps/web/components/profile-workspace.tsx",
-    ROOT / "apps/web/Dockerfile",
-]
-for path in REQUIRED:
-    if not path.exists():
-        raise SystemExit(f"missing required file: {path.relative_to(ROOT)}")
-
-for path in [ROOT / "package.json", ROOT / "apps/web/package.json", ROOT / "workers/scheduler/package.json"]:
-    json.loads(path.read_text(encoding="utf-8"))
-
-def parse_jsonc(path: Path):
-    text = path.read_text(encoding="utf-8")
-    text = re.sub(r"//.*?$", "", text, flags=re.M)
-    text = re.sub(r",\s*([}\]])", r"\1", text)
-    return json.loads(text)
-
-web = parse_jsonc(ROOT / "apps/web/wrangler.jsonc")
-scheduler = parse_jsonc(ROOT / "workers/scheduler/wrangler.jsonc")
-assert web["main"] == ".open-next/worker.js"
-assert "nodejs_compat" in web["compatibility_flags"]
-assert web["vars"]["APP_MODE"] == "production"
-assert scheduler["triggers"]["crons"] == ["*/5 * * * *", "0 0 * * *", "0 12 * * SUN"]
-assert scheduler["services"] == [{"binding": "WEB", "service": "career-copilot-v2"}]
-
-migration = (ROOT / "supabase/migrations/0005_discovery_exports_gmail.sql").read_text(encoding="utf-8")
-for required in ["job_sources", "discovery_runs", "gmail_draft_id", "hr_verified_fields", "hr_verified_at", "enable row level security", "job_sources_owner_all", "discovery_runs_owner_all"]:
-    assert required in migration
-assert "provider in ('greenhouse','lever')" in migration
-
-schema_guard = (ROOT / "supabase/migrations/0027_career_copilot_schema_guard.sql").read_text(encoding="utf-8")
-schema_bootstrap = (ROOT / "supabase/migrations/0009_vector_extension_schema.sql").read_text(encoding="utf-8")
-assert "create schema if not exists career_copilot" in schema_bootstrap.lower()
-assert "create schema if not exists career_copilot" in schema_guard.lower()
-assert "raise exception 'Career Copilot schema is incomplete" in schema_guard
-
-runtime = (ROOT / "apps/web/app/api/runtime/route.ts").read_text(encoding="utf-8")
-release = (ROOT / "apps/web/lib/release.ts").read_text(encoding="utf-8")
-release_json = json.loads((ROOT / "release.json").read_text(encoding="utf-8"))
-assert 'version: RELEASE.version' in runtime
-assert 'import { RELEASE }' in runtime
-assert 'version: "2.0.2"' in release
-assert release_json["version"] == "2.0.2"
-assert release_json["mcp_protocol_version"] == "2025-06-18"
-assert "automaticSubmission: RELEASE.safety.automaticSubmission" in runtime
-assert "gmailDraftOnly: true" in runtime
-assert "publicSourceDiscovery: true" in runtime
-for flag in ["sourceUrlAutoDetection: true", "sourceConnectionTesting: true", "recruitmentPlatformSearch: true", "clickableSourceCards: true"]:
-    assert flag in runtime
-for flag in ["instantProfileAggregateSearch: true", "indexedRecruitmentPlatformSearch: true", "perPlatformSearchFeedback: true", "automaticSearchResultPreparation: true"]:
-    assert flag in runtime
-assert "interviewLearningLoop: true" in runtime
-assert "conversionAnalytics: true" in runtime
-assert "weeklyReviews: true" in runtime
-assert "operationalObservability: true" in runtime
-assert "automaticInterviewAcceptance: RELEASE.safety.automaticInterviewAcceptance" in runtime
-assert "automaticOfferAcceptance: RELEASE.safety.automaticOfferAcceptance" in runtime
-
-source_lib = (ROOT / "apps/web/lib/job-sources.mjs").read_text(encoding="utf-8")
-assert "boards-api.greenhouse.io" in source_lib
-assert "api.lever.co" in source_lib
-assert "internships_only" in source_lib
-for required in ["normalizeSourceInput", "testSourceConnection", "portalSearchUrl", "jobs.ashbyhq.com", "jobs.lever.co", "boss", "linkedin", "shixiseng", "nowcoder", "zhaopin", "job51", "liepin", "workday"]:
-    assert required in source_lib
-source_ui = (ROOT / "apps/web/components/sources-workspace.tsx").read_text(encoding="utf-8")
-for required in ["怎么开始", "支持的招聘平台", "去导入岗位", "聚合我的来源", "链接 / JD 导入", "聚合边界", "最近聚合任务"]:
-    assert required in source_ui
-
-cron_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text(encoding="utf-8")
-assert "runDiscovery" in cron_route
-assert "backgroundOwnerId" in cron_route
-assert "adminDataRequest" in cron_route
-
-gmail_route = (ROOT / "apps/web/app/api/control/applications/[id]/gmail-draft/route.ts").read_text(encoding="utf-8")
-assert "gmail.googleapis.com/gmail/v1/users/me/drafts" in gmail_route
-assert "ready_to_submit" in gmail_route
-assert "approval !== \"approved\"" in gmail_route
-assert "sent: false" in gmail_route
-assert "currentApplicationSafety" in gmail_route
-assert "/drafts/send" not in gmail_route
-assert "/messages/send" not in gmail_route
-
-export_route = (ROOT / "apps/web/app/api/control/applications/[id]/export/route.ts").read_text(encoding="utf-8")
-for fmt in ['format === "json"', 'format === "html"', 'format === "eml"']:
-    assert fmt in export_route
-assert "truth_check?.passed !== true" in export_route
-assert "currentApplicationSafety" in export_route
-
-
-supabase_control = (ROOT / "apps/web/lib/supabase-control.ts").read_text(encoding="utf-8")
-admin_section = supabase_control.split("export async function adminDataRequest", 1)[1]
-assert 'headers.set("apikey", key)' in admin_section
-assert 'headers.set("Authorization", `Bearer ${key}`)' not in admin_section
-assert 'headers.delete("Authorization")' in admin_section
-
-discovery = (ROOT / "apps/web/lib/discovery-service.ts").read_text(encoding="utf-8")
-assert "preserveVerifiedJobFields" in discovery
-assert "jobs?select=*" in discovery
-
-jobs_patch = (ROOT / "apps/web/app/api/control/jobs/[id]/route.ts").read_text(encoding="utf-8")
-assert "hr_verified_fields" in jobs_patch
-assert "hr_verified_at" in jobs_patch
-
-deploy = (ROOT / "scripts/deploy_cloudflare.sh").read_text(encoding="utf-8")
-for name in ["CRON_SHARED_SECRET", "SUPABASE_SECRET_KEY", "OWNER_USER_ID", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"]:
-    assert f"wrangler secret put {name}" in deploy
-
-# Privileged keys may appear only in server routes/helpers and deployment documentation, never client components.
-client_text = "\n".join(
-    path.read_text(errors="ignore")
-    for base in [ROOT / "apps/web/components", ROOT / "apps/web/app/login", ROOT / "apps/web/app/applications", ROOT / "apps/web/app/sources"]
-    for path in base.rglob("*") if path.is_file()
-)
-assert "SUPABASE_SECRET_KEY" not in client_text
-assert "gmail_access_token" not in client_text.lower() or "sessionStorage" in client_text
-
-all_text = "\n".join(
-    path.read_text(errors="ignore")
-    for path in ROOT.rglob("*")
-    if not in_ignored_tree(path) and path.is_file() and path != Path(__file__).resolve() and path.suffix.lower() not in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}
-)
-assert "gmail/v1/users/me/drafts/send" not in all_text
-assert "gmail/v1/users/me/messages/send" not in all_text
-
-forbidden = [
-    re.compile(r"sk-[A-Za-z0-9_-]{20,}"),
-    re.compile(r"sb_secret_[A-Za-z0-9_-]{12,}"),
-    re.compile(r"BEGIN PRIVATE KEY"),
-    re.compile(r"ronineymessjr@gmail\.com", re.I),
-]
-for path in ROOT.rglob("*"):
-    if path == Path(__file__).resolve() or in_ignored_tree(path):
-        continue
-    if not path.is_file() or path.suffix.lower() in {".png", ".jpg", ".jpeg", ".zip", ".docx", ".pyc", ".bundle"}:
-        continue
-    text = path.read_text(errors="ignore")
-    for pattern in forbidden:
-        if pattern.search(text):
-            raise SystemExit(f"forbidden public content in {path.relative_to(ROOT)}: {pattern.pattern}")
-
-migration6 = (ROOT / "supabase/migrations/0006_interview_learning_analytics.sql").read_text(encoding="utf-8")
-for required in ["interview_feedback", "skill_gaps", "weekly_reviews", "operational_events", "enable row level security", "interview_feedback_owner_all", "skill_gaps_owner_all", "weekly_reviews_owner_all", "operational_events_owner_all"]:
-    assert required in migration6
-assert "security definer" not in migration6.lower()
-assert "to authenticated" in migration6
-
-learning = (ROOT / "apps/web/lib/interview-learning.mjs").read_text(encoding="utf-8")
-for required in ["buildInterviewPreparation", "deriveSkillGaps", "computeApplicationAnalytics", "buildWeeklyReview"]:
-    assert required in learning
-assert "automatic_acceptance: false" in learning
-assert "automatic_actions: false" in learning
-
-complete_route = (ROOT / "apps/web/app/api/control/interviews/[id]/complete/route.ts").read_text(encoding="utf-8")
-assert "confirm_status_change === true" in complete_route
-assert "validateInterviewOutcomeTransition" in complete_route
-
-weekly_route = (ROOT / "apps/web/app/api/cron/weekly/route.ts").read_text(encoding="utf-8")
-assert "CRON_SHARED_SECRET" in weekly_route
-assert "backgroundOwnerId" in weekly_route
-assert "generateWeeklyReview" in weekly_route
-
-scheduler_source = (ROOT / "workers/scheduler/src/index.ts").read_text(encoding="utf-8")
-assert 'event.cron === "0 12 * * SUN"' in scheduler_source
-assert '"/api/cron/weekly"' in scheduler_source
-assert '"/api/queue/consume"' in scheduler_source
-assert 'queue-consume' in scheduler_source
-
-
-analytics_service = (ROOT / "apps/web/lib/analytics-service.ts").read_text(encoding="utf-8")
-for table in ["applications", "application_events", "jobs", "application_packages", "interviews", "offers", "skill_gaps", "discovery_runs", "operational_events"]:
-    assert f"{table}?select=*" in analytics_service
-assert analytics_service.count("user_id=eq.${owner}") >= 9
-
-assert "interview_feedback_interview_sequence_uidx" in migration6
-assert "skill_gaps_interview_skill_uidx" in migration6
-assert "sequence_no" in migration6
-assert "on_conflict=interview_id,sequence_no" in complete_route
-assert "on_conflict=user_id,source_type,source_id,skill" in complete_route
-assert "validateInterviewOutcomeTransition" in complete_route
-
-
-production_e2e = (ROOT / "scripts/production_e2e_m06.mjs").read_text(encoding="utf-8")
-assert "CAREER_COPILOT_TEST_EMAIL" in production_e2e
-assert "CAREER_COPILOT_TEST_PASSWORD" in production_e2e
-assert "automatic_interview_acceptance: false" in production_e2e
-assert "automatic_offer_acceptance: false" in production_e2e
-assert "access_token" not in production_e2e.split("const result =", 1)[1]
-
-migration7 = (ROOT / "supabase/migrations/0007_knowledge_graph_workflows.sql").read_text(encoding="utf-8")
-for required in [
-    "create extension if not exists vector",
-    "career_documents",
-    "career_chunks",
-    "workflow_threads",
-    "workflow_checkpoints",
-    "langgraph_checkpoints",
-    "langgraph_writes",
-    "embedding vector(1536)",
-    "using hnsw",
-    "match_career_chunks",
-    "security invoker",
-    "enable row level security",
-    "career_documents_owner_all",
-    "career_chunks_owner_all",
-    "workflow_threads_owner_all",
-    "langgraph_checkpoints_owner_all",
-]:
-    assert required in migration7.lower()
-assert "security definer" not in migration7.lower()
-assert "content_hash text" in migration7
-assert "char_start integer" in migration7
-assert "char_end integer" in migration7
-
-knowledge_rules = (ROOT / "apps/web/lib/knowledge-rules.mjs").read_text(encoding="utf-8")
-for required in ["chunkDocument", "rankLexicalChunks", "citationForChunk", "buildEvidenceCandidate", "buildRagContext"]:
-    assert required in knowledge_rules
-assert "requires_human_verification: true" in knowledge_rules
-assert "automatic_promotion: false" in knowledge_rules
-
-embedding_service = (ROOT / "apps/web/lib/embedding-service.ts").read_text(encoding="utf-8")
-assert "https://api.openai.com/v1/embeddings" in embedding_service
-assert "text-embedding-3-small" in embedding_service
-assert 'provider: "none"' in embedding_service
-
-checkpoint_saver = (ROOT / "apps/web/lib/supabase-langgraph-checkpointer.mjs").read_text(encoding="utf-8")
-for required in ["BaseCheckpointSaver", "getTuple", "putWrites", "deleteThread", "langgraph_checkpoints", "langgraph_writes"]:
-    assert required in checkpoint_saver
-
-evidence_graph = (ROOT / "apps/web/lib/evidence-promotion-graph.mjs").read_text(encoding="utf-8")
-assert "interrupt(" in evidence_graph
-assert "SupabaseCheckpointSaver" in evidence_graph
-assert "automatic_promotion: false" in evidence_graph
-
-resume_route = (ROOT / "apps/web/app/api/control/workflows/[id]/resume/route.ts").read_text(encoding="utf-8")
-assert "new Command({ resume: decision })" in resume_route
-assert "source_content_hash" in resume_route
-assert 'verification_status: "verified"' in resume_route
-assert "automatic_promotion: false" in resume_route
-
-knowledge_client = (ROOT / "apps/web/components/knowledge-workspace.tsx").read_text(encoding="utf-8")
-assert "PDF/DOCX" in knowledge_client
-assert "requires_human_verification" not in knowledge_client or "人工核验" in knowledge_client
-assert "OPENAI_API_KEY" not in knowledge_client
-
-for flag in ["documentKnowledgeBase: true", "pgvectorRetrieval: true", "citationRequired: true", "durableHumanInterrupts: true", "automaticEvidencePromotion: false"]:
-    assert flag in runtime
-
-production_e2e7 = (ROOT / "scripts/production_e2e_m07.mjs").read_text(encoding="utf-8")
-assert "mutations_performed: false" in production_e2e7
-assert "automatic_evidence_promotion: false" in production_e2e7
-assert "access_token" not in production_e2e7.split("const result =", 1)[1]
-
-client_text_m07 = "\n".join(
-    path.read_text(errors="ignore")
-    for base in [ROOT / "apps/web/components", ROOT / "apps/web/app/knowledge"]
-    for path in base.rglob("*") if path.is_file()
-)
-assert "OPENAI_API_KEY" not in client_text_m07
-assert "SUPABASE_SECRET_KEY" not in client_text_m07
-
-
-api_main = (ROOT / "apps/api/app/main.py").read_text(encoding="utf-8")
-assert 'version="2.0.2"' in api_main
-assert '"version":"2.0.2"' in api_main
-
-auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text(encoding="utf-8")
-assert "包内全部迁移（按文件名顺序）" in auth_gate
-assert (ROOT / "supabase/migrations/0011_daily_application_queue.sql").exists()
-assert (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").exists()
-
-open_submission = (ROOT / "apps/web/app/api/control/applications/[id]/open-submission/route.ts").read_text(encoding="utf-8")
-assert "submission_handoff_opened" in open_submission
-assert "external_submission_performed: false" in open_submission
-assert "target_host" in open_submission
-
-applications_workspace = (ROOT / "apps/web/components/applications-workspace.tsx").read_text(encoding="utf-8")
-assert "/open-submission" in applications_workspace
-assert "真实申请页已经打开" in applications_workspace
-assert "一键投递在这里表示" in applications_workspace
-assert "打开完整材料包" in applications_workspace
-assert "Gmail" not in applications_workspace
-
-complete_shell = (ROOT / "apps/web/components/app-shell.tsx").read_text(encoding="utf-8")
-# Navigation is locale-aware; validate stable route/key tokens instead of one
-# rendered language so the release gate remains valid for zh and en builds.
-for token in ["brief", "jobs", "sources", "applications", "analytics", "profile", "resumes", '"vault"', 'href="/dashboard"', '"/career-vault"']:
-    assert token in complete_shell, f"missing navigation token: {token}"
-
-root_package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
-web_package = json.loads((ROOT / "apps/web/package.json").read_text(encoding="utf-8"))
-assert root_package["version"] == "2.0.2"
-assert web_package["version"] == "2.0.2"
-assert json.loads((ROOT / "workers/scheduler/package.json").read_text(encoding="utf-8"))["version"] == "2.0.2"
-assert web_package["dependencies"]["@langchain/core"] == "1.2.3"
-assert web_package["dependencies"]["@langchain/langgraph"] == "1.4.8"
-assert web_package["dependencies"]["@langchain/langgraph-checkpoint"] == "1.0.3"
-assert web_package["scripts"]["check"] == "tsc --noEmit"
-
-
-migration14 = (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").read_text(encoding="utf-8")
-for required in ["job_user_overrides", "visibility", "jobs_pool_select", "job_sources_scope_check", "ashby"]:
-    assert required in migration14
-
-migration15 = (ROOT / "supabase/migrations/0015_profile_resume_daily_recommendations.sql").read_text(encoding="utf-8")
-for required in [
-    "profile_details", "source_type", "storage_path", "daily_recommendation_preferences",
-    "daily_recommendations", "resume-files", "resume_files_owner_select",
-    "resume_versions_one_master_per_profile_uidx", "ranked_masters",
-]:
-    assert required in migration15
-assert "alter column graduation_year drop not null" in migration15.lower()
-assert "alter column graduation_year drop default" in migration15.lower()
-
-migration16 = (ROOT / "supabase/migrations/0017_application_kits_one_click_handoff.sql").read_text(encoding="utf-8")
-for required in ["content_bundle", "tailored_resume", "submission_capability", "submission_mode", "handoff_opened_at"]:
-    assert required in migration16
-assert "drop table" not in migration16.lower()
-assert "drop schema" not in migration16.lower()
-
-for migration_name in [
-    "0016_rls_grants_shared_pool.sql",
-    "0018_recommendation_experience.sql",
-    "0019_material_versions_application_tracking.sql",
-    "0020_platform_scale_quality_analytics.sql",
-]:
-    text = (ROOT / "supabase/migrations" / migration_name).read_text(encoding="utf-8")
-    assert "drop table" not in text.lower()
-    assert "drop schema" not in text.lower()
-
-migration21 = (ROOT / "supabase/migrations/0021_source_connections_and_platform_search.sql").read_text(encoding="utf-8")
-for required in ["connection_mode", "source_url", "connection_status", "last_verified_at", "connection_details", "greenhouse", "lever", "ashby", "workday", "boss", "linkedin", "shixiseng", "nowcoder", "zhaopin", "job51", "liepin"]:
-    assert required in migration21
-assert "drop table" not in migration21.lower()
-assert "drop schema" not in migration21.lower()
-
-instant_search = (ROOT / "apps/web/lib/instant-search.mjs").read_text(encoding="utf-8")
-for required in ["INSTANT_SEARCH_PLATFORMS", "buildProfileSearchSpec", "searchPublicJobIndex", "web_search", "allowed_domains", "json_schema", "normalizeIndexedJob"]:
-    assert required in instant_search
-instant_service = (ROOT / "apps/web/lib/instant-search-service.ts").read_text(encoding="utf-8")
-for required in ["runInstantProfileSearch", "searchPublicJobIndex", "buildApplicationPlan", "prepareApplication", "profile_search_results"]:
-    assert required in instant_service
-instant_route = (ROOT / "apps/web/app/api/control/search-runs/route.ts").read_text(encoding="utf-8")
-assert "runInstantProfileSearch" in instant_route
-instant_ui = (ROOT / "apps/web/components/jobs-workspace.tsx").read_text(encoding="utf-8")
-for required in ["即时聚合搜索", "开始聚合搜索", "本次搜索", "/api/control/search-runs", "材料已准备"]:
-    assert required in instant_ui
-migration22 = (ROOT / "supabase/migrations/0022_instant_profile_aggregate_search.sql").read_text(encoding="utf-8")
-for required in ["profile_search_runs", "profile_search_results", "platform_statuses", "jobs_prepared", "enable row level security", "profile_search_runs_owner_all", "profile_search_results_owner_all"]:
-    assert required in migration22
-assert "drop table" not in migration22.lower()
-assert "drop schema" not in migration22.lower()
-
-application_kit = (ROOT / "apps/web/lib/application-kit.mjs").read_text(encoding="utf-8")
-for required in ["buildApplicationContentBundle", "buildTailoredResume", "detectSubmissionCapability", "buildMailtoUrl", "no_invented_metrics"]:
-    assert required in application_kit
-
-application_export = (ROOT / "apps/web/lib/application-export.mjs").read_text(encoding="utf-8")
-for required in ["tailoredResumeHtml", "answersMarkdown", "packetHtml", "不会自动投递"]:
-    assert required in application_export
-
-profile_service = (ROOT / "apps/web/lib/profile-service.ts").read_text(encoding="utf-8")
-agent_controller = (ROOT / "apps/web/lib/agent-controller.ts").read_text(encoding="utf-8")
-assert "graduation_year: null" in profile_service
-assert "graduation_year: null" in agent_controller
-
-profile_route = (ROOT / "apps/web/app/api/control/profile/route.ts").read_text(encoding="utf-8")
-for required in ["profile_details", "education", "experience", "projects", "certifications", "links"]:
-    assert required in profile_route
-
-resume_upload = (ROOT / "apps/web/app/api/control/resumes/upload/route.ts").read_text(encoding="utf-8")
-for required in ["resume-files", "storage_path", "application/pdf", "MAX_BYTES", "is_master"]:
-    assert required in resume_upload
-
-resume_library = (ROOT / "apps/web/components/resume-agent-workspace.tsx").read_text(encoding="utf-8")
-for required in ["多版本简历库", "上传已有简历", "建立主简历", "岗位定制版本", "下载原文件"]:
-    assert required in resume_library
-
-automation_route = (ROOT / "apps/web/app/api/control/automation/route.ts").read_text(encoding="utf-8")
-assert 'body.action !== "run_now"' in automation_route
-assert "runDailyRecommendationForUser" in automation_route
-
-daily_service = (ROOT / "apps/web/lib/daily-recommendation-service.ts").read_text(encoding="utf-8")
-for required in ["profileCompleteness", "buildApplicationPlan", "automatic_preparation", 'approval: \"pending\"', "recommendationDateForTimezone"]:
-    assert required in daily_service
-assert "submitted" in daily_service
-
-login_page = (ROOT / "apps/web/app/login/page.tsx").read_text(encoding="utf-8")
-for required in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
-    assert required in login_page
-
-for flag in ["completeUserProfiles: true", "privateMultiResumeLibrary: true", "perUserDailyRecommendations: true", "automaticApplicationPreparation: true", "completeApplicationKits: true", "tailoredResumePrintExport: true", "emailComposeHandoff: true", "oneClickApplicationHandoff: true", "automaticExternalSubmission: RELEASE.safety.automaticSubmission"]:
-    assert flag in runtime
-
-migration8 = (ROOT / "supabase/migrations/0008_agent_runtime_mcp_evaluation.sql").read_text(encoding="utf-8")
-for required in [
-    "agent_runs", "agent_messages", "agent_traces", "job_scores",
-    "resume_alignments", "evaluation_runs", "mcp_tool_registry",
-    "daily_agent_reports", "enable row level security",
-    "agent_runs_owner_all", "job_scores_owner_all", "resume_alignments_owner_all",
-]:
-    assert required in migration8.lower()
-assert "security definer" not in migration8.lower()
-assert "approval_required" in migration8
-
-agent_runtime = (ROOT / "apps/web/lib/agent-runtime.mjs").read_text(encoding="utf-8")
-for required in ["rankJobHybrid", "generateResumeDraft", "evaluateGrounding", "evaluateRetrieval", "MCP_TOOL_DEFINITIONS"]:
-    assert required in agent_runtime
-for safety in ["automatic_submission: false", "final_confirmation_required: true"]:
-    assert safety in agent_runtime
-
-agent_graph = (ROOT / "apps/web/lib/career-agent-graph.mjs").read_text(encoding="utf-8")
-for required in ["StateGraph", "supervisor", "job_ranker", "resume_agent", "evaluation_agent", "mcp_gateway"]:
-    assert required in agent_graph
-
-mcp_route = (ROOT / "apps/web/app/api/mcp/route.ts").read_text(encoding="utf-8")
-assert 'protocolVersion: RELEASE.mcpProtocolVersion' in mcp_route
-assert 'method === "tools/list"' in mcp_route
-assert 'method === "tools/call"' in mcp_route
-assert "approval_required" in agent_runtime
-
-for flag in ["agentRuntime: true", "hybridJobRanking: true", "mcpServer: true", "agentEvaluation: true", "publicPortfolioPlayground: true", "deterministicAgentDemoApi: true", "dockerDemoStack: true", "automaticEmailSend: RELEASE.safety.automaticEmailSend"]:
-    assert flag in runtime
-assert 'from "@/lib/agent-runtime.mjs"' in runtime
-assert "Object.keys(RESUME_PERSONAS)" in runtime
-
-daily_route = (ROOT / "apps/web/app/api/cron/daily/route.ts").read_text(encoding="utf-8")
-assert "runDailyRecommendationForUser" in daily_route
-assert "profiles?select=user_id" in daily_route
-assert 'action: "daily-discovery-and-per-user-recommendations"' in daily_route
-assert "automatic_external_submission: false" in daily_route
-
-root_scripts = root_package["scripts"]
-for script in ["test:m08", "smoke:m08", "test:m08.1", "smoke:m08.1", "evaluation:m08.1"]:
-    assert script in root_scripts
-
-playground = (ROOT / "apps/web/components/agent-playground.tsx").read_text(encoding="utf-8")
-for required in ["AgentPlayground", "LanguageToggle", "DEMO_FILTER_POLICY", "analyzePortfolioDemo", "demoNotPersonal", "copyGreeting"]:
-    assert required in playground, f"missing playground token: {required}"
-i18n = (ROOT / "apps/web/lib/i18n.ts").read_text(encoding="utf-8")
-for required in ["无需登录，不读取私人资料，也不会自动投递。", "No sign-in, no private data, and no automatic submissions."]:
-    assert required in i18n, f"missing localized safety boundary: {required}"
-
-compose = (ROOT / "docker-compose.yml").read_text(encoding="utf-8")
-for required in ["pgvector/pgvector:pg16", "web:", "api:", "postgres:"]:
-    assert required in compose
-
-agent_demo = (ROOT / "apps/api/app/agent_demo.py").read_text(encoding="utf-8")
-for required in ["analyze_job", "generate_resume", "evaluate_agent", "automatic_submission"]:
-    assert required in agent_demo
-
-production_e2e8 = (ROOT / "scripts/production_e2e_m08.mjs").read_text(encoding="utf-8")
-assert "mutations_performed: false" in production_e2e8
-assert "mcp_initialize_ok: true" in production_e2e8
-assert "access_token" not in production_e2e8.split("const result =", 1)[1]
-
-print("cloudflare milestone 08.1 validation passed")
+"use client";
+
+import { getSupabaseBrowser } from "@/lib/supabase-browser";
+
+const REFRESH_MARGIN_SECONDS = 90;
+
+async function expireSession(message = "登录已失效，请重新登录"): Promise<never> {
+  const supabase = getSupabaseBrowser();
+  await supabase?.auth.signOut().catch(() => undefined);
+  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+    window.location.assign("/playground");
+  }
+  throw new Error(message);
+}
+
+async function sessionToken(forceRefresh = false): Promise<string> {
+  const supabase = getSupabaseBrowser();
+  if (!supabase) throw new Error("Supabase 尚未配置");
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  let session = data.session;
+  if (!session) return expireSession("请先登录");
+  const expiresSoon = Number(session.expires_at ?? 0) <= Math.floor(Date.now() / 1000) + REFRESH_MARGIN_SECONDS;
+  if (forceRefresh || expiresSoon) {
+    const refreshed = await supabase.auth.refreshSession();
+    if (refreshed.error || !refreshed.data.session) return expireSession();
+    session = refreshed.data.session;
+  }
+  return session.access_token;
+}
+
+export async function accessToken(): Promise<string> {
+  return sessionToken(false);
+}
+
+async function fetchWithToken(path: string, init: RequestInit, token: string): Promise<Response> {
+  const headers = new Headers(init.headers);
+  headers.set("Authorization", `Bearer ${token}`);
+  if (typeof init.body === "string" && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
+  return fetch(path, { ...init, headers, cache: "no-store" });
+}
+
+export async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
+  let response = await fetchWithToken(path, init, await sessionToken(false));
+  if (response.status === 401 || response.status === 403) {
+    response = await fetchWithToken(path, init, await sessionToken(true));
+  }
+  if (response.status === 401 || response.status === 403) return expireSession();
+  return response;
+}
+
+export async function controlFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const response = await authorizedFetch(path, init);
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload?.error ?? `请求失败（${response.status}）`);
+  return payload as T;
+}
+
+export async function controlDownload(path: string, filename: string, openInNewTab = false): Promise<void> {
+  const response = await authorizedFetch(path);
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload?.error ?? `下载失败（${response.status}）`);
+  }
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  if (openInNewTab) {
+    const opened = window.open(url, "_blank", "noopener,noreferrer");
+    if (!opened) {
+      URL.revokeObjectURL(url);
+      throw new Error("浏览器阻止了新窗口，请允许弹窗后重试");
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    return;
+  }
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

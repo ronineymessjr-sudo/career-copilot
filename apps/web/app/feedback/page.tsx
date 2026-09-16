@@ -314,7 +314,7 @@ export default function FeedbackPage() {
               <MessageSquare size={48} />
               <h3>查看反馈历史需要登录</h3>
               <p>登录后可以看到你提交过的所有反馈记录。</p>
-              <Link href="/login" className="feedback-page__login-btn">去登录</Link>
+              <Link href="/playground" className="feedback-page__login-btn">返回工作台</Link>
             </div>
           ) : (
             <>

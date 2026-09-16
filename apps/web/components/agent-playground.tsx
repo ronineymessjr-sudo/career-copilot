@@ -197,7 +197,7 @@ export function AgentPlayground() {
       <WorkspaceBrand href="/playground"/>
       <nav aria-label={t("publicExperience")}><a href="#demo">{t("publicNavAnalysis")}</a><a href="#methods" onClick={() => { const details = document.getElementById("methods") as HTMLDetailsElement | null; if (details) details.open = true; }}>{t("publicNavMethods")}</a></nav>
       <div className="cc-public-availability"><span aria-hidden="true"/>{t("publicReady")}</div>
-      <span className="cc-public-actions"><LanguageToggle/><Link href="/login?next=%2Fdashboard" className="cc-button cc-button-primary">{t("signInWorkspace")} <ArrowRight size={16}/></Link></span>
+      <span className="cc-public-actions"><LanguageToggle/></span>
     </header>
     <section className="cc-public-intro">
       <WorkspaceHeading title={t("publicHeadline")} description={t("publicIntro")}/>
@@ -236,7 +236,7 @@ export function AgentPlayground() {
               <p className="cc-note">{t("recommendedDirection")}</p><h4>{displayPersona}</h4><p>{displayEmphasis.join(locale === "en" ? "; " : "；")}</p><p className="cc-note">{(result.resume?.alignment?.explanation ?? []).slice(1, 3).map(localizedDemoText).join(locale === "en" ? "; " : "；")}</p>
               <section className="cc-greeting"><strong>{t("greetingExample")}</strong><p>{displayedGreeting}</p><button className="cc-button" type="button" onClick={() => void copyGreeting()}>{copied ? <Check size={16}/> : <Clipboard size={16}/>}{copied ? t("copied") : t("copyGreeting")}</button><p className="cc-note">{t("demoNotPersonal")}</p>{copyError ? <p className="cc-error" role="alert">{copyError}</p> : null}</section>
             </div>
-            <div className="cc-result-next"><button className="cc-button" type="button" onClick={() => { setResultTab(1); tabButtons.current[1]?.focus(); }}>{t("viewMaterial")} <ArrowRight size={16}/></button><Link href="/login?next=%2Fdashboard" className="cc-link">{t("loginForProfile")} <ArrowRight size={16}/></Link><span className="cc-note">{t("verifyBeforeResume")}</span></div>
+            <div className="cc-result-next"><button className="cc-button" type="button" onClick={() => { setResultTab(1); tabButtons.current[1]?.focus(); }}>{t("viewMaterial")} <ArrowRight size={16}/></button><span className="cc-note">{t("verifyBeforeResume")}</span></div>
           </> : <WorkspaceState tone={analysisState === "loading" ? "loading" : analysisState === "error" ? "error" : "empty"} title={analysisState === "loading" ? t("analysis") : analysisState === "error" ? (locale === "en" ? "This analysis did not finish" : "这次分析没有完成") : (locale === "en" ? "Waiting for a new analysis" : "等待分析新输入")} description={analysisError || (locale === "en" ? "The job description changed. Run analysis to see a new result." : "岗位描述已修改。点击“分析岗位”，再查看新的匹配结果。")} action={analysisState === "error" ? <button className="cc-button" type="button" onClick={() => void analyze()}>{locale === "en" ? "Retry" : "重试分析"}</button> : undefined}/>}</section>
       </div>
     </section>
@@ -247,7 +247,7 @@ export function AgentPlayground() {
         {batch.rows.map((row: Row) => <article className="cc-batch-row" key={row.id}><div><strong>{row.title}</strong><p>{row.company} · {[row.job?.city, row.job?.salary].filter(Boolean).join(" · ")}</p></div><span>{row.decision === "keep" ? t("kept") : row.decision === "skip_duplicate" ? t("skipDuplicate") : t("skipCondition")}</span><details><summary>{t("viewReason")}</summary>{(row.trace?.checks ?? []).map((check: Row) => <p key={check.key}>{check.label}：{check.detail}</p>)}<p>{t("dedupe")}：{row.trace?.dedupe?.detail}</p><p>{t("history")}：{row.trace?.history?.detail}</p><p>{t("pacing")}：{row.trace?.pacing?.detail}</p></details></article>)}
       </WorkspaceDisclosure>
       <WorkspaceDisclosure id="methods" title={t("methodsTitle")} description={t("methodsDescription")}>
-        <div className="cc-methods"><section><h3>{t("fromDemo")}</h3><ol><li>{t("method1")}</li><li>{t("method2")}</li><li>{t("method3")}</li></ol><p>{t("demoBoundary")}</p><Link className="cc-link" href="/login?next=%2Fdashboard">{t("enterWorkspace")} <ArrowRight size={16}/></Link></section><section><h3>{t("techEvaluation")}</h3><p>{t("techDescription")}</p><p>{t("evalDescription")}</p><a className="cc-link" href="https://github.com/ronineymessjr-sudo/career-copilot/blob/main/docs/agent-evaluation-report.md" target="_blank" rel="noreferrer">{t("evalDoc")} <ArrowRight size={16}/></a></section></div>
+        <div className="cc-methods"><section><h3>{t("fromDemo")}</h3><ol><li>{t("method1")}</li><li>{t("method2")}</li><li>{t("method3")}</li></ol><p>{t("demoBoundary")}</p></section><section><h3>{t("techEvaluation")}</h3><p>{t("techDescription")}</p><p>{t("evalDescription")}</p><a className="cc-link" href="https://github.com/ronineymessjr-sudo/career-copilot/blob/main/docs/agent-evaluation-report.md" target="_blank" rel="noreferrer">{t("evalDoc")} <ArrowRight size={16}/></a></section></div>
       </WorkspaceDisclosure>
     </div>
     <footer className="cc-public-footer"><span>Career Copilot · {t("publicFooter")}</span><Link href="/updates">{t("updates")}</Link><Link href="/privacy">{t("privacy")}</Link></footer>

@@ -19,7 +19,7 @@ export default function PrivacyPage() {
   return <main className="release-page">
     <header className="release-nav">
       <Link href="/playground" className="release-brand"><span><Sparkles size={16}/></span><div><strong>Career Copilot</strong><small>AI Career Intelligence Agent Platform</small></div></Link>
-      <nav><Link href="/playground">公开体验</Link><Link href="/login" className="release-nav-cta">进入控制台 <ArrowRight size={14}/></Link></nav>
+      <nav><Link href="/playground">公开体验</Link></nav>
     </header>
 
     <section className="release-hero">
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
         <span className="eyebrow">PRIVACY & DATA BOUNDARIES</span>
         <h1>先讲清楚数据边界，<em>再让 Agent 帮你做事。</em></h1>
         <p>Career Copilot 将公开演示、个人工作台和外部投递动作分开。你可以先验证系统如何分析岗位，再决定是否登录和使用自己的资料。</p>
-        <div className="release-actions"><Link href="/playground" className="primary-button">运行公开 Demo <ArrowRight size={14}/></Link><Link href="/login" className="ghost-button">登录控制台</Link></div>
+        <div className="release-actions"><Link href="/playground" className="primary-button">运行公开 Demo <ArrowRight size={14}/></Link></div>
       </div>
       <aside className="release-proof"><div><ShieldCheck size={18}/><strong>默认安全边界</strong></div><p>没有私人证据就不生成个人化事实；没有人工确认就不执行外部写操作。</p><div className="release-proof-list"><span><CheckCircle2 size={14}/>公开 Demo 不读私人资料</span><span><CheckCircle2 size={14}/>账号数据按用户隔离</span><span><CheckCircle2 size={14}/>外部提交需要确认</span></div></aside>
     </section>

@@ -7,12 +7,6 @@ import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 type GateState = "checking" | "ready" | "public" | "unconfigured" | "failed";
 
-function loginUrl(reason = "session_expired") {
-  if (typeof window === "undefined") return "/login";
-  const next = `${window.location.pathname}${window.location.search}`;
-  return `/login?reason=${encodeURIComponent(reason)}&next=${encodeURIComponent(next)}`;
-}
-
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<GateState>("checking");
   const [error, setError] = useState("");
@@ -103,7 +97,6 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         <p>直接粘贴岗位描述，查看确定性评分、项目证据和简历适配。公开体验不读取私人资料，也不会发送或投递。</p>
         <div className="card-actions">
           <Link className="primary-button" href="/playground">打开工作台</Link>
-          <Link className="ghost-button" href={loginUrl("login_required")}>进入私有控制台</Link>
           <Link className="link-button" href="/privacy">隐私与数据边界</Link>
         </div>
       </div>
@@ -129,7 +122,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         <p>{error || "登录有效，但控制接口暂时不可用。"}</p>
         <div className="card-actions">
           <button className="primary-button" type="button" onClick={() => setRetry((value) => value + 1)}><RefreshCw size={14}/>重新验证</button>
-          <Link className="ghost-button" href={loginUrl("session_expired")}>重新登录</Link>
+          <Link className="ghost-button" href="/playground">返回公开工作台</Link>
         </div>
       </div>
     </section>;

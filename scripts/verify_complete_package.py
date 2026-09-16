@@ -125,8 +125,9 @@ for token in ["打开完整材料包", "打开排版简历 / 保存 PDF", "真�
     assert token in applications_ui
 
 login = (ROOT / "apps/web/app/login/page.tsx").read_text(encoding="utf-8")
-for token in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
-    assert token in login
+assert 'redirect("/playground")' in login
+for removed in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
+    assert removed not in login
 
 resume_library = (ROOT / "apps/web/components/resume-agent-workspace.tsx").read_text(encoding="utf-8")
 for token in ["多版本简历库", "上传已有简历", "建立主简历", "岗位定制版本"]:

@@ -17,7 +17,7 @@ export function ReleaseNotesPage() {
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}/>
     <header className="release-nav">
       <Link href="/playground" className="release-brand"><span><Sparkles size={16}/></span><div><strong>Career Copilot</strong><small>AI Career Intelligence Agent Platform</small></div></Link>
-      <nav><Link href="/playground">公开体验</Link><Link href="/privacy">隐私边界</Link><Link href="/login" className="release-nav-cta">进入控制台 <ArrowRight size={14}/></Link></nav>
+      <nav><Link href="/playground">公开体验</Link><Link href="/privacy">隐私边界</Link></nav>
     </header>
 
     <section className="release-hero">
