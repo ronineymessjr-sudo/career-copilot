@@ -6,14 +6,33 @@ import { controlFetch } from "@/lib/control-client";
 
 type Row = Record<string, any>;
 const STAGE_LABELS: Record<string, string> = { prepared: "已准备", submitted: "已投递", replied: "已回复", interviewed: "已面试", offered: "Offer", discovered: "发现岗位", recommended: "被推荐", viewed_or_saved: "查看或收藏", materials_ready: "材料完成", interview: "进入面试", offer: "Offer" };
+const DEMO_ANALYTICS: Row = {
+  analytics: {
+    metrics: { submitted: 0, replies: 0, interviews: 0, offers: 0, reply_rate: 0, interview_rate: 0, offer_rate: 0 },
+    funnel: [
+      { stage: "discovered", count: 12, conversion_from_previous: 100 },
+      { stage: "recommended", count: 6, conversion_from_previous: 50 },
+      { stage: "viewed_or_saved", count: 3, conversion_from_previous: 50 },
+      { stage: "materials_ready", count: 2, conversion_from_previous: 67 },
+      { stage: "submitted", count: 0, conversion_from_previous: 0 },
+    ],
+  },
+  observability: { failure_count: 0, recent_failures: [] },
+  source_health: { failures_last_10: 0 },
+  open_skill_gaps: [],
+};
 
 function RateTable({ title, rows }: { title: string; rows: Row[] }) {
   return <section className="analytics-table"><h3>{title}</h3><div className="analytics-table-head"><span>维度</span><span>样本</span><span>回复率</span><span>面试率</span><span>Offer率</span></div>{rows.length ? rows.slice(0, 8).map((row) => <div className="analytics-table-row" key={row.key}><strong>{row.label}</strong><span>{row.applications}</span><span>{row.reply_rate}%</span><span>{row.interview_rate}%</span><span>{row.offer_rate}%</span></div>) : <p className="muted-copy">样本不足。</p>}</section>;
 }
 
-export function AnalyticsWorkspace({ compact = false }: { compact?: boolean }) {
+export function AnalyticsWorkspace({ compact = false, demo = false }: { compact?: boolean; demo?: boolean }) {
   const [days, setDays] = useState(90); const [data, setData] = useState<Row | null>(null); const [reviews, setReviews] = useState<Row[]>([]); const [message, setMessage] = useState(""); const [busy, setBusy] = useState(false);
   const load = useCallback(async () => {
+    if (demo) {
+      setData(DEMO_ANALYTICS); setReviews([]); setMessage("");
+      return;
+    }
     try {
       const [analytics, weekly] = await Promise.all([
         controlFetch<Row>(`/api/control/analytics?days=${days}`),
@@ -21,12 +40,15 @@ export function AnalyticsWorkspace({ compact = false }: { compact?: boolean }) {
       ]);
       setData(analytics); setReviews(weekly.weekly_reviews ?? []); setMessage("");
     } catch (error) { setMessage(error instanceof Error ? error.message : "加载失败"); }
-  }, [days]);
+  }, [days, demo]);
   useEffect(() => { void load(); }, [load]);
   const metrics = data?.analytics?.metrics ?? {};
   const funnel = useMemo(() => data?.analytics?.funnel ?? [], [data?.analytics?.funnel]);
   const maxCount = useMemo(() => Math.max(1, ...funnel.map((item: Row) => Number(item.count ?? 0))), [funnel]);
-  async function generateReview() { setBusy(true); try { await controlFetch("/api/control/weekly-review", { method: "POST" }); setMessage("本周复盘已重新生成。"); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : "生成失败"); } finally { setBusy(false); } }
+  async function generateReview() {
+    if (demo) { setMessage("登录后可生成个人复盘；当前显示的是只读示例数据。"); return; }
+    setBusy(true); try { await controlFetch("/api/control/weekly-review", { method: "POST" }); setMessage("本周复盘已重新生成。"); await load(); } catch (error) { setMessage(error instanceof Error ? error.message : "生成失败"); } finally { setBusy(false); }
+  }
   return <section className={compact ? "analytics-workspace compact" : "control-panel analytics-workspace"}>
     {!compact ? <header className="control-heading"><div><span className="eyebrow">Conversion and operations</span><h2>数据洞察</h2><p>先看投递转化，再看系统健康；详细拆分按需展开。</p></div><div className="heading-actions"><select className="window-select" value={days} onChange={(event) => setDays(Number(event.target.value))}><option value={30}>近 30 天</option><option value={90}>近 90 天</option><option value={365}>近一年</option><option value={0}>全部</option></select><button className="icon-button" onClick={() => void load()}><RefreshCw size={15}/></button></div></header> : null}
     {message ? <div className="control-message">{message}</div> : null}
