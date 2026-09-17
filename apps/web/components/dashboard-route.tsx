@@ -1,19 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Dashboard } from "@/components/dashboard";
 import { OperationsDashboard } from "@/components/operations-dashboard";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
-type View = "guest" | "member";
+type View = "demo" | "member";
 
 /**
- * The home route must remain useful before sign-in. Anonymous visitors get a
- * complete, read-only sample workspace; a valid Supabase session upgrades the
- * same route to the private, data-backed operations dashboard.
+ * /dashboard is always the full workbench. Anonymous visitors see the same
+ * layout with deterministic read-only sample analytics; a valid Supabase
+ * session upgrades that workbench to the private, data-backed view. The
+ * lightweight public preview lives at /playground and must not replace this
+ * route.
  */
 export function DashboardRoute() {
-  const [view, setView] = useState<View>("guest");
+  const [view, setView] = useState<View>("demo");
 
   useEffect(() => {
     const supabase = getSupabaseBrowser();
@@ -26,11 +27,11 @@ export function DashboardRoute() {
       if (session && expiresSoon) {
         session = (await supabase.auth.refreshSession()).data.session;
       }
-      if (active) setView(session ? "member" : "guest");
+      if (active) setView(session ? "member" : "demo");
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (active) setView(session ? "member" : "guest");
+      if (active) setView(session ? "member" : "demo");
     });
     return () => {
       active = false;
@@ -38,5 +39,5 @@ export function DashboardRoute() {
     };
   }, []);
 
-  return view === "member" ? <OperationsDashboard /> : <Dashboard />;
+  return <OperationsDashboard demo={view !== "member"} />;
 }
