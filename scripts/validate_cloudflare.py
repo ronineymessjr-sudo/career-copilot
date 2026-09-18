@@ -495,7 +495,7 @@ for required in ["profileCompleteness", "buildApplicationPlan", "automatic_prepa
 assert "submitted" in daily_service
 
 login_page = (ROOT / "apps/web/app/login/page.tsx").read_text(encoding="utf-8")
-assert 'redirect("/playground")' in login_page
+assert 'redirect("/dashboard")' in login_page
 for removed in ["signInWithPassword", "signUp", "resetPasswordForEmail", "PASSWORD_RECOVERY", "updateUser"]:
     assert removed not in login_page
 

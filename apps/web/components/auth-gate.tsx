@@ -101,7 +101,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     : state === "checking"
       ? "正在检查个人数据连接；页面结构和功能入口不会被公开 Demo 替换。"
       : state === "unconfigured"
-        ? "Supabase 尚未配置，当前展示完整页面结构；连接数据后即可使用个人工作流。"
+        ? "Supabase 尚未配置；请完成包内全部迁移（按文件名顺序）后，当前完整页面即可连接个人工作流。"
         : isError
           ? error || "控制接口暂时不可用，页面仍保留在当前工作区。"
           : "当前为只读访客状态，完整页面保持可见；需要个人数据的读取和写入操作时再登录。";
