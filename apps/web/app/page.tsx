@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { AgentPlayground } from "@/components/agent-playground";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "Career Copilot｜公开体验",
-  description: "无需登录体验岗位分析、匹配评分、风险缺口和简历方向建议。",
-  alternates: { languages: { "zh-CN": "/", en: "/?lang=en" } },
+  title: "Career Copilot｜完整求职工作台",
+  description: "Career Copilot 完整求职工作台：岗位发现、简历版本、证据匹配、面试准备与投递管理。",
+  alternates: { languages: { "zh-CN": "/dashboard", en: "/dashboard?lang=en" } },
   openGraph: {
-    title: "Career Copilot｜公开体验",
-    description: "无需登录体验岗位分析、匹配评分、风险缺口和简历方向建议。",
+    title: "Career Copilot｜完整求职工作台",
+    description: "岗位发现、简历版本、证据匹配、面试准备与投递管理。",
     type: "website",
   },
 };
 
-export default function Home() { return <AgentPlayground/>; }
+export default function Home() { redirect("/dashboard"); }

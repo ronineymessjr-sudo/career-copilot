@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
@@ -87,45 +86,31 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     };
   }, [retry, validateSession]);
 
-  if (state === "ready") return <>{children}</>;
-  if (state === "public") {
-    return <section className="auth-state-card auth-public-card">
-      <ShieldCheck size={24}/>
-      <div>
-        <strong className="auth-state-label">公开工作台</strong>
-        <h2>无需账号即可开始</h2>
-        <p>直接粘贴岗位描述，查看确定性评分、项目证据和简历适配。公开体验不读取私人资料，也不会发送或投递。</p>
-        <div className="card-actions">
-          <Link className="primary-button" href="/playground">打开工作台</Link>
-          <Link className="link-button" href="/privacy">隐私与数据边界</Link>
-        </div>
-      </div>
-    </section>;
-  }
-  if (state === "unconfigured") {
-    return <section className="auth-state-card">
-      <ShieldCheck size={24}/>
-      <div>
-        <strong className="auth-state-label">需要配置</strong>
-        <h2>Supabase 尚未连接</h2>
-        <p>配置公开 URL、Publishable Key，并执行 包内全部迁移（按文件名顺序）后，岗位与投递控制台才会开放。</p>
-        <Link className="ghost-button" href="/settings">查看部署设置</Link>
-      </div>
-    </section>;
-  }
-  if (state === "failed") {
-    return <section className="auth-state-card">
-      <ShieldAlert size={24}/>
-      <div>
-        <strong className="auth-state-label">连接异常</strong>
-        <h2>控制台连接失败</h2>
-        <p>{error || "登录有效，但控制接口暂时不可用。"}</p>
-        <div className="card-actions">
-          <button className="primary-button" type="button" onClick={() => setRetry((value) => value + 1)}><RefreshCw size={14}/>重新验证</button>
-          <Link className="ghost-button" href="/playground">返回公开工作台</Link>
-        </div>
-      </div>
-    </section>;
-  }
-  return <section className="auth-state-card"><div className="loading-dot"/><div><h2>正在验证登录与数据库连接</h2><p>只有控制接口确认有效后才会开放操作按钮。</p></div></section>;
+  const isError = state === "failed";
+  const title = state === "ready"
+    ? "个人数据已连接"
+    : state === "checking"
+      ? "完整工作台已打开"
+      : state === "unconfigured"
+        ? "完整工作台已打开"
+        : isError
+          ? "完整工作台已打开"
+          : "访客工作台已打开";
+  const description = state === "ready"
+    ? "当前页面使用你的个人数据；岗位、简历和投递操作会写入当前账号。"
+    : state === "checking"
+      ? "正在检查个人数据连接；页面结构和功能入口不会被公开 Demo 替换。"
+      : state === "unconfigured"
+        ? "Supabase 尚未配置，当前展示完整页面结构；连接数据后即可使用个人工作流。"
+        : isError
+          ? error || "控制接口暂时不可用，页面仍保留在当前工作区。"
+          : "当前为只读访客状态，完整页面保持可见；需要个人数据的读取和写入操作时再登录。";
+
+  return <div className="auth-gate-shell">
+    {state !== "ready" ? <div className={`platform-notice ${isError ? "warn" : "neutral"}`} role={isError ? "alert" : "status"}>
+      {isError ? <ShieldAlert size={18}/> : <ShieldCheck size={18}/>}<span><strong>{title}</strong><small>{description}</small></span>
+      {isError ? <button className="ghost-button compact" type="button" onClick={() => setRetry((value) => value + 1)}><RefreshCw size={14}/>重新验证</button> : null}
+    </div> : null}
+    {children}
+  </div>;
 }
