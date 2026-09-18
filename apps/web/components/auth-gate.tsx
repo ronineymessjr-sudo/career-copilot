@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
 
 type GateState = "checking" | "ready" | "public" | "unconfigured" | "failed";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [state, setState] = useState<GateState>("checking");
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -109,6 +112,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   return <div className="auth-gate-shell">
     {state !== "ready" ? <div className={`platform-notice ${isError ? "warn" : "neutral"}`} role={isError ? "alert" : "status"}>
       {isError ? <ShieldAlert size={18}/> : <ShieldCheck size={18}/>}<span><strong>{title}</strong><small>{description}</small></span>
+      {state === "public" ? <Link className="ghost-button compact" href={`/login?next=${encodeURIComponent(pathname || "/dashboard")}`}>连接个人账号</Link> : null}
       {isError ? <button className="ghost-button compact" type="button" onClick={() => setRetry((value) => value + 1)}><RefreshCw size={14}/>重新验证</button> : null}
     </div> : null}
     {children}

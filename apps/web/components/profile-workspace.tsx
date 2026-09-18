@@ -118,6 +118,9 @@ export function ProfileWorkspace() {
     }
   }
 
+  if (!profile && message) return <section className="platform-workspace">
+    <div className="platform-notice warn" role="alert"><CircleAlert size={18}/><span><strong>个人画像尚未连接</strong><small>{message}。登录后会读取当前账号已有的画像、简历和投递记录，不会创建新的访客资料。</small></span><Link className="ghost-button compact" href={`/login?next=${encodeURIComponent("/profile")}`}>登录个人账号</Link></div>
+  </section>;
   if (!profile) return <section className="platform-workspace"><div className="platform-loading"><RefreshCw size={18}/>正在加载画像…</div></section>;
 
   return <section className="platform-workspace">
