@@ -7,9 +7,6 @@ const REFRESH_MARGIN_SECONDS = 90;
 async function expireSession(message = "登录已失效，请重新登录"): Promise<never> {
   const supabase = getSupabaseBrowser();
   await supabase?.auth.signOut().catch(() => undefined);
-  if (typeof window !== "undefined" && window.location.pathname !== "/login") {
-    window.location.assign("/playground");
-  }
   throw new Error(message);
 }
 

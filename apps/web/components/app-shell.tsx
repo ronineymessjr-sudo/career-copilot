@@ -57,7 +57,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
   useEffect(() => { if (activeResource) setResourcesOpen(true); }, [activeResource]);
   useEffect(() => { setMobileOpen(false); }, [pathname]);
-  async function signOut() { const supabase = getSupabaseBrowser(); await supabase?.auth.signOut(); router.replace("/playground"); }
+  async function signOut() { const supabase = getSupabaseBrowser(); await supabase?.auth.signOut(); router.replace("/dashboard"); }
   return <div className="platform-frame">
     <a href="#workspace-content" className="cc-skip">{t("skipToMain")}</a>
     <aside className="platform-sidebar">
@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div>{resourceNav.map(([href, labelKey, Icon]) => <Link key={href} href={href} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/><span>{t(labelKey)}</span></Link>)}</div>
         </details>
       </nav>
-      <div className="platform-sidebar-account"><span><UserRound size={16}/><small title={email || t("guestAccount")}>{email || t("guestAccount")}</small></span>{email ? <button type="button" onClick={() => void signOut()}><LogOut size={15}/>{t("signOut")}</button> : <Link className="platform-sidebar-signin" href="/login">{t("signInWorkspace")}</Link>}</div>
+      <div className="platform-sidebar-account"><span><UserRound size={16}/><small title={email || t("guestAccount")}>{email || t("guestAccount")}</small></span>{email ? <button type="button" onClick={() => void signOut()}><LogOut size={15}/>{t("signOut")}</button> : <Link className="platform-sidebar-signin" href="/dashboard">{t("signInWorkspace")}</Link>}</div>
     </aside>
     <div className="platform-content">
       <header className="cc-mobile-nav" onKeyDown={(event) => { if (event.key === "Escape") { setMobileOpen(false); document.getElementById("workspace-menu-toggle")?.focus(); } }}>
@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {primaryNav.map(([href, labelKey, Icon]) => <Link key={href} href={href} onClick={() => setMobileOpen(false)} aria-label={href === "/jobs" ? `${t("jobs")}, ${t("workspace")}` : undefined} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/>{t(labelKey)}</Link>)}
           <small>{t("resources")}</small>
           {resourceNav.map(([href, labelKey, Icon]) => <Link key={href} href={href} onClick={() => setMobileOpen(false)} aria-current={isActive(pathname, href) ? "page" : undefined} className={isActive(pathname, href) ? "platform-nav-item active" : "platform-nav-item"}><Icon size={17}/>{t(labelKey)}</Link>)}
-          {email ? <button className="cc-button" type="button" onClick={() => void signOut()}><LogOut size={16}/>{t("signOut")}</button> : <Link className="cc-button" href="/login">{t("signInWorkspace")}</Link>}
+          {email ? <button className="cc-button" type="button" onClick={() => void signOut()}><LogOut size={16}/>{t("signOut")}</button> : <Link className="cc-button" href="/dashboard">{t("signInWorkspace")}</Link>}
         </nav>
       </header>
       <main id="workspace-content" className="platform-main">{children}</main>
