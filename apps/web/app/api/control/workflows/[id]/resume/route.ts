@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Command } from "@langchain/langgraph";
 import { normalizeWorkflowDecision } from "@/lib/knowledge-rules.mjs";
 import { buildEvidencePromotionGraph } from "@/lib/evidence-promotion-graph.mjs";
-import { ensureProfile } from "@/lib/profile-service";
+import { requireProfile } from "@/lib/profile-service";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 function jsonSafe(value: unknown) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const resolution: Record<string, any> = result?.resolution ?? { status: "rejected", decision, evidence: null, automatic_promotion: false };
     let createdEvidence: Record<string, any> | null = null;
     if (resolution.status === "completed" && resolution.evidence) {
-      const profile = await ensureProfile(auth);
+      const profile = await requireProfile(auth);
       const payload = {
         profile_id: profile.id,
         skill: resolution.evidence.skill,

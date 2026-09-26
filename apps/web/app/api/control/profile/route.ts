@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DEFAULT_PROFILE_DETAILS, DEFAULT_PROFILE_PREFERENCES, normalizeProfile, profileCompleteness } from "@/lib/recommendation-profile.mjs";
-import { ensureProfile } from "@/lib/profile-service";
+import { createProfile, findProfile, profileExists } from "@/lib/profile-service";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 function stringList(value: unknown, limit = 30): string[] {
@@ -48,10 +48,23 @@ function recordList(value: unknown, limit = 20): Array<Record<string, string>> {
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticate(request);
-    const profile = await ensureProfile(auth);
+    if (request.nextUrl.searchParams.get("exists") === "1") {
+      return NextResponse.json({ ok: true, has_profile: await profileExists(auth), account: { email: auth.email } });
+    }
+    const profile = await findProfile(auth);
+    if (!profile) {
+      return NextResponse.json({
+        ok: true,
+        has_profile: false,
+        profile: null,
+        defaults: { preferences: DEFAULT_PROFILE_PREFERENCES, details: DEFAULT_PROFILE_DETAILS },
+        account: { email: auth.email },
+      });
+    }
     const normalized = normalizeProfile(profile);
     return NextResponse.json({
       ok: true,
+      has_profile: true,
       profile: normalized,
       completeness: profileCompleteness(normalized),
       defaults: { preferences: DEFAULT_PROFILE_PREFERENCES, details: DEFAULT_PROFILE_DETAILS },
@@ -62,10 +75,34 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function POST(request: NextRequest) {
+  try {
+    const auth = await authenticate(request);
+    const body = await request.json().catch(() => ({}));
+    if (body?.confirm_new_profile !== true) {
+      return NextResponse.json({ ok: false, error: "请先确认当前账号正确，再创建空白档案。" }, { status: 400 });
+    }
+    const profile = await createProfile(auth);
+    const normalized = normalizeProfile(profile);
+    return NextResponse.json({
+      ok: true,
+      has_profile: true,
+      profile: normalized,
+      completeness: profileCompleteness(normalized),
+      account: { email: auth.email },
+    });
+  } catch (error) {
+    return controlError(error);
+  }
+}
+
 export async function PATCH(request: NextRequest) {
   try {
     const auth = await authenticate(request);
-    const current = await ensureProfile(auth);
+    const current = await findProfile(auth);
+    if (!current) {
+      return NextResponse.json({ ok: false, error: "当前账号还没有个人档案。请先核对账号；确认是新档案后再创建。" }, { status: 409 });
+    }
     const body = await request.json();
     const currentNormalized = normalizeProfile(current);
     const preferences = body.preferences && typeof body.preferences === "object" && !Array.isArray(body.preferences)
@@ -77,6 +114,7 @@ export async function PATCH(request: NextRequest) {
     const nextPreferences = {
       target_roles: stringList(preferences.target_roles ?? currentNormalized.preferences.target_roles),
       locations: stringList(preferences.locations ?? currentNormalized.preferences.locations),
+      onsite_locations: stringList(preferences.onsite_locations ?? currentNormalized.preferences.onsite_locations),
       work_modes: stringList(preferences.work_modes ?? currentNormalized.preferences.work_modes, 6).filter((item) => ["remote", "hybrid", "onsite"].includes(item)),
       industries: stringList(preferences.industries ?? currentNormalized.preferences.industries),
       keywords: stringList(preferences.keywords ?? currentNormalized.preferences.keywords, 50),

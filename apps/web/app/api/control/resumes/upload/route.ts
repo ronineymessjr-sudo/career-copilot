@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ensureProfile } from "@/lib/profile-service";
+import { requireProfile } from "@/lib/profile-service";
 import { authenticate, controlError, dataRequest, storageJsonRequest } from "@/lib/supabase-control";
 
 const ALLOWED = new Set([
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     if (!ALLOWED.has(file.type)) return NextResponse.json({ ok: false, error: "仅支持 PDF、DOC、DOCX 或 TXT" }, { status: 422 });
     if (file.size <= 0 || file.size > MAX_BYTES) return NextResponse.json({ ok: false, error: "文件必须小于 10MB" }, { status: 422 });
 
-    const profile = await ensureProfile(auth);
+    const profile = await requireProfile(auth);
     const existing = await dataRequest<Array<Record<string, any>>>(auth, `resume_versions?select=version_no&profile_id=eq.${encodeURIComponent(String(profile.id))}&persona=eq.uploaded&order=version_no.desc&limit=1`);
     const versionNo = Number(existing[0]?.version_no ?? 0) + 1;
     const resumeId = crypto.randomUUID();

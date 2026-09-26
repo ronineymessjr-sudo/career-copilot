@@ -374,7 +374,9 @@ assert 'version="2.0.2"' in api_main
 assert '"version":"2.0.2"' in api_main
 
 auth_gate = (ROOT / "apps/web/components/auth-gate.tsx").read_text(encoding="utf-8")
-assert "包内全部迁移（按文件名顺序）" in auth_gate
+auth_gate_i18n = (ROOT / "apps/web/lib/i18n.ts").read_text(encoding="utf-8")
+assert 't("authGateUnconfiguredDescription")' in auth_gate
+assert "Supabase 尚未配置；个人数据功能需要服务端配置后才能连接。" in auth_gate_i18n
 assert (ROOT / "supabase/migrations/0011_daily_application_queue.sql").exists()
 assert (ROOT / "supabase/migrations/0014_complete_platform_job_pool.sql").exists()
 

@@ -3,44 +3,74 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
+import { CircleAlert, RefreshCw, ShieldAlert, ShieldCheck } from "lucide-react";
 import { getSupabaseBrowser } from "@/lib/supabase-browser";
+import { useLocale } from "@/components/locale-provider";
 
-type GateState = "checking" | "ready" | "public" | "unconfigured" | "failed";
+type GateState = "checking" | "ready" | "public" | "unconfigured" | "failed" | "needs-profile";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { t } = useLocale();
   const [state, setState] = useState<GateState>("checking");
   const [error, setError] = useState("");
+  const [accountEmail, setAccountEmail] = useState("");
+  const [confirmedNewProfile, setConfirmedNewProfile] = useState(false);
+  const [creatingProfile, setCreatingProfile] = useState(false);
   const [retry, setRetry] = useState(0);
 
   const validateSession = useCallback(async (session: any, active: () => boolean) => {
     const supabase = getSupabaseBrowser();
     if (!supabase || !active()) {
-      if (active()) setState("public");
+      if (active()) {
+        setAccountEmail("");
+        setState("public");
+      }
       return;
     }
     if (!session?.access_token) {
-      if (active()) setState("public");
+      if (active()) {
+        setAccountEmail("");
+        setState("public");
+      }
       return;
     }
     try {
+      const headers = { Authorization: `Bearer ${session.access_token}` };
       const response = await fetch("/api/control/session", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
+        headers,
         cache: "no-store",
       });
       if (response.status === 401 || response.status === 403) {
         await supabase.auth.signOut().catch(() => undefined);
-        if (active()) setState("public");
+        if (active()) {
+          setAccountEmail("");
+          setState("public");
+        }
         return;
       }
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
         throw new Error(payload?.error ?? `控制台验证失败（${response.status}）`);
       }
+      const profileResponse = await fetch("/api/control/profile?exists=1", { headers, cache: "no-store" });
+      if (profileResponse.status === 401 || profileResponse.status === 403) {
+        await supabase.auth.signOut().catch(() => undefined);
+        if (active()) {
+          setAccountEmail("");
+          setState("public");
+        }
+        return;
+      }
+      const profilePayload = await profileResponse.json().catch(() => ({}));
+      if (!profileResponse.ok) {
+        throw new Error(profilePayload?.error ?? `个人档案检查失败（${profileResponse.status}）`);
+      }
       if (active()) {
         setError("");
-        setState("ready");
+        setAccountEmail(profilePayload?.account?.email ?? session.user?.email ?? "");
+        setConfirmedNewProfile(false);
+        setState(profilePayload?.has_profile === true ? "ready" : "needs-profile");
       }
     } catch (validationError) {
       if (!active()) return;
@@ -76,10 +106,13 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
       if (!active) return;
       if (event === "SIGNED_OUT" || !session) {
+        setAccountEmail("");
+        setError("");
         setState("public");
         return;
       }
       if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        setState("checking");
         void validateSession(session, () => active);
       }
     });
@@ -89,32 +122,80 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     };
   }, [retry, validateSession]);
 
+  async function createProfile() {
+    const supabase = getSupabaseBrowser();
+    if (!supabase) return;
+    setCreatingProfile(true);
+    setError("");
+    try {
+      const { data, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+      if (!data.session?.access_token) throw new Error("登录状态已失效，请重新登录原账号。");
+      const response = await fetch("/api/control/profile", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${data.session.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ confirm_new_profile: true }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.error ?? `个人档案创建失败（${response.status}）`);
+      setState("ready");
+    } catch (createError) {
+      setError(createError instanceof Error ? createError.message : "个人档案创建失败");
+    } finally {
+      setCreatingProfile(false);
+    }
+  }
+
+  async function switchAccount() {
+    await getSupabaseBrowser()?.auth.signOut().catch(() => undefined);
+    window.location.assign(`/login?next=${encodeURIComponent(pathname || "/dashboard")}`);
+  }
+
   const isError = state === "failed";
   const title = state === "ready"
-    ? "个人数据已连接"
+    ? t("authGateConnected")
     : state === "checking"
-      ? "完整工作台已打开"
+      ? t("authGateChecking")
       : state === "unconfigured"
-        ? "完整工作台已打开"
+        ? t("authGateUnconfigured")
         : isError
-          ? "完整工作台已打开"
-          : "访客工作台已打开";
+          ? t("authGateFailed")
+          : t("authGateGuest");
   const description = state === "ready"
-    ? "当前页面使用你的个人数据；岗位、简历和投递操作会写入当前账号。"
+    ? t("authGateConnectedDescription")
     : state === "checking"
-      ? "正在检查个人数据连接；页面结构和功能入口不会被公开 Demo 替换。"
+      ? t("authGateCheckingDescription")
       : state === "unconfigured"
-        ? "Supabase 尚未配置；请完成包内全部迁移（按文件名顺序）后，当前完整页面即可连接个人工作流。"
+        ? t("authGateUnconfiguredDescription")
         : isError
-          ? error || "控制接口暂时不可用，页面仍保留在当前工作区。"
-          : "当前为只读访客状态，完整页面保持可见；需要个人数据的读取和写入操作时再登录。";
+          ? error || t("authGateFailedDescription")
+          : t("authGateGuestDescription");
+  const showWorkspace = state === "ready" || state === "public" || state === "failed";
 
   return <div className="auth-gate-shell">
-    {state !== "ready" ? <div className={`platform-notice ${isError ? "warn" : "neutral"}`} role={isError ? "alert" : "status"}>
+    {state === "needs-profile" ? <section className="platform-notice warn auth-gate-profile-missing" role="alert">
+      <CircleAlert size={18}/>
+      <div className="auth-gate-profile-copy">
+        <strong>{t("authGateMissingProfileTitle")}</strong>
+        <small>{t("authGateMissingProfileDescription")}</small>
+        {accountEmail ? <small>{t("currentAccount")}: {accountEmail}</small> : null}
+        {error ? <small className="auth-gate-error" role="alert">{error}</small> : null}
+      </div>
+      <div className="auth-gate-profile-actions">
+        <label className="auth-gate-confirm"><input type="checkbox" checked={confirmedNewProfile} onChange={(event) => setConfirmedNewProfile(event.target.checked)}/><span>{t("authGateConfirmNewProfile")}</span></label>
+        <div>
+          <button className="primary-button" type="button" disabled={!confirmedNewProfile || creatingProfile} onClick={() => void createProfile()}>{creatingProfile ? t("authGateCreatingProfile") : t("authGateCreateProfile")}</button>
+          <button className="ghost-button compact" type="button" disabled={creatingProfile} onClick={() => void switchAccount()}>{t("authGateSwitchAccount")}</button>
+        </div>
+      </div>
+    </section> : state !== "ready" ? <div className={`platform-notice ${isError ? "warn" : "neutral"}`} role={isError ? "alert" : "status"}>
       {isError ? <ShieldAlert size={18}/> : <ShieldCheck size={18}/>}<span><strong>{title}</strong><small>{description}</small></span>
-      {state === "public" ? <Link className="ghost-button compact" href={`/login?next=${encodeURIComponent(pathname || "/dashboard")}`}>连接个人账号</Link> : null}
-      {isError ? <button className="ghost-button compact" type="button" onClick={() => setRetry((value) => value + 1)}><RefreshCw size={14}/>重新验证</button> : null}
+      {state === "public" ? <Link className="ghost-button compact" href={`/login?next=${encodeURIComponent(pathname || "/dashboard")}`}>{t("authGateConnectAccount")}</Link> : null}
+      {isError ? <button className="ghost-button compact" type="button" onClick={() => setRetry((value) => value + 1)}><RefreshCw size={14}/>{t("authGateRetry")}</button> : null}
     </div> : null}
-    {children}
+    {showWorkspace ? children : null}
   </div>;
 }

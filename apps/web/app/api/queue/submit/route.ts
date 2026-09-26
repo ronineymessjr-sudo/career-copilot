@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json().catch(() => ({}));
     const jobType = typeof body.job_type === "string" ? body.job_type.trim() : "";
     if (!jobType) throw new ControlApiError(400, "job_type is required");
+    if (jobType !== "search") throw new ControlApiError(422, `Unsupported job_type: ${jobType}. Only search jobs are currently implemented.`);
     const payload = body.payload && typeof body.payload === "object" ? body.payload : {};
     const job = await submitQueueJob(jobType, payload, auth.userId);
     return NextResponse.json({ ok: true, job });

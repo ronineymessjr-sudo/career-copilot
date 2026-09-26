@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { executeAgentTask } from "@/lib/agent-controller";
 import { RESUME_PERSONAS } from "@/lib/agent-runtime.mjs";
-import { ensureProfile } from "@/lib/profile-service";
+import { requireProfile } from "@/lib/profile-service";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 function stringList(value: unknown, limit = 100): string[] {
@@ -38,7 +38,7 @@ async function nextVersion(auth: Awaited<ReturnType<typeof authenticate>>, profi
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticate(request);
-    const profile = await ensureProfile(auth);
+    const profile = await requireProfile(auth);
     const [resumes, alignments, jobs] = await Promise.all([
       dataRequest<Array<Record<string, any>>>(auth, `resume_versions?select=*&profile_id=eq.${encodeURIComponent(String(profile.id))}&order=is_master.desc,updated_at.desc`),
       dataRequest<Array<Record<string, any>>>(auth, "resume_alignments?select=*&order=updated_at.desc"),
@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
     const auth = await authenticate(request);
     const body = await request.json();
     const action = String(body.action ?? (body.job_id ? "generate" : "create_from_profile"));
-    const profile = await ensureProfile(auth);
+    const profile = await requireProfile(auth);
 
     if (action === "generate") {
       const persona = String(body.persona ?? "agent_engineer");

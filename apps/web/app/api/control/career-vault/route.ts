@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
-import { ensureProfile } from "@/lib/profile-service";
+import { requireProfile } from "@/lib/profile-service";
 
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticate(request);
-    const profile = await ensureProfile(auth);
+    const profile = await requireProfile(auth);
     const evidence = await dataRequest<Array<Record<string, unknown>>>(
       auth,
       `career_evidence?select=*&profile_id=eq.${encodeURIComponent(String(profile.id))}&order=created_at.desc`,
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     if (!skill || !project || !evidence) {
       return NextResponse.json({ ok: false, error: "skill、project 和 evidence 均为必填" }, { status: 422 });
     }
-    const profile = await ensureProfile(auth);
+    const profile = await requireProfile(auth);
     const rows = await dataRequest<Array<Record<string, unknown>>>(auth, "career_evidence", {
       method: "POST",
       headers: { Prefer: "return=representation" },

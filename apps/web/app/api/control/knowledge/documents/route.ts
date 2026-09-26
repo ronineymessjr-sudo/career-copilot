@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { chunkDocument, normalizeDocumentText, sha256Hex } from "@/lib/knowledge-rules.mjs";
 import { embedTexts } from "@/lib/embedding-service";
-import { ensureProfile } from "@/lib/profile-service";
+import { requireProfile } from "@/lib/profile-service";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 const SOURCE_TYPES = new Set(["text", "markdown", "json", "csv", "resume", "project", "note", "other"]);
@@ -9,7 +9,7 @@ const SOURCE_TYPES = new Set(["text", "markdown", "json", "csv", "resume", "proj
 export async function GET(request: NextRequest) {
   try {
     const auth = await authenticate(request);
-    const profile = await ensureProfile(auth);
+    const profile = await requireProfile(auth);
     const documents = await dataRequest<Array<Record<string, any>>>(
       auth,
       `career_documents?select=*&profile_id=eq.${encodeURIComponent(String(profile.id))}&order=updated_at.desc`,
@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const content = normalizeDocumentText(body.content);
     if (!title || !content) return NextResponse.json({ ok: false, error: "title 和 content 均为必填" }, { status: 422 });
     if (content.length > 120_000) return NextResponse.json({ ok: false, error: "单个文档最多 120,000 个字符" }, { status: 413 });
-    const profile = await ensureProfile(auth);
+    const profile = await requireProfile(auth);
     const contentHash = sha256Hex(content);
     const existing = await dataRequest<Array<Record<string, any>>>(
       auth,

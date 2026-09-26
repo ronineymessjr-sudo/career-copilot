@@ -32,8 +32,8 @@ async function sha256(value) {
  * poll for completion.
  */
 export async function submitQueueJob(jobType, payload = {}, userId) {
-  if (!["search", "resume_generation", "evaluation", "dispatch"].includes(jobType)) {
-    throw new Error(`Unsupported job_type: ${jobType}`);
+  if (jobType !== "search") {
+    throw new Error(`Unsupported job_type: ${jobType}. Only search jobs are currently implemented.`);
   }
   const rows = await adminDataRequest("queue_jobs", {
     method: "POST",
@@ -67,7 +67,7 @@ export async function pollQueueJob(jobId, tryProcess = false) {
  * Get the result for a completed queue job.
  */
 export async function getQueueResult(jobId) {
-  const rows = await adminDataRequest(`queue_results?job_id=eq.${encode(jobId)}&select=*&order=created_at.desc&limit=1`);
+  const rows = await adminDataRequest(`queue_results?queue_job_id=eq.${encode(jobId)}&select=*&order=created_at.desc&limit=1`);
   if (!rows || rows.length === 0) return null;
   return rows[0];
 }
@@ -142,11 +142,11 @@ async function processJob(job) {
     case "search":
       return processSearchJob(job);
     case "resume_generation":
-      return { ok: false, error: "resume_generation not yet implemented" };
+      throw new Error("resume_generation is not yet implemented");
     case "evaluation":
-      return { ok: false, error: "evaluation not yet implemented" };
+      throw new Error("evaluation is not yet implemented");
     case "dispatch":
-      return { ok: false, error: "dispatch not yet implemented" };
+      throw new Error("dispatch is not yet implemented");
     default:
       throw new Error(`Unknown job_type: ${job.job_type}`);
   }
