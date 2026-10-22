@@ -586,5 +586,17 @@
 .cc-public .cc-result-tabs button[aria-selected="true"] { color: #1749b5; }
 .cc-public .cc-risk-list, .cc-public .cc-score-details, .cc-public .cc-greeting p { color: #344a66; }
 .cc-public .cc-tags span { color: #1749b5; background: #f1f5ff; border-color: #c2d4f7; }
+
+/* Keep dashboard and analytics summaries readable at normal desktop zoom. */
+.platform-frame .analytics-kpis span { font-size: 13px; }
+.platform-frame .analytics-kpis small { font-size: 12px; }
+.platform-frame .panel-title strong { font-size: 15px; }
+.platform-frame .panel-title span { font-size: 12px; }
+.platform-frame .funnel-list > div > div:first-child,
+.platform-frame .health-row,
+.platform-frame .muted-copy { font-size: 13px; line-height: 1.5; }
+.platform-frame .health-row strong { font-size: 14px; }
+.platform-frame .home-action-grid strong { font-size: 14px; }
+.platform-frame .home-action-grid span { font-size: 12px; }
 @media (max-width: 1080px) { .platform-frame .dashboard-grid { grid-template-columns: 1fr; } .platform-frame .detail-panel { position: relative; top: 0; } }
 @media (max-width: 760px) { .platform-main { padding: 24px 16px 48px; } .platform-frame .job-row { grid-template-columns: 40px minmax(0, 1fr) 56px; padding: 14px; } .platform-frame .job-row > svg { display: none; } .platform-frame .job-meta { flex-wrap: wrap; } .platform-frame .section-heading h2 { font-size: 20px; } }
