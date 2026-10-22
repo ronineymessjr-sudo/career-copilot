@@ -8,6 +8,19 @@ function clean(value) { return String(value ?? "").trim(); }
 function object(value) { return value && typeof value === "object" && !Array.isArray(value) ? value : {}; }
 function json(value) { try { return JSON.stringify(value ?? null); } catch { return ""; } }
 
+export function buildSubmissionSnapshot(pack = {}, resume = {}, capturedAt = new Date().toISOString()) {
+  return {
+    captured_at: capturedAt,
+    package_id: clean(pack.id) || null,
+    content_revision: Number(pack.content_revision) || 1,
+    resume_version_id: clean(pack.resume_version_id) || null,
+    resume_version_name: clean(resume.name || pack.resume_version_name),
+    role_family: clean(resume.role_family),
+    persona: clean(resume.persona),
+    version_no: Number(resume.version_no) || null,
+  };
+}
+
 export function normalizeApplicationStatus(value) {
   const status = clean(value);
   return STATUS_ORDER.includes(status) ? status : "prepared";

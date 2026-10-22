@@ -6,6 +6,7 @@ import {
   categorizeInterviewQuestion,
   validateInterviewOutcomeTransition,
   computeApplicationAnalytics,
+  computeResumeVersionOutcomes,
   deriveSkillGaps,
 } from "../lib/interview-learning.mjs";
 
@@ -96,6 +97,78 @@ test("rejected before submission is not counted as submitted", () => {
     events: [{ application_id: "a1", to_status: "rejected" }],
   }, { now: "2026-07-24T00:00:00Z", days: 30 });
   assert.equal(result.metrics.submitted, 0);
+});
+
+test("resume version outcomes compare real submissions and expose Wilson uncertainty", () => {
+  const result = computeResumeVersionOutcomes({
+    applications: [
+      { id: "a1", package_id: "p1", channel: "referral", status: "contacting", submitted_at: "2026-10-02", created_at: "2026-10-01" },
+      { id: "a2", package_id: "p2", channel: "referral", status: "submitted", submitted_at: "2026-10-02", next_follow_up_at: "2026-10-02", created_at: "2026-10-01" },
+      { id: "a3", package_id: "p3", channel: "company_form", status: "interview", submitted_at: "2026-10-02", created_at: "2026-10-01" },
+      { id: "a4", package_id: "p4", channel: "referral", status: "submitted", submitted_at: "2026-10-02", created_at: "2026-10-01" },
+      { id: "a5", package_id: null, channel: "email", status: "submitted", submitted_at: "2026-10-02", created_at: "2026-10-01" },
+      { id: "a6", package_id: "p1", channel: "referral", status: "rejected", submitted_at: "2026-10-02", next_follow_up_at: "2026-10-02", created_at: "2026-10-01" },
+    ],
+    packages: [
+      { id: "p1", resume_version_id: "r1", resume_version_name: "AI 产品" },
+      { id: "p2", resume_version_id: "r1", resume_version_name: "AI 产品" },
+      { id: "p3", resume_version_id: "r2", resume_version_name: "AI 产品 v2" },
+      { id: "p4", resume_version_name: "未关联 ID 的简历" },
+    ],
+    resumes: [
+      { id: "r1", name: "AI 产品", role_family: "AI 产品", persona: "ai_product", version_no: 1 },
+      { id: "r2", name: "AI 产品 v2", role_family: "AI 产品", persona: "ai_product", version_no: 2 },
+    ],
+    events: [{ application_id: "a6", to_status: "submitted" }],
+    interviews: [{ application_id: "a3" }],
+    offers: [],
+  }, { now: "2026-10-04T00:00:00Z", days: 30 });
+
+  assert.equal(result.cohorts.length, 3);
+  const linked = result.cohorts.find((item) => item.resume_version_id === "r1");
+  assert.equal(linked.submitted, 3);
+  assert.equal(linked.replies, 1);
+  assert.equal(linked.awaiting_feedback, 1);
+  assert.equal(linked.follow_up_due, 1);
+  assert.equal(linked.reply_rate, 33.3);
+  assert.ok(linked.reply_rate_ci_95[0] < 33.3 && linked.reply_rate_ci_95[1] > 33.3);
+  assert.equal(linked.by_channel.find((item) => item.channel === "referral").submitted, 3);
+  assert.equal(result.cohorts.find((item) => item.link_status === "name_only").submitted, 1);
+  assert.equal(result.unlinked.submitted, 1);
+  assert.ok(result.unlinked.reply_rate_ci_95[0] <= 0 && result.unlinked.reply_rate_ci_95[1] > 0);
+});
+
+test("resume version outcomes honor the selected time window", () => {
+  const result = computeResumeVersionOutcomes({
+    applications: [
+      { id: "old", package_id: "p1", status: "submitted", submitted_at: "2026-07-01" },
+      { id: "new", package_id: "p1", status: "submitted", submitted_at: "2026-10-03" },
+    ],
+    packages: [{ id: "p1", resume_version_id: "r1" }],
+    resumes: [{ id: "r1", name: "Agent v1", role_family: "AI 工程" }],
+  }, { now: "2026-10-04T00:00:00Z", days: 30 });
+  assert.equal(result.cohorts[0].submitted, 1);
+});
+
+test("resume outcomes prefer the submitted snapshot over a subsequently changed package", () => {
+  const result = computeResumeVersionOutcomes({
+    applications: [{ id: "a1", package_id: "p1", status: "interview", submitted_at: "2026-10-20", final_submission_snapshot: { resume_version_id: "r1", resume_version_name: "Sent version", role_family: "product", version_no: 1 } }],
+    packages: [{ id: "p1", resume_version_id: "r2", resume_version_name: "New version" }],
+    resumes: [{ id: "r1", name: "Renamed later", role_family: "engineering", version_no: 2 }],
+  }, { now: "2026-10-22T00:00:00Z", days: 30 });
+  assert.equal(result.cohorts[0].resume_version_id, "r1");
+  assert.equal(result.cohorts[0].label, "Sent version");
+  assert.equal(result.cohorts[0].role_family, "product");
+  assert.equal(result.cohorts[0].version_no, 1);
+});
+
+test("interview records keep the funnel monotonic even before the application status is updated", () => {
+  const input = { applications: [{ id: "a1", package_id: "p1", status: "prepared" }], packages: [{ id: "p1", resume_version_id: "r1" }], interviews: [{ application_id: "a1" }] };
+  const result = computeResumeVersionOutcomes(input, { days: 0 });
+  assert.equal(result.cohorts[0].submitted, 1);
+  assert.equal(result.cohorts[0].replies, 1);
+  assert.equal(result.cohorts[0].interview_rate, 100);
+  assert.deepEqual(computeApplicationAnalytics(input, { days: 0 }).metrics.submitted, 1);
 });
 
 

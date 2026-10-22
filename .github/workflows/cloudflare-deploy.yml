@@ -26,7 +26,7 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - name: Restore Linux native OpenNext dependency
-        run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
+        run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.45.3
       - run: npm --workspace apps/web run cf-typegen
       - run: npm --workspace workers/scheduler run cf-typegen
       - run: npm run test:complete
@@ -72,7 +72,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - if: steps.auth.outputs.ready == 'true'
         name: Restore Linux native OpenNext dependency
-        run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.40.5
+        run: npm install --no-save --package-lock=false --no-audit --no-fund @ast-grep/napi-linux-x64-gnu@0.45.3
       - if: steps.auth.outputs.ready == 'true'
         name: Build web app
         run: npm --workspace apps/web run build
@@ -139,6 +139,10 @@ jobs:
           assert data["authRequired"] is True, data
           assert data["publicSourceDiscovery"] is True, data
           assert data["gmailDraftOnly"] is True, data
+          assert data["resumeVersionOutcomes"] is True, data
+          assert data["submissionVersionSnapshots"] is True, data
+          assert data["jdEvidenceMapping"] is True, data
+          assert data["bilingualAnalytics"] is True, data
           assert data["interviewLearningLoop"] is True, data
           assert data["conversionAnalytics"] is True, data
           assert data["weeklyReviews"] is True, data

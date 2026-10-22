@@ -18,17 +18,19 @@ export async function POST(request: NextRequest) {
     if (!text) return NextResponse.json({ ok: false, error: "请提供 JD 文本或 URL" }, { status: 422 });
 
     const [profiles, evidenceRows] = await Promise.all([
-      dataRequest<Row[]>(auth, `profiles?select=*&user_id=eq.${encodeURIComponent(auth.userId)}&limit=1`).catch(() => []),
-      dataRequest<Row[]>(auth, "career_evidence?select=*&active=eq.true").catch(() => []),
+      dataRequest<Row[]>(auth, `profiles?select=*&user_id=eq.${encodeURIComponent(auth.userId)}&limit=1`),
+      dataRequest<Row[]>(auth, "career_evidence?select=*&active=eq.true"),
     ]);
     const profile = profiles[0] ?? {};
+    const details = profile.profile_details && typeof profile.profile_details === "object" ? profile.profile_details : {};
     const profileShape = {
       name: profile.name ?? "",
-      skills: (profile.profile_details?.skills ?? profile.skills ?? []).map(String),
+      skills: (Array.isArray(details.skills) ? details.skills : Array.isArray(profile.skills) ? profile.skills : []).map(String),
       preferences: profile.preferences ?? {},
       major: profile.major ?? "",
       graduation_year: profile.graduation_year,
       availability_days: profile.availability_days,
+      availability_months: profile.availability_months,
     };
     const analysis = decomposeJd(text, profileShape, evidenceRows);
     const markdown = renderJdReport(analysis);

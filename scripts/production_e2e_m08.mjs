@@ -42,6 +42,13 @@ assert.equal(Array.isArray(scores.payload.scores), true);
 const resumes = await jsonFetch(`${webUrl}/api/control/resumes`, { headers });
 assert.equal(resumes.response.ok, true, resumes.payload);
 assert.equal(Array.isArray(resumes.payload.resumes), true);
+const analytics = await jsonFetch(`${webUrl}/api/control/analytics?days=90`, { headers });
+assert.equal(analytics.response.ok, true, { status: analytics.response.status });
+assert.equal(Array.isArray(analytics.payload.analytics?.resume_experiments?.cohorts), true);
+const jd = await jsonFetch(`${webUrl}/api/control/jd`, { method: "POST", headers, body: JSON.stringify({ text: "岗位：研发实习生\n接受2027-2029届在校生\n每周3天，至少3个月\n远程办公\n熟悉Python" }) });
+assert.equal(jd.response.ok, true, { status: jd.response.status });
+assert.equal(Array.isArray(jd.payload.analysis?.conditions), true);
+assert.equal(Array.isArray(jd.payload.analysis?.requirements), true);
 const mcpInit = await jsonFetch(`${webUrl}/api/mcp`, { method: "POST", headers, body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "career-copilot-e2e", version: "1" } } }) });
 assert.equal(mcpInit.response.ok, true, mcpInit.payload);
 assert.equal(mcpInit.payload.result.serverInfo.name, "career-copilot-mcp");
@@ -54,6 +61,8 @@ const result = {
   authenticated_agent_runs_ok: true,
   authenticated_scores_ok: true,
   authenticated_resumes_ok: true,
+  authenticated_resume_outcomes_ok: true,
+  authenticated_jd_evidence_mapping_ok: true,
   mcp_initialize_ok: true,
   mutations_performed: false,
   automatic_submission: false,

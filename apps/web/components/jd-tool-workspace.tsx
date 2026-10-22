@@ -14,12 +14,36 @@ type Analysis = {
   duties: string[];
   hidden_signals: string[];
   matched: string[];
+  profile_only: string[];
   gaps: string[];
+  condition_status: "blocked" | "confirm" | "pass" | "not_stated";
+  conditions: Array<{ label: string; status: "pass" | "block" | "confirm"; requirement: string; profile_value: string; note: string }>;
+  requirements: Array<{
+    text: string;
+    kind: string;
+    status: "evidenced" | "profile_only" | "partial" | "missing" | "review";
+    summary: string;
+    skills: Array<{
+      skill: string;
+      status: "evidenced" | "profile_only" | "pending" | "missing";
+      evidence: Array<{ project: string; detail: string; id: string | null }>;
+      pending_evidence: Array<{ project: string; detail: string }>;
+    }>;
+  }>;
   fit_note: string;
   interview_hints: string[];
   actions: string[];
 };
 type AssessResult = { checks: Array<{ name: string; pass: boolean; why: string }>; passed: number; total: number; ready: boolean };
+
+const conditionLabel: Record<string, string> = { pass: "符合", block: "不符合", confirm: "待确认" };
+const requirementLabel: Record<string, string> = {
+  evidenced: "项目证据支持",
+  profile_only: "画像自述",
+  partial: "部分支持",
+  missing: "暂未找到材料",
+  review: "需人工判断",
+};
 
 export function JdToolWorkspace() {
   const [jdText, setJdText] = useState("");
@@ -68,7 +92,7 @@ export function JdToolWorkspace() {
 
     <nav className="platform-priority-rail" aria-label="JD 分析优先级">
       <article className="platform-priority-item p0"><span>P0 · 现在看</span><strong>{analysis?.verdict ?? "先粘贴 JD"}</strong><small>{analysis ? "确认是否值得继续" : "输入岗位文本或 URL"}</small></article>
-      <article className="platform-priority-item p1"><span>P1 · 接着处理</span><strong>{analysis ? `${analysis.gaps?.length ?? 0} 个待补缺口` : "匹配与缺口"}</strong><small>把缺口转成简历行动</small></article>
+      <article className="platform-priority-item p1"><span>P1 · 接着处理</span><strong>{analysis ? (analysis.gaps?.length ?? 0) + " 个未覆盖 · " + (analysis.profile_only?.length ?? 0) + " 个仅自述" : "匹配与缺口"}</strong><small>把真实证据转成简历行动</small></article>
       <article className="platform-priority-item p2"><span>P2 · 需要时看</span><strong>{assess ? `${assess.passed}/${assess.total} 项就绪` : "简历门禁"}</strong><small>全部通过后再生成最终版</small></article>
     </nav>
 
@@ -81,7 +105,14 @@ export function JdToolWorkspace() {
     </section>
 
     {analysis ? <section className="platform-panel jd-result">
-      <header className="platform-panel-head"><div><h2>拆解结果 · {analysis.role || "未识别岗位"}</h2><p>{analysis.company || "公司未知"} · {analysis.location || "地点未说明"}</p></div><span className={`jd-verdict ${analysis.matched?.length ? "ok" : "warn"}`}>{analysis.verdict}</span></header>
+      <header className="platform-panel-head"><div><h2>拆解结果 · {analysis.role || "未识别岗位"}</h2><p>{analysis.company || "公司未知"} · {analysis.location || "地点未说明"}</p></div><span className={"jd-verdict " + (analysis.condition_status === "blocked" ? "block" : analysis.condition_status === "pass" && analysis.matched?.length ? "ok" : "warn")}>{analysis.verdict}</span></header>
+      <section className="jd-condition-checks" aria-label="岗位硬性条件核对">
+        <strong>先看投递条件</strong>
+        {analysis.conditions.length ? <ul>{analysis.conditions.map((item, index) => <li className={"jd-condition " + item.status} key={item.label + "-" + index}>
+          <span className="jd-condition-state">{item.status === "pass" ? <CheckCircle2 size={14}/> : item.status === "block" ? <XCircle size={14}/> : null}{conditionLabel[item.status]}</span>
+          <span className="jd-condition-copy"><b>{item.label}</b><small>岗位：{item.requirement} · 画像：{item.profile_value} · {item.note}</small></span>
+        </li>)}</ul> : <p>岗位文本没有提到可核对的出勤、届别或地点条件；请以原招聘页面为准。</p>}
+      </section>
       <details className="platform-secondary-fold jd-breakdown-fold"><summary>查看岗位拆解明细 · {analysis.must_have.length + analysis.nice_to_have.length + analysis.duties.length + analysis.hidden_signals.length} 项</summary><div className="jd-breakdown-grid">
         {analysis.must_have.length ? <div className="jd-block"><strong>必备条件(硬门槛)</strong><ul>{analysis.must_have.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
         {analysis.nice_to_have.length ? <div className="jd-block"><strong>加分项(软性)</strong><ul>{analysis.nice_to_have.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
@@ -89,10 +120,23 @@ export function JdToolWorkspace() {
         {analysis.hidden_signals.length ? <div className="jd-block"><strong>隐含信息</strong><ul>{analysis.hidden_signals.map((x, i) => <li key={i}>{x}</li>)}</ul></div> : null}
       </div></details>
       <div className="jd-block"><strong>你的匹配度</strong>
-        {analysis.matched?.length ? <p>✅ 命中:{analysis.matched.join("、")}</p> : null}
-        {analysis.gaps?.length ? <p>⚠️ 缺口:{analysis.gaps.join("、")}</p> : null}
+        {analysis.matched?.length ? <p>项目证据支持：{analysis.matched.join("、")}</p> : <p>项目证据支持：暂未找到</p>}
+        {analysis.profile_only?.length ? <p>画像里自述、暂无项目佐证：{analysis.profile_only.join("、")}</p> : null}
+        {analysis.gaps?.length ? <p>当前材料未覆盖：{analysis.gaps.join("、")}</p> : null}
         <p>{analysis.fit_note}</p>
       </div>
+      {analysis.requirements?.length ? <details className="platform-secondary-fold jd-evidence-fold"><summary>逐条看要求与项目证据 · {analysis.requirements.length} 项</summary><div className="jd-requirement-list">
+        {analysis.requirements.map((item, index) => <article className="jd-requirement-row" key={item.kind + "-" + index}>
+          <div className="jd-requirement-heading"><span>{item.kind}</span><strong>{requirementLabel[item.status]}</strong></div>
+          <p>{item.text}</p><small>{item.summary}</small>
+          {item.skills.map((skill) => <div className={"jd-skill-proof " + skill.status} key={skill.skill}>
+            <b>{skill.skill}</b>
+            {skill.evidence.length ? <span>{skill.evidence.map((source) => source.project + "：" + source.detail).join("；")}</span>
+              : skill.pending_evidence.length ? <span>有待核验材料：{skill.pending_evidence.map((source) => source.project).join("、")}</span>
+                : <span>{skill.status === "profile_only" ? "仅在个人画像中自述，尚无项目证据" : "未找到对应材料"}</span>}
+          </div>)}
+        </article>)}
+      </div></details> : null}
       {analysis.interview_hints?.length ? <details className="platform-secondary-fold jd-interview-fold"><summary>面试重点 · {analysis.interview_hints.length} 项</summary><div className="jd-block"><ul>{analysis.interview_hints.map((x, i) => <li key={i}>{x}</li>)}</ul></div></details> : null}
       {analysis.actions?.length ? <div className="jd-block"><strong>行动清单</strong><ul>{analysis.actions.map((x, i) => <li key={i}>☐ {x}</li>)}</ul></div> : null}
     </section> : null}

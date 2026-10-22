@@ -6,7 +6,7 @@ type DataFn = <T>(resource: string, init?: RequestInit) => Promise<T>;
 export async function loadAnalyticsBundle(options: { userId: string; days?: number; data: DataFn }) {
   const days = Math.max(0, Math.min(Number(options.days ?? 90), 3650));
   const owner = encodeURIComponent(options.userId);
-  const [applications, events, jobs, packages, interviews, offers, gaps, discoveryRuns, operationalEvents, feedback, recommendations, sources, dailyFacts] = await Promise.all([
+  const [applications, events, jobs, packages, interviews, offers, gaps, discoveryRuns, operationalEvents, feedback, recommendations, sources, dailyFacts, resumes, statusEvents] = await Promise.all([
     options.data<Array<Record<string, any>>>(`applications?select=*&user_id=eq.${owner}&order=created_at.desc`),
     options.data<Array<Record<string, any>>>(`application_events?select=*&user_id=eq.${owner}&order=created_at.desc&limit=1000`),
     options.data<Array<Record<string, any>>>(`jobs?select=*`),
@@ -20,9 +20,12 @@ export async function loadAnalyticsBundle(options: { userId: string; days?: numb
     options.data<Array<Record<string, any>>>(`daily_recommendations?select=*&user_id=eq.${owner}&order=recommendation_date.desc&limit=90`).catch(() => []),
     options.data<Array<Record<string, any>>>(`job_sources?select=*&order=updated_at.desc`).catch(() => []),
     options.data<Array<Record<string, any>>>(`analytics_daily_facts?select=*&user_id=eq.${owner}&order=fact_date.desc&limit=365`).catch(() => []),
+    options.data<Array<Record<string, any>>>(`resume_versions?select=id,name,role_family,persona,version_no&order=created_at.desc`),
+    options.data<Array<Record<string, any>>>(`application_status_events?select=*&user_id=eq.${owner}&order=created_at.desc&limit=1000`),
   ]);
+  const applicationEvents = [...events, ...statusEvents];
   const analytics = computeApplicationAnalytics(
-    { applications, events, jobs, packages, interviews, offers },
+    { applications, events: applicationEvents, jobs, packages, interviews, offers, resumes },
     { days },
   ) as Record<string, any>;
   const upcomingInterviews = interviews
@@ -40,7 +43,7 @@ export async function loadAnalyticsBundle(options: { userId: string; days?: numb
   return {
     analytics,
     applications,
-    events,
+    events: applicationEvents,
     jobs,
     packages,
     interviews,

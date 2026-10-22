@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { allowedStatusTransitions, normalizeApplicationStatus } from "@/lib/application-lifecycle.mjs";
+import { allowedStatusTransitions, buildSubmissionSnapshot, normalizeApplicationStatus } from "@/lib/application-lifecycle.mjs";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +19,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       follow_up_note: String(body.follow_up_note ?? "").slice(0, 500),
       updated_at: new Date().toISOString(),
     };
-    if (nextStatus === "submitted" && !current.submitted_at) patch.submitted_at = new Date().toISOString();
+    if (nextStatus === "submitted" && !current.submitted_at) {
+      patch.submitted_at = new Date().toISOString();
+      const packs = current.package_id
+        ? await dataRequest<Array<Record<string, any>>>(auth, `application_packages?select=*&id=eq.${encodeURIComponent(String(current.package_id))}&limit=1`)
+        : [];
+      const pack = packs[0] ?? {};
+      const resumes = pack.resume_version_id
+        ? await dataRequest<Array<Record<string, any>>>(auth, `resume_versions?select=id,name,role_family,persona,version_no&id=eq.${encodeURIComponent(String(pack.resume_version_id))}&limit=1`)
+        : [];
+      patch.final_submission_snapshot = buildSubmissionSnapshot(pack, resumes[0], patch.submitted_at);
+    }
     const updated = await dataRequest<Array<Record<string, any>>>(auth, `applications?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify(patch),
     });

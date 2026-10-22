@@ -156,6 +156,16 @@ function applicationStatuses(application, events = []) {
   return statuses;
 }
 
+function applicationOutcome(application, events, interviewApps, offerApps) {
+  const statuses = applicationStatuses(application, events);
+  const offered = offerApps.has(String(application.id)) || statuses.has("offer");
+  const interviewed = offered || interviewApps.has(String(application.id)) || statuses.has("interview");
+  const replied = interviewed || reached(statuses, REPLIED_STATUSES);
+  const submitted = replied || Boolean(asDate(application.submitted_at)) || reached(statuses, SUBMITTED_STATUSES);
+  const awaitingFeedback = submitted && !replied && !["rejected", "paused", "closed"].includes(lower(application.status));
+  return { submitted, replied, interviewed, offered, awaitingFeedback };
+}
+
 function blankBreakdown(key, label) {
   return { key, label, applications: 0, submitted: 0, replies: 0, interviews: 0, offers: 0, reply_rate: 0, interview_rate: 0, offer_rate: 0 };
 }
@@ -166,6 +176,104 @@ function finalizeBreakdown(items) {
     interview_rate: item.submitted ? Number((item.interviews / item.submitted * 100).toFixed(1)) : 0,
     offer_rate: item.interviews ? Number((item.offers / item.interviews * 100).toFixed(1)) : 0,
   })).sort((a, b) => b.applications - a.applications || b.interview_rate - a.interview_rate);
+}
+
+function wilsonInterval(successes, trials) {
+  if (!trials) return null;
+  const z = 1.959963984540054;
+  const proportion = successes / trials;
+  const denominator = 1 + z ** 2 / trials;
+  const center = (proportion + z ** 2 / (2 * trials)) / denominator;
+  const margin = z * Math.sqrt((proportion * (1 - proportion) / trials) + (z ** 2 / (4 * trials ** 2))) / denominator;
+  return [Math.max(0, center - margin), Math.min(1, center + margin)].map((value) => Number((value * 100).toFixed(1)));
+}
+
+function outcomeCounts() {
+  return { applications: 0, submitted: 0, replies: 0, awaiting_feedback: 0, follow_up_due: 0, interviews: 0, offers: 0 };
+}
+
+function addOutcome(counts, flags) {
+  counts.applications += 1;
+  if (flags.submitted) counts.submitted += 1;
+  if (flags.replied) counts.replies += 1;
+  if (flags.awaitingFeedback) counts.awaiting_feedback += 1;
+  if (flags.followUpDue) counts.follow_up_due += 1;
+  if (flags.interviewed) counts.interviews += 1;
+  if (flags.offered) counts.offers += 1;
+}
+
+function finalizeOutcome(counts) {
+  const replyRate = counts.submitted ? Number((counts.replies / counts.submitted * 100).toFixed(1)) : null;
+  return {
+    ...counts,
+    reply_rate: replyRate,
+    interview_rate: counts.submitted ? Number((counts.interviews / counts.submitted * 100).toFixed(1)) : null,
+    offer_rate: counts.submitted ? Number((counts.offers / counts.submitted * 100).toFixed(1)) : null,
+    reply_rate_ci_95: wilsonInterval(counts.replies, counts.submitted),
+  };
+}
+
+export function computeResumeVersionOutcomes(input = {}, options = {}) {
+  const now = asDate(options.now) ?? new Date();
+  const days = Number(options.days ?? 90);
+  const since = days > 0 ? new Date(now.getTime() - days * 86400000) : null;
+  const events = input.events ?? [];
+  const packages = new Map((input.packages ?? []).map((item) => [String(item.id), item]));
+  const resumes = new Map((input.resumes ?? []).map((item) => [String(item.id), item]));
+  const interviewApps = new Set((input.interviews ?? []).map((item) => String(item.application_id)));
+  const offerApps = new Set((input.offers ?? []).map((item) => String(item.application_id)));
+  const cohorts = new Map();
+  const unlinked = outcomeCounts();
+
+  for (const application of input.applications ?? []) {
+    const activityDate = asDate(application?.submitted_at ?? application?.created_at ?? application?.updated_at);
+    if (since && activityDate && activityDate < since) continue;
+    const flags = applicationOutcome(application, events, interviewApps, offerApps);
+    const followUpAt = asDate(application?.next_follow_up_at);
+    flags.followUpDue = flags.awaitingFeedback && Boolean(followUpAt && followUpAt <= now);
+    const snapshot = application.final_submission_snapshot;
+    const pack = snapshot && Object.hasOwn(snapshot, "resume_version_id")
+      ? snapshot
+      : packages.get(String(application.package_id)) ?? {};
+    const resumeId = normalize(pack.resume_version_id);
+    const resume = resumes.get(resumeId) ?? {};
+    if (!resumeId && !normalize(pack.resume_version_name)) {
+      addOutcome(unlinked, flags);
+      continue;
+    }
+    const cohortKey = resumeId || `name:${lower(pack.resume_version_name)}`;
+    if (!cohorts.has(cohortKey)) {
+      cohorts.set(cohortKey, {
+        key: cohortKey,
+        resume_version_id: resumeId || null,
+        label: normalize(pack.resume_version_name || resume.name) || "简历版本（名称缺失）",
+        role_family: normalize(pack.role_family || resume.role_family) || "未标注方向",
+        persona: normalize(pack.persona || resume.persona),
+        version_no: Number(pack.version_no || resume.version_no) || null,
+        link_status: resumeId ? "linked" : "name_only",
+        counts: outcomeCounts(),
+        by_channel: new Map(),
+      });
+    }
+    const cohort = cohorts.get(cohortKey);
+    addOutcome(cohort.counts, flags);
+    const channel = normalize(application.channel) || "未记录渠道";
+    if (!cohort.by_channel.has(channel)) cohort.by_channel.set(channel, outcomeCounts());
+    addOutcome(cohort.by_channel.get(channel), flags);
+  }
+
+  return {
+    window_days: days,
+    generated_at: now.toISOString(),
+    unlinked: finalizeOutcome(unlinked),
+    cohorts: [...cohorts.values()].map((cohort) => ({
+      ...cohort,
+      ...finalizeOutcome(cohort.counts),
+      channels: [...cohort.by_channel.keys()].sort(),
+      by_channel: [...cohort.by_channel.entries()].map(([channel, counts]) => ({ channel, ...finalizeOutcome(counts) })),
+      counts: undefined,
+    })).sort((a, b) => b.submitted - a.submitted || String(a.label).localeCompare(String(b.label))),
+  };
 }
 
 export function computeApplicationAnalytics(input = {}, options = {}) {
@@ -200,13 +308,7 @@ export function computeApplicationAnalytics(input = {}, options = {}) {
   };
 
   for (const application of applications) {
-    const statuses = applicationStatuses(application, events);
-    const flags = {
-      submitted: reached(statuses, SUBMITTED_STATUSES),
-      replied: reached(statuses, REPLIED_STATUSES),
-      interviewed: interviewApps.has(String(application.id)) || statuses.has("interview") || statuses.has("offer"),
-      offered: offerApps.has(String(application.id)) || statuses.has("offer"),
-    };
+    const flags = applicationOutcome(application, events, interviewApps, offerApps);
     stageCounts.prepared += 1;
     if (flags.submitted) stageCounts.submitted += 1;
     if (flags.replied) stageCounts.replied += 1;
@@ -247,6 +349,7 @@ export function computeApplicationAnalytics(input = {}, options = {}) {
       location: finalizeBreakdown(location),
       resume: finalizeBreakdown(resume),
     },
+    resume_experiments: computeResumeVersionOutcomes(input, { now, days }),
   };
 }
 

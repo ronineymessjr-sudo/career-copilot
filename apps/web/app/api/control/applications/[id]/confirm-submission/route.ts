@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { evaluateJob, validateApplicationTransition, validatePackageEvidence } from "@/lib/control-rules.mjs";
+import { buildSubmissionSnapshot } from "@/lib/application-lifecycle.mjs";
 import { authenticate, controlError, dataRequest } from "@/lib/supabase-control";
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -53,12 +54,19 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const transition = validateApplicationTransition(String(application.status), "submitted", { confirmedByUser: true });
     if (!transition.ok) return NextResponse.json({ ok: false, error: transition.reason }, { status: 409 });
     const submittedAt = new Date().toISOString();
+    const resumes = applicationPackage.resume_version_id
+      ? await dataRequest<Array<Record<string, any>>>(auth, `resume_versions?select=id,name,role_family,persona,version_no&id=eq.${encodeURIComponent(String(applicationPackage.resume_version_id))}&limit=1`)
+      : [];
+    const snapshot = application.final_submission_snapshot?.captured_at
+      ? application.final_submission_snapshot
+      : buildSubmissionSnapshot(applicationPackage, resumes[0], submittedAt);
     const updated = await dataRequest<Array<Record<string, unknown>>>(auth, `applications?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH",
       headers: { Prefer: "return=representation" },
       body: JSON.stringify({
         status: "submitted",
         submitted_at: submittedAt,
+        final_submission_snapshot: snapshot,
         external_reference: String(body.external_reference ?? ""),
         notes: String(body.note ?? "用户确认已在外部招聘渠道完成提交"),
         updated_at: submittedAt,
