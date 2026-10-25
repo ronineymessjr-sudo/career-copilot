@@ -10,7 +10,8 @@ async function request(url, init = {}) {
   const text = await response.text();
   let data;
   if (response.headers.get('content-type')?.includes('application/json')) data = JSON.parse(text);
-  return { response, data };
+  const title = response.headers.get('content-type')?.includes('text/html') ? text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] : undefined;
+  return { response, data, title };
 }
 
 function check(name, passed) {
@@ -25,6 +26,18 @@ try {
   check('existing_test_credentials_configured', Boolean(key && email && password));
   check('expected_supabase_project', process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '') === supabase);
   stage = 'public_routes';
+  report.publicEndpoints = await Promise.all([
+    ['ronineymessjrstudio.cn', /RONIN/i], ['www.ronineymessjrstudio.cn', /RONIN/i],
+    ['photo.ronineymessjrstudio.cn', /PhotoAtelier/i], ['career.ronineymessjrstudio.cn', /Career|求职|简历/i],
+    ['camera.ronineymessjrstudio.cn', /Camera Market|相机市场/i], ['tarot.ronineymessjrstudio.cn', /Arcana|塔罗/i],
+  ].map(async ([host, title]) => {
+    try {
+      const page = await request(`https://${host}/`);
+      return { host, status: page.response.status, title: page.title,
+        passed: page.response.status === 200 && title.test(page.title || '') && new URL(page.response.url).hostname === host };
+    } catch (error) { return { host, passed: false, errorCode: error.cause?.code || error.name }; }
+  }));
+  check('six_public_https_homepages', report.publicEndpoints.every(page => page.passed));
   const login = await request(`${web}/login`);
   check('https_login_page', login.response.status === 200);
   const runtime = await request(`${web}/api/runtime`);
@@ -46,8 +59,9 @@ try {
   const resumes = await request(`${web}/api/control/resumes`, { headers });
   check('authenticated_resumes', resumes.response.status === 200 && Array.isArray(resumes.data?.resumes));
   report.passed = true;
-} catch {
+} catch (error) {
   report.failureStage = stage;
+  report.failureCode = error.cause?.code || error.name;
   process.exitCode = 1;
 }
 await writeFile('CUSTOM_DOMAIN_AUTH_VERIFICATION.json', `${JSON.stringify(report, null, 2)}\n`);
