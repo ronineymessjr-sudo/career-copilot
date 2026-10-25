@@ -1,0 +1,37 @@
+name: Custom domain authenticated verification
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ops/custom-domain-verification-20261025]
+    paths:
+      - '.github/workflows/domain-auth-verification.yml'
+      - 'scripts/verify_custom_domain_auth.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify existing test session on approved custom domain
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          CAREER_COPILOT_TEST_EMAIL: ${{ secrets.CAREER_COPILOT_TEST_EMAIL }}
+          CAREER_COPILOT_TEST_PASSWORD: ${{ secrets.CAREER_COPILOT_TEST_PASSWORD }}
+        run: node scripts/verify_custom_domain_auth.mjs
+      - name: Upload redacted acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: custom-domain-auth-verification
+          path: CUSTOM_DOMAIN_AUTH_VERIFICATION.json
+          if-no-files-found: error
+          retention-days: 14
