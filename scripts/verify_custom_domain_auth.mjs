@@ -11,7 +11,7 @@ async function request(url, init = {}) {
   let data;
   if (response.headers.get('content-type')?.includes('application/json')) data = JSON.parse(text);
   const title = response.headers.get('content-type')?.includes('text/html') ? text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] : undefined;
-  return { response, data, title };
+  return { response, data, title, html: title ? text : undefined };
 }
 
 function check(name, passed) {
@@ -33,11 +33,26 @@ try {
   ].map(async ([host, title]) => {
     try {
       const page = await request(`https://${host}/`);
-      return { host, status: page.response.status, title: page.title,
-        passed: page.response.status === 200 && title.test(page.title || '') && new URL(page.response.url).hostname === host };
+      const result = { host, status: page.response.status, title: page.title, assets: [],
+        passed: page.response.status === 200 && title.test(page.title || '') && new URL(page.response.url).origin === `https://${host}` };
+      if (!result.passed) return result;
+      const document = page.html.replace(/(<script\b[^>]*>)[\s\S]*?<\/script\s*>/gi, '$1</script>')
+        .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '').replace(/<!--[\s\S]*?-->/g, '');
+      const assets = [...new Set([...document.matchAll(/<(?:script|link|img)\b[^>]*(?:src|href)=["']([^"']+)["'][^>]*>/gi)]
+        .filter(match => /^<(?:script|img)\b/i.test(match[0]) || /stylesheet|preload|icon/i.test(match[0]))
+        .map(match => new URL(match[1], `https://${host}/`)).filter(url => url.origin === `https://${host}`).map(url => url.href))];
+      for (let index = 0; index < assets.length; index += 3) result.assets.push(...await Promise.all(assets.slice(index, index + 3).map(async url => {
+        try {
+          const asset = await request(url);
+          const fallback = asset.response.headers.get('content-type')?.includes('text/html') && /\.(?:m?js|css|png|webp|jpg|svg)(?:\?|$)/i.test(url);
+          return { url, status: asset.response.status, passed: asset.response.status === 200 && asset.response.url.startsWith('https:') && !fallback };
+        } catch (error) { return { url, passed: false, errorCode: error.cause?.code || error.name }; }
+      })));
+      result.passed = result.assets.every(asset => asset.passed);
+      return result;
     } catch (error) { return { host, passed: false, errorCode: error.cause?.code || error.name }; }
   }));
-  check('six_public_https_homepages', report.publicEndpoints.every(page => page.passed));
+  check('six_public_https_pages_and_assets', report.publicEndpoints.every(page => page.passed));
   const login = await request(`${web}/login`);
   check('https_login_page', login.response.status === 200);
   const runtime = await request(`${web}/api/runtime`);
