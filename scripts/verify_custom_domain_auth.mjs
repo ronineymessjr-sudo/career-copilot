@@ -40,7 +40,7 @@ try {
         .replace(/<style\b[^>]*>[\s\S]*?<\/style\s*>/gi, '').replace(/<!--[\s\S]*?-->/g, '');
       const assets = [...new Set([...document.matchAll(/<(?:script|link|img)\b[^>]*(?:src|href)=["']([^"']+)["'][^>]*>/gi)]
         .filter(match => /^<(?:script|img)\b/i.test(match[0]) || /stylesheet|preload|icon/i.test(match[0]))
-        .map(match => new URL(match[1], `https://${host}/`)).filter(url => url.origin === `https://${host}`).map(url => url.href))];
+        .map(match => new URL(match[1].replace(/&amp;/gi, '&'), `https://${host}/`)).filter(url => url.origin === `https://${host}`).map(url => url.href))];
       for (let index = 0; index < assets.length; index += 3) result.assets.push(...await Promise.all(assets.slice(index, index + 3).map(async url => {
         try {
           const asset = await request(url);
